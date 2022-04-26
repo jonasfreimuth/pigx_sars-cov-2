@@ -41,19 +41,19 @@ library(magrittr)
 library(base64url)
 ```
 
-```{r print_input_settings, echo = FALSE}
-sample_name <- params$sample_name
-sample_sheet <- data.table::fread(params$sample_sheet)
-mutation_sheet <- params$mutation_sheet
-location_sigmuts <- params$sigmut_db
+```{r printInputSettings, echo = FALSE}
+sample_name             <- params$sample_name
+sample_sheet            <- data.table::fread(params$sample_sheet)
+mutation_sheet          <- params$mutation_sheet
+location_sigmuts        <- params$sigmut_db
 deconvolution_functions <- params$deconvolution_functions
 
-csv_output_dir <- file.path(params$output_dir, "variants")
+csv_output_dir      <- file.path(params$output_dir, "variants")
 mutation_output_dir <- file.path(params$output_dir, "mutations")
-date <- as.character(sample_sheet[name == sample_name]$date)
-location_name <- as.character(sample_sheet[name == sample_name]$location_name)
-coordinates_lat <- as.character(sample_sheet[name == sample_name]$coordinates_lat)
-coordinates_long <- as.character(sample_sheet[name == sample_name]$coordinates_long)
+date                <- as.character(sample_sheet[name == sample_name]$date)
+location_name       <- as.character(sample_sheet[name == sample_name]$location_name)
+coordinates_lat     <- as.character(sample_sheet[name == sample_name]$coordinates_lat)
+coordinates_long    <- as.character(sample_sheet[name == sample_name]$coordinates_long)
 ``` 
 
 This lineage analysis report provides an overview over all mutations found in 
@@ -68,12 +68,12 @@ mutations). For detailed method description please consult the
 of signature mutations that were found for this sample.  Check with the QC 
 report to be able to assess how trustworthy the results are.*
 
-```{r function_parse_snv_csv, include = FALSE}
+```{r function_parse_snv_csv, include = FALSE, warning = F, message = F}
 parse_snv_csv <- function(snvfile, ...) { # allele frequency from v-pipe vcf
   #' input: csv file derived from vpipe vcf when using LoFreq,
   #' parsing snv-csv file for coverage, frequency and genomic mutation information
 
-  snvtable <- read.table(snvfile, sep = ",", header = T)
+  snvtable <- read.table(snvfile, sep = ",", header = TRUE)
   freq <- snvtable$AF
   cov <- snvtable$DP
   Ref <- snvtable$Ref
@@ -282,7 +282,7 @@ dedupeMuts <- function(mut, sigmut.df, dedup.df) {
 }
 ```
 
-```{r process_signature_mutations, include = FALSE}
+```{r process_signature_mutations, message=F, warning=F, include = FALSE}
 # Read signature data
 sig_mutations.df <- read.csv(mutation_sheet, header = TRUE)
 
@@ -332,7 +332,7 @@ variant_protein_mut <- dplyr::left_join(variant_protein_mut,
 )
 ```
 
-```{r merge_vep_with_lofreq_info, include = FALSE}
+```{r merge_vep_with_lofreq_info, message=F, warning=F, include = FALSE}
 # get the SNV frequency values and coverage information for the mutations from
 # the LoFreq output
 lofreq.info <- as_data_frame(parse_snv_csv(params$snv_file))
@@ -483,7 +483,7 @@ dropped_variants <- unique(dropped_variants)
 dropped_variants <- dropped_variants[!is.na(dropped_variants)]
 ```
 
-```{r calculate_sigmat_weigths, include = FALSE, eval = executeDeconvolution}
+```{r calculate_sigmat_weigths, message=F, warning=F, include = FALSE, eval = executeDeconvolution}
 deconv_lineages <- colnames(msig_simple_unique[, -which(names(msig_simple_unique) %in% c("muts", "WT"))])
 
 # create list of proportion values that will be used as weigths
@@ -511,7 +511,7 @@ for (lineage in deconv_lineages) {
 }
 ```
 
-```{r simulating_WT_mutations, include = FALSE, eval = executeDeconvolution}
+```{r simulating_WT_mutations, message=F, warning=F, include = FALSE, eval = executeDeconvolution}
 # construct additional WT mutations that are not weighted
 msig_stable_all <- simulateWT(
   mutations.vector, bulk_freq.vector,
@@ -542,7 +542,7 @@ variant_abundance <- deconv(bulk_all, sig)
 
 `r if (executeDeconvolution) {"The following bar plot shows the proportion of each lineage in the sample as predicted by the deconvolution model. For the case of multiple lineages being indistinguishable because of shared signature mutations, the deconvolution result for this group is distributed equally across each grouped lineage and they all get the same value."}` 
 
-```{r plot, echo = FALSE, eval = executeDeconvolution}
+```{r plot, message=F, warning=F, echo = FALSE, eval = executeDeconvolution}
 Variant_colors <- c(
   "#8a3874",
   "#4d3da1",
@@ -567,7 +567,8 @@ Variant_colors <- c(
 )
 # TODO this should be put into a separate color palette function in a separate file
 
-# work in progress...only to show how it theoretically can look like in the report
+# work in progress...only to show how it theoretically can look like in the
+# report
 variants <- colnames(msig_stable_unique[, -1])
 df <- data.frame(rbind(variant_abundance))
 
@@ -601,15 +602,17 @@ df <- df %>%
 
 # Handling of ambiguous cases and grouped variants
 
-# case 1: add dropped variants again with value 0 in case all of the other variants add up to 1
+# case 1: add dropped variants again with value 0 in case all of the other
+# variants add up to 1
 if (round(sum(df$value), 1) == 1) {
   for (variant in dropped_variants) {
     df <- rbind(df, c(variant, 0))
   }
 }
 
-# case 2: in case "others" == 0, both variants can be split up again and being given the value 0 OR
-# case 3: in case multiple vars can really not be distinguished from each other they will be distributed normaly
+# case 2: in case "others" == 0, both variants can be split up again and being
+# given the value 0 OR case 3: in case multiple vars can really not be
+# distinguished from each other they will be distributed normaly
 if (any(str_detect(variants, ","))) {
   grouped_rows <- which(str_detect(variants, ","))
   for (row in grouped_rows) {
@@ -709,7 +712,7 @@ Called SNVs:
 Variant effect prediction (*Ensemble VEP output*):  
 [Download VEP_out.csv](`r sprintf('data:text/csv;base64,%s', vep)`)
 
-```{r csv_output_variant_plot, include = FALSE, eval = executeDeconvolution}
+```{r csv_output_variant_plot, include = F, eval = executeDeconvolution}
 # prepare processed variant values to output them as a csv which will be used
 # for the plots in index.rmd those outputs are not offically declared as outputs
 # which can lead to issues - that part should be handled by a seperate file
