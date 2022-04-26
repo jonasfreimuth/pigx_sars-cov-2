@@ -18,7 +18,11 @@ aclocal.m4
 scripts/download_databases.sh
 
 # test files
+tests/*
 test-suite.log
 tests/tests/*trs
 tests/tests/*log
 tests/tests/*sh
+
+# Rproject files
+.Rproj.user/*
