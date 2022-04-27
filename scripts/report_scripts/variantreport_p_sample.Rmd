@@ -29,6 +29,9 @@ params:
 
 ```{r libs, include=FALSE, message = FALSE, warning = FALSE}
 knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+
+library(ggplot2)
+library(DT)
 ```
 
 
