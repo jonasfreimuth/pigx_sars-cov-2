@@ -102,6 +102,16 @@ match.df <- complete.df %>%
 nomatch.df <- complete.df %>%
   filter(is.na(name))
 
+write.csv(match.df,
+  file.path(mutation_output_dir,
+  paste0(sample_name,
+    "_sigmuts.csv")))
+
+write.csv(nomatch.df,
+  file.path(mutation_output_dir,
+  paste0(sample_name,
+    "_non_sigmuts.csv")))
+
 # Tables are displayed here in report
 
 
