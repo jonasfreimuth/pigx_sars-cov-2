@@ -156,11 +156,10 @@ get_protein_mut <- function(vepfile) {
   # specific B117 mutations: 21990-21993, 21764-21770, maybe also 3675-3677,
   # 69-70 - all there
 
-  # deletions.df <- locations TODO: Check effect of this assignment
   deletions.df <- locations %>%
     filter(gene_mut_loc.2 != gene_mut_loc.3 &
       Conseq == "inframe_deletion" &
-      str_detect(deletions.df$prot_mut_loc, "-"))
+      str_detect(prot_mut_loc, "-"))
 
   colnames <- colnames(deletions.df)
 
