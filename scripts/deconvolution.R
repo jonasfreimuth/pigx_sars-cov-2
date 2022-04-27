@@ -297,6 +297,10 @@ if (any(str_detect(variants, ","))) {
 
 df <- transform(df, value = as.numeric(value))
 
+write.csv(df, file.path(mutation_output_dir,
+  paste0(sample_name,
+    "variant_proportion_barplot_data.csv")))
+
 # plot comes here in report
 
 
