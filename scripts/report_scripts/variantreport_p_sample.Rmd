@@ -128,6 +128,13 @@ DT::datatable(NoSignatureTable,
 Lineage proportion values are derived by deconvolution of the tracked signature mutations. Deconvolution is done by using a robust regression model. It aims to predict the individual contributions of the lineages to the observed mutation frequencies in the bulk wastewater sample. For detailed method description, please consult the [documentation](https://bioinformatics.mdc-berlin.de/pigx_docs/pigx-sars-cov-2.html#output-description)
 
 
+```{r echo = FALSE}
+# get  NT mutations only, input for the signature matrix
+mutations.vector <- match.df$gene_mut_collapsed
+
+# only execute the deconvolution when at least one signature mutation was found
+executeDeconvolution <- length(mutations.vector) > 0
+```
 
 
 ```{r plot, echo = FALSE, eval = executeDeconvolution}
@@ -187,7 +194,7 @@ ggplot(data = df, aes(name,value,
 
 ## LoFreq filter
 | LoFreq is used with default filter settings:       |                   |
-|:---------------------------------------------------|:------------------|
+| :------------------------------------------------- | :---------------- |
 | minimum coverage                                   | 10                |
 | Strand-Bias Multiple Testing Correction, fdr corr. | pvalue > 0.001000 |
 | Minimum SNV Quality (Phred)                        | 63                |
@@ -198,7 +205,7 @@ ggplot(data = df, aes(name,value,
 * Assembly: ASM985889v3  
 
 |                                                   |        |
-|:--------------------------------------------------|:-------|
+| :------------------------------------------------ | :----- |
 | Matched Annotations from NCBI and EMBL-EBI (MANE) | yes    |
 | Restrict results by severity of consequence       | no     |
 | upstream/downstream distance                      | 5000bp |
