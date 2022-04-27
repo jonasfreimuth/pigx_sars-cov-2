@@ -29,6 +29,9 @@ params:
 
 ```{r setup, include = FALSE, warning = FALSE}
 knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+
+library(ggplot2)
+library(DT)
 ```
 
 This lineage analysis report provides an overview over all mutations found in 
