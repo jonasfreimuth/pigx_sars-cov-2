@@ -230,6 +230,20 @@ ggplot(data = df, aes(name, value,
 
 # Raw data 
 
+```{r download_raw, include = FALSE}
+## ------------------------------------------------
+# make raw/input data downloadable
+snvs <- readLines(params$snv_file) %>%
+  paste0(collapse = "\n") %>%
+  base64_urlencode()
+
+vep <- readLines(params$vep_file) %>%
+  paste0(collapse = "\n") %>%
+  base64_urlencode()
+```
+
+
+
 Called SNVs:  
 [Download SNVs.csv](`r sprintf('data:text/csv;base64,%s', snvs)`)
 
