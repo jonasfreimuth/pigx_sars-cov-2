@@ -304,17 +304,6 @@ write.csv(df, file.path(mutation_output_dir,
 # plot comes here in report
 
 
-## ----download_raw, include = FALSE--------------------------------------------
-# make raw/input data downloadable
-snvs <- readLines(params$snv_file) %>%
-  paste0(collapse = "\n") %>%
-  base64_urlencode()
-
-vep <- readLines(params$vep_file) %>%
-  paste0(collapse = "\n") %>%
-  base64_urlencode()
-
-
 ## ----csv_output_variant_plot, include = FALSE---------------------------------
 # prepare processed variant values to output them as a csv which will be used
 # for the plots in index.rmd those outputs are not offically declared as outputs
