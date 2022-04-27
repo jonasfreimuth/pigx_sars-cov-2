@@ -28,7 +28,7 @@ params:
 <sample>`r params$sample_name`</sample>
 
 ```{r setup, include = FALSE, warning = FALSE}
-knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
 
 library(ggplot2)
 library(DT)
@@ -66,11 +66,11 @@ about the resulting protein mutation and on which gene they are located. If the
 SNV matches a provided signature mutation it is marked which of the provided
 lineages they characterize. 
 
-```{r, echo = FALSE, results = 'asis'}
+```{r, results = 'asis'}
 cat("\n Table 1: SNVs from sample matching signature mutations")
 ```
 
-```{r sig_table, echo = FALSE, results = 'asis'}
+```{r sig_table, results = 'asis'}
 # TODO: check if mutation_output_dir is correct
 match.df <- read.csv(file.path(mutation_output_dir,
   paste0(sample_name,
@@ -100,11 +100,11 @@ DT::datatable(SignatureTable,
 )
 ```
 
-```{r nonsig_table, echo = FALSE, results = 'asis'}
+```{r nonsig_table, results = 'asis'}
 cat("\n Table 2: SNVs from sample not matching any signature mutations")
 ```
 
-```{r non_sig_table, echo = FALSE, results = 'asis'}
+```{r non_sig_table, results = 'asis'}
 nomatch.df <- read.csv(file.path(mutation_output_dir,
   paste0(sample_name,
     "_non_sigmuts.csv")))
@@ -151,7 +151,7 @@ executeDeconvolution <- length(mutations.vector) > 0
 
 `r if (executeDeconvolution) {"The following bar plot shows the proportion of each lineage in the sample as predicted by the deconvolution model. For the case of multiple lineages being indistinguishable because of shared signature mutations, the deconvolution result for this group is distributed equally across each grouped lineage and they all get the same value."}` 
 
-```{r plot, echo = FALSE, eval = executeDeconvolution}
+```{r plot, eval = executeDeconvolution}
 Variant_colors <- c(
   "#8a3874",
   "#4d3da1",
