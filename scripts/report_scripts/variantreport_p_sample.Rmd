@@ -27,8 +27,8 @@ params:
 
 <sample>`r params$sample_name`</sample>
 
-```{r libs, include=FALSE, message = FALSE, warning = FALSE}
-knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+```{r setup, include = FALSE, warning = FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
 
 library(ggplot2)
 library(DT)
@@ -60,14 +60,19 @@ report to be able to assess how trustworthy the results are.*
 
 # Mutation analysis
 
-The following tables combine the results from the variant calling which are SNVs, their frequency and read coverage. They get translated to get the info about the resulting protein mutation and on which gene they are located. If the SNV matches a provided signature mutation it is marked which of the provided lineages they characterize. 
-```{r, message=F, warning=F, echo = FALSE, results = 'asis'}
+The following tables combine the results from the variant calling which are 
+SNVs, their frequency and read coverage. They get translated to get the info 
+about the resulting protein mutation and on which gene they are located. If the
+SNV matches a provided signature mutation it is marked which of the provided
+lineages they characterize. 
+
+```{r, results = 'asis'}
 cat("\n Table 1: SNVs from sample matching signature mutations")
 ```
 ```{r sig_table, message=F, warning=F, echo = FALSE, results = 'asis'}
 # Display the filtered signature mutations and the variants accordingly in scrollable tables
 
-```{r sig_table, echo = FALSE, results = 'asis'}
+```{r sig_table, results = 'asis'}
 # TODO: check if mutation_output_dir is correct
 match.df <- read.csv(file.path(mutation_output_dir,
   paste0(sample_name,
@@ -93,13 +98,14 @@ DT::datatable(SignatureTable,
                          dom = 'Bfrtip'),
               filter = "bottom")
 ```
-```{r nonsig_table, message=F, warning=F, echo = FALSE, results = 'asis'}
+
+```{r nonsig_table, results = 'asis'}
 cat("\n Table 2: SNVs from sample not matching any signature mutations")
 ```
 ```{r non_sig_table, message=F, warning=F, echo = FALSE, results = 'asis'}
 # Display the filtered signature mutations and the variants accordingly in scrollable tables
 
-```{r non_sig_table, echo = FALSE, results = 'asis'}
+```{r non_sig_table, results = 'asis'}
 nomatch.df <- read.csv(file.path(mutation_output_dir,
   paste0(sample_name,
     "_non_sigmuts.csv")))
@@ -137,7 +143,7 @@ executeDeconvolution <- length(mutations.vector) > 0
 ```
 
 
-```{r plot, echo = FALSE, eval = executeDeconvolution}
+```{r plot, eval = executeDeconvolution}
 Variant_colors <- c(
   "#8a3874",
   "#4d3da1",
