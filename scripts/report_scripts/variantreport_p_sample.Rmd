@@ -169,6 +169,10 @@ Variant_colors <- c(
 )
 # TODO this should be put into a separate color palette function in a separate file
 
+df <- read.csv(file.path(mutation_output_dir,
+  paste0(sample_name,
+    "variant_proportion_barplot_data.csv")))
+
 font_family <- "DejaVu Sans"
 
 ggplot(data = df, aes(name, value,
