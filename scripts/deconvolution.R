@@ -1,6 +1,28 @@
-params <- list(sample_name = "", output_dir = "", vep_file = "", snv_file = "", 
-    sample_sheet = "", mutation_sheet = "", mutation_parsing_functions = "", 
-    deconvolution_functions = "", logo = "")
+args <- commandArgs(trailingOnly = TRUE)
+
+if (length(args) == 0) {
+  args <- c(
+    sample_name = "",
+    output_dir = "",
+    vep_file = "",
+    snv_file = "",
+    sample_sheet = "",
+    mutation_sheet = "",
+    deconvolution_functions = ""
+  )
+}
+
+params <- list(
+  sample_name = args[[1]],
+  output_dir = args[[2]],
+  vep_file = args[[3]],
+  snv_file = args[[4]],
+  sample_sheet = args[[5]],
+  mutation_sheet = args[[6]],
+  deconvolution_functions = args[[7]]
+)
+
+print(params)
 
 ## ----setup, include = FALSE, warning = FALSE----------------------------------
 knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
