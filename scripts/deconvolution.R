@@ -1,5 +1,20 @@
+## ----setup, include = FALSE, warning = FALSE----------------------------------
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+
+library(knitr)
+library(dplyr)
+library(ggplot2)
+library(DT)
+library(tidyr)
+library(qpcR)
+library(stringr)
+library(magrittr)
+library(base64url)
+
+## command line arguments
 args <- commandArgs(trailingOnly = TRUE)
 
+# give default parameters
 if (length(args) == 0) {
   args <- c(
     sample_name = "",
@@ -22,21 +37,8 @@ params <- list(
   deconvolution_functions = args[[7]]
 )
 
-print(params)
 
-## ----setup, include = FALSE, warning = FALSE----------------------------------
-knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
-
-library(knitr)
-library(dplyr)
-library(ggplot2)
-library(DT)
-library(tidyr)
-library(qpcR)
-library(stringr)
-library(magrittr)
-library(base64url)
-
+## function loading
 source(params$deconvolution_functions)
 
 
