@@ -15,14 +15,13 @@ library(stringr)
 library(magrittr)
 library(base64url)
 
-source(params$mutation_parsing_functions)
 source(params$deconvolution_functions)
 
 
 ## ----print_input_settings, echo = FALSE---------------------------------------
-sample_name             <- params$sample_name
-sample_sheet            <- data.table::fread(params$sample_sheet)
-mutation_sheet          <- params$mutation_sheet
+sample_name         <- params$sample_name
+sample_sheet        <- data.table::fread(params$sample_sheet)
+mutation_sheet      <- params$mutation_sheet
 
 csv_output_dir      <- file.path(params$output_dir, "variants")
 mutation_output_dir <- file.path(params$output_dir, "mutations")
