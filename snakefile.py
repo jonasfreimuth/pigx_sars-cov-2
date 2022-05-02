@@ -546,6 +546,8 @@ rule render_variant_report:
             MUTATIONS_DIR, "{sample}_variant_abundance.csv"
         ),
         mutations=os.path.join(MUTATIONS_DIR, "{sample}_mutations.csv"),
+        vep=os.path.join(VARIANTS_DIR, "{sample}_vep_sarscov2_parsed.txt"),
+        snv=os.path.join(VARIANTS_DIR, "{sample}_snv.csv"),
     output:
         varreport=os.path.join(REPORT_DIR, "{sample}.variantreport_p_sample.html"),
     log:
@@ -556,9 +558,11 @@ rule render_variant_report:
         {input.report} {output.varreport} {input.header} \
         '{{ \
           "sample_name": "{wildcards.sample}", \
-          "sigmut_file": "{input.sigmut_file}" \
-          "non_sigmut_file": "{input.non_sigmut_file}" \
-          "variant_abundance_file": "{input.variant_abundance_file}" \
+          "sigmut_file": "{input.sigmut_file}", \
+          "non_sigmut_file": "{input.non_sigmut_file}", \
+          "variant_abundance_file": "{input.variant_abundance_file}", \
+          "snv_file": "{input.snv}", \
+          "vep_file": "{input.vep}", \
           "logo": "{LOGO}" \
         }}' > {log} 2>&1
         """

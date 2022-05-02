@@ -8,6 +8,8 @@ params:
   sigmut_file: ""
   non_sigmut_file: ""
   variant_abundance_file: ""
+  vep_file: ""
+  snv_file: ""
   logo: ""
 ---
 
