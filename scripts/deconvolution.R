@@ -179,6 +179,7 @@ write.csv(
 ## ----getting_unique_muts_bulk, include = FALSE--------------------------------
 # get  NT mutations only, input for the signature matrix
 mutations.vector <- match.df$gene_mut_collapsed
+
 # get bulk frequency values, will be input for the deconvolution function
 bulk_freq.vector <- as.numeric(match.df$freq)
 
@@ -187,7 +188,7 @@ executeDeconvolution <- length(mutations.vector) > 0
 
 
 if (executeDeconvolution) {
-  ## ----creating_signature_matrix, include = FALSE-------------------------------
+  ## ----creating_signature_matrix, include = FALSE-----------------------------
   # create an empty data frame add a column for the Wildtype
   # Wildtype in this case means the reference version of SARS-Cov-2
   # for the deconvolution to work we need the "wild type" frequencies too.
@@ -197,8 +198,9 @@ if (executeDeconvolution) {
 
   # When multiple columns look like the same, the deconvolution will not work,
   # because the function can't distinguish between those columns. The workaround
-  # for now is to identify those equal columns and merge them into one, returning
-  # also a vector with the information about which of the columns were merged.
+  # for now is to identify those equal columns and merge them into one,
+  # returning also a vector with the information about which of the columns were
+  # merged.
   msig_simple <- cbind(muts = mutations.vector, msig_simple)
   msig_transposed <- dedupeDF(msig_simple)
   msig_stable_transposed <- msig_transposed[[1]]
@@ -208,7 +210,9 @@ if (executeDeconvolution) {
 
   # for every variant update the rownames with the group they are in
   # FIXME: Shorten this and similar constructs
-  for (variant in rownames(msig_stable_transposed[-(rownames(msig_stable_transposed) %in% "muts"), ])) {
+  for (variant in rownames(
+    msig_stable_transposed[- (rownames(msig_stable_transposed) %in% "muts"), ])
+  ) {
     grouping_res <- dedupeVariants(
       variant,
       msig_stable_transposed,
@@ -221,18 +225,22 @@ if (executeDeconvolution) {
 
   # transpose the data frame back to column format for additional processing
   if (length(msig_dedupe_transposed) >= 1) {
-    # the 1 get's rid of the additional first row which is an transposing artifact
+    # the 1 get's rid of the additional first row which is an transposing
+    # artifact
     msig_simple_unique <- as.data.frame(t(msig_dedupe_transposed[, -1])) %>%
       mutate(across(!c("muts"), as.numeric))
   }
 
-  # clean the vector to know which variants has to be add with value 0 after deconvolution
+  # clean the vector to know which variants has to be add with value 0 after
+  # deconvolution
   dropped_variants <- unique(dropped_variants)
   dropped_variants <- dropped_variants[!is.na(dropped_variants)]
 
 
-  ## ----calculate_sigmat_weigths, include = FALSE--------------------------------
-  deconv_lineages <- colnames(msig_simple_unique[, -which(names(msig_simple_unique) %in% c("muts", "WT"))])
+  ## ----calculate_sigmat_weigths, include = FALSE------------------------------
+  deconv_lineages <- colnames(
+    msig_simple_unique[, -which(names(msig_simple_unique) %in% c("muts", "WT"))]
+  )
 
   # create list of proportion values that will be used as weigths
   sigmut_proportion_weights <- list()
@@ -244,7 +252,8 @@ if (executeDeconvolution) {
       avrg <- sum(sig_mutations.df$name %in% group) / length(group)
       value <- sum(msig_simple_unique[lineage]) / avrg
     } else {
-      value <- sum(msig_simple_unique[lineage]) / sum(sig_mutations.df$name == lineage)
+      value <- sum(msig_simple_unique[lineage]) /
+        sum(sig_mutations.df$name == lineage)
     }
     sigmut_proportion_weights[lineage] <- value
   }
@@ -259,18 +268,20 @@ if (executeDeconvolution) {
   }
 
 
-  ## ----simulating_WT_mutations, include = FALSE---------------------------------
+  ## ----simulating_WT_mutations, include = FALSE-------------------------------
   # construct additional WT mutations that are not weighted
   msig_stable_all <- simulateWT(
     mutations.vector, bulk_freq.vector,
-    msig_simple_unique_weighted[, -which(names(msig_simple_unique_weighted) == "muts")],
+    msig_simple_unique_weighted[, -which(
+      names(msig_simple_unique_weighted) == "muts"
+    )],
     match.df$cov
   )
 
   msig_stable_unique <- msig_stable_all[[1]]
 
 
-  ## ----deconvolution, include = FALSE-------------------------------------------
+  ## ----deconvolution, include = FALSE-----------------------------------------
   # this hack is necessary because otherwise the deconvolution will throw:
   # Error in x * wts: non-numeric argument to binary operator
   # also see: https://stackoverflow.com/questions/37707060/converting-data-frame-column-from-character-to-numeric/37707117
@@ -286,7 +297,7 @@ if (executeDeconvolution) {
   variant_abundance <- deconv(bulk_all, sig)
 
 
-  ## ----plot, echo = FALSE-------------------------------------------------------
+  ## ----plot, echo = FALSE-----------------------------------------------------
   # work in progress...only to show how it theoretically can look like in the
   # report
   variants <- colnames(msig_stable_unique[, -1])
@@ -366,12 +377,16 @@ if (executeDeconvolution) {
   # plot comes here in report
 
 
-  ## ----csv_output_variant_plot, include = FALSE---------------------------------
+  ## ----csv_output_variant_plot, include = FALSE-------------------------------
+  # TODO: separate this part into a separate script
   # prepare processed variant values to output them as a csv which will be used
-  # for the plots in index.rmd those outputs are not offically declared as outputs
-  # which can lead to issues - that part should be handled by a seperate file
-  # (and maybe rule) get all possible variants
-  all_variants <- colnames(msig_simple[, -which(names(msig_simple) %in% "muts")])
+  # for the plots in index.rmd those outputs are not offically declared as
+  # outputswhich can lead to issues - that part should be handled by a seperate
+  # file (and maybe rule) get all possible variants
+  all_variants <- colnames(msig_simple[, -which(
+    names(msig_simple) %in% "muts"
+  )])
+
   output_variants <- file.path(csv_output_dir, "data_variant_plot.csv")
 
   # 1. write dataframe with this information here
@@ -408,7 +423,8 @@ if (executeDeconvolution) {
       if (i %in% colnames(output_variant_plot)) {
         output_variant_plot[sample_row, ][i] <- df$value[df$name == i]
         output_variant_plot <- output_variant_plot %>%
-          mutate(others = 1 - rowSums(across(all_of(all_variants)), na.rm = TRUE))
+          mutate(others = 1 - rowSums(across(all_of(all_variants)),
+            na.rm = TRUE))
       }
     }
   }
@@ -424,7 +440,8 @@ if (executeDeconvolution) {
     )
     # convert numeric values to character
     output_variant_plot <-
-      as.data.frame(lapply(output_variant_plot, as.character), check.names = FALSE)
+      as.data.frame(lapply(output_variant_plot, as.character),
+        check.names = FALSE)
     # merge with adding cols and rows
     output_variant_plot <- full_join(previous_df,
       output_variant_plot,
@@ -441,7 +458,7 @@ if (executeDeconvolution) {
   )
 
 
-  ## ----csv_output_mutation_plot, include = FALSE--------------------------------
+  ## ----csv_output_mutation_plot, include = FALSE------------------------------
   # prepare processed mutation values to output them as a csv which will be used
   # for the plots in index.rmd those outputs are not officially declared as
   # outputs which can lead to issues - that part should be handled by a seperate
@@ -505,7 +522,10 @@ if (executeDeconvolution) {
       }
     }
   }
-  colnames(output_mutation_frame) <- as.character(colnames(output_mutation_frame))
+  colnames(output_mutation_frame) <- as.character(colnames(
+    output_mutation_frame
+  ))
+
   output_mutation_frame <- output_mutation_frame %>%
     dplyr::select(-contains("NA", ignore.case = FALSE))
 
@@ -527,6 +547,7 @@ if (executeDeconvolution) {
 } else {
   # write dummy files
 
+  # TODO: create headers dynamically
   variant_abundance_colnames <- c(
     "gene_pos",
     "gene_mut",
