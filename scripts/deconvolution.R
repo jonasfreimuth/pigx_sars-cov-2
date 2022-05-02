@@ -75,7 +75,7 @@ non_sigmut_output_file <- file.path(
 mutation_output_file <- file.path(
   mutation_output_dir,
   paste0(sample_name,
-   "_mutations.csv")
+    "_mutations.csv")
 )
 
 variant_abundance_file <- file.path(
@@ -157,11 +157,13 @@ match.df <- complete.df %>%
 nomatch.df <- complete.df %>%
   filter(is.na(name))
 
+cat("Writing signature mutation file to ", sigmut_output_file, "...\n")
 write.csv(
   match.df,
   sigmut_output_file
 )
 
+cat("Writing non signature mutation file to ", non_sigmut_output_file, "...\n")
 write.csv(
   nomatch.df,
   non_sigmut_output_file
@@ -353,6 +355,8 @@ if (executeDeconvolution) {
 
   df <- transform(df, value = as.numeric(value))
 
+
+  cat("Writing variant abundance file to ", variant_abundance_file, "...\n")
   write.csv(df, variant_abundance_file)
 
   # plot comes here in report
@@ -426,6 +430,7 @@ if (executeDeconvolution) {
   }
 
   # 3. write to output file
+  cat("Writing pooled variant file to ", output_variants, "...\n")
   write.table(output_variant_plot, output_variants,
     sep = "\t",
     na = "NA", row.names = FALSE, quote = FALSE
@@ -509,10 +514,12 @@ if (executeDeconvolution) {
   )
 
   # 3. write to output file
+  cat("Writing mutation file to ", mutation_output_file, "...\n")
   write.table(output_mutation_frame, mutation_output_file,
     sep = "\t",
     row.names = FALSE, quote = FALSE
   )
+
 } else {
   # write dummy files
 
@@ -529,6 +536,12 @@ if (executeDeconvolution) {
     "Conseq", "genes",
     "AA_mut", "name",
     "gene_mut_collapsed"
+  )
+
+  cat(
+    "Writing dummy variant abundance file to ",
+    variant_abundance_file,
+    "...\n"
   )
 
   write.csv(
@@ -551,6 +564,8 @@ if (executeDeconvolution) {
     "b16172",
     "p1",
     "others")
+
+  cat("Writing dummy mutation file to ", mutation_output_file, "...\n")
 
   write.table(setNames(
     data.frame(matrix(nrow = 0, ncol = length(mutation_output_colnames))),
