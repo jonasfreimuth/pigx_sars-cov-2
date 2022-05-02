@@ -556,9 +556,9 @@ rule render_variant_report:
         {input.report} {output.varreport} {input.header} \
         '{{ \
           "sample_name": "{wildcards.sample}", \
-          "sigmut_file:" "{input.sigmut_file}" \
-          "non_sigmut_file": "{input.non_sigmut_file" \
-          "variant_abundance_file": "" \
+          "sigmut_file": "{input.sigmut_file}" \
+          "non_sigmut_file": "{input.non_sigmut_file}" \
+          "variant_abundance_file": "{input.variant_abundance_file}" \
           "logo": "{LOGO}" \
         }}' > {log} 2>&1
         """
