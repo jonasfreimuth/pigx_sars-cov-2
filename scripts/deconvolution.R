@@ -68,13 +68,14 @@ non_sigmut_output_file <- file.path(
   mutation_output_dir,
   paste0(
     sample_name,
-    "_sigmuts.csv"
+    "_non_sigmuts.csv"
   )
 )
 
 mutation_output_file <- file.path(
   mutation_output_dir,
-  paste0(sample_name, "_mutations.csv")
+  paste0(sample_name,
+   "_mutations.csv")
 )
 
 variant_abundance_file <- file.path(
@@ -352,7 +353,7 @@ if (executeDeconvolution) {
 
   df <- transform(df, value = as.numeric(value))
 
-  write.csv(df, mutation_output_dir)
+  write.csv(df, variant_abundance_file)
 
   # plot comes here in report
 
