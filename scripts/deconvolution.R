@@ -50,10 +50,14 @@ mutation_sheet      <- params$mutation_sheet
 csv_output_dir      <- file.path(params$output_dir, "variants")
 mutation_output_dir <- file.path(params$output_dir, "mutations")
 
-date                <- as.character(sample_sheet[name == sample_name]$date)
-location_name       <- as.character(sample_sheet[name == sample_name]$location_name)
-coordinates_lat     <- as.character(sample_sheet[name == sample_name]$coordinates_lat)
-coordinates_long    <- as.character(sample_sheet[name == sample_name]$coordinates_long)
+
+sample_entry <- sample_sheet %>%
+  filter(name == sample_name)
+
+date                <- as.character(sample_entry$date)
+location_name       <- as.character(sample_entry$location_name)
+coordinates_lat     <- as.character(sample_entry$coordinates_lat)
+coordinates_long    <- as.character(sample_entry$coordinates_long)
 
 
 sigmut_output_file <- file.path(
