@@ -49,10 +49,41 @@ mutation_sheet      <- params$mutation_sheet
 
 csv_output_dir      <- file.path(params$output_dir, "variants")
 mutation_output_dir <- file.path(params$output_dir, "mutations")
+
 date                <- as.character(sample_sheet[name == sample_name]$date)
 location_name       <- as.character(sample_sheet[name == sample_name]$location_name)
 coordinates_lat     <- as.character(sample_sheet[name == sample_name]$coordinates_lat)
 coordinates_long    <- as.character(sample_sheet[name == sample_name]$coordinates_long)
+
+
+sigmut_output_file <- file.path(
+  mutation_output_dir,
+  paste0(
+    sample_name,
+    "_sigmuts.csv"
+  )
+)
+
+non_sigmut_output_file <- file.path(
+  mutation_output_dir,
+  paste0(
+    sample_name,
+    "_sigmuts.csv"
+  )
+)
+
+mutation_output_file <- file.path(
+  mutation_output_dir,
+  paste0(sample_name, "_mutations.csv")
+)
+
+variant_abundance_file <- file.path(
+  mutation_output_dir,
+  paste0(
+    sample_name,
+    "_variant_abundance.csv"
+  )
+)
 
 
 ## ----process_signature_mutations, include = FALSE-----------------------------
@@ -125,15 +156,15 @@ match.df <- complete.df %>%
 nomatch.df <- complete.df %>%
   filter(is.na(name))
 
-write.csv(match.df,
-  file.path(mutation_output_dir,
-  paste0(sample_name,
-    "_sigmuts.csv")))
+write.csv(
+  match.df,
+  sigmut_output_file
+)
 
-write.csv(nomatch.df,
-  file.path(mutation_output_dir,
-  paste0(sample_name,
-    "_non_sigmuts.csv")))
+write.csv(
+  nomatch.df,
+  non_sigmut_output_file
+)
 
 # Tables are displayed here in report
 
@@ -321,13 +352,7 @@ if (executeDeconvolution) {
 
   df <- transform(df, value = as.numeric(value))
 
-  write.csv(df, file.path(
-    mutation_output_dir,
-    paste0(
-      sample_name,
-      "_variant_abundance.csv"
-    )
-  ))
+  write.csv(df, mutation_output_dir)
 
   # plot comes here in report
 
@@ -436,11 +461,6 @@ if (executeDeconvolution) {
     sep = "::"
   )
 
-  output_mutations <- file.path(
-    mutation_output_dir,
-    paste0(sample_name, "_mutations.csv")
-  )
-
   # 1. write dataframe with this information here
   output_mutation_frame <- data.frame(
     samplename = character(),
@@ -488,7 +508,7 @@ if (executeDeconvolution) {
   )
 
   # 3. write to output file
-  write.table(output_mutation_frame, output_mutations,
+  write.table(output_mutation_frame, mutation_output_file,
     sep = "\t",
     row.names = FALSE, quote = FALSE
   )
@@ -515,13 +535,7 @@ if (executeDeconvolution) {
       data.frame(matrix(nrow = 0, ncol = length(variant_abundance_colnames))),
       variant_abundance_colnames
     ),
-    file.path(
-      mutation_output_dir,
-      paste0(
-        sample_name,
-        "_variant_abundance.csv"
-      )
-    )
+    variant_abundance_file
   )
 
   mutation_output_colnames <- c(
@@ -540,7 +554,7 @@ if (executeDeconvolution) {
   write.table(setNames(
     data.frame(matrix(nrow = 0, ncol = length(mutation_output_colnames))),
     mutation_output_colnames
-  ), output_mutations,
+  ), mutation_output_file,
   sep = "\t",
   row.names = FALSE, quote = FALSE
   )
