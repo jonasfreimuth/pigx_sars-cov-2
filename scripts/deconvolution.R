@@ -93,35 +93,35 @@ variant_abundance_file <- file.path(
 
 ## ----process_signature_mutations, include = FALSE-----------------------------
 # Read signature data
-sig_mutations.df <- read.csv(mutation_sheet, header = TRUE)
+sigmut_df <- read.csv(mutation_sheet, header = TRUE)
 
-if ("source" %in% colnames(sig_mutations.df)) {
-  sig_mutations.df <- sig_mutations.df[, -(which(names(sig_mutations.df) %in%
+if ("source" %in% colnames(sigmut_df)) {
+  sigmut_df <- sigmut_df[, -(which(names(sigmut_df) %in%
     "source"))]
 }
 
-sig_mutations.df <- sig_mutations.df %>%
+sigmut_df <- sigmut_df %>%
   dplyr::na_if("") %>%
   tidyr::pivot_longer(everything(), values_drop_na = TRUE)
 
-vepfile.df <- read.table(params$vep_file, sep = ",", header = TRUE)
+vep_output_df <- read.table(params$vep_file, sep = ",", header = TRUE)
 
-vepfile.df <- na_if(vepfile.df, "-")
+vep_output_df <- na_if(vep_output_df, "-")
 
 # deduplicate dataframe
 # reasoning see description of "dedupeMuts"
 # FIXME: I was not sure, how I can include this in my function but should be
 # possible, will come back to it later
-dupes <- duplicated(sig_mutations.df$value, fromLast = TRUE)
-allDupes <- dupes | duplicated(sig_mutations.df$value, fromLast = FALSE)
+dupes <- duplicated(sigmut_df$value, fromLast = TRUE)
+allDupes <- dupes | duplicated(sigmut_df$value, fromLast = FALSE)
 
 if (any(allDupes)) {
-  sigmuts_deduped <- sig_mutations.df[!dupes, ]
+  sigmuts_deduped <- sigmut_df[!dupes, ]
 }
 
 # FIXME: I think this should be done with some apply() function?
-for (mut in sig_mutations.df$value) {
-  sigmuts_deduped <- dedupeMuts(mut, sig_mutations.df, sigmuts_deduped)
+for (mut in sigmut_df$value) {
+  sigmuts_deduped <- dedupeMuts(mut, sigmut_df, sigmuts_deduped)
 }
 
 sigmuts_deduped_no_gene <- sigmuts_deduped %>%
@@ -147,18 +147,18 @@ variant_protein_mut <- dplyr::left_join(variant_protein_mut,
 lofreq.info <- as_data_frame(parse_snv_csv(params$snv_file))
 vep.info <- variant_protein_mut
 
-complete.df <- dplyr::left_join(lofreq.info, vep.info,
+complete_df <- dplyr::left_join(lofreq.info, vep.info,
   by = c("gene_mut" = "gene_mut"), copy = TRUE
 ) %>%
   rowwise() %>%
   mutate(gene_mut_collapsed = paste(genes, gene_mut, sep = ":"))
 
 # filter for mutations which are signature mutations
-match.df <- complete.df %>%
+match.df <- complete_df %>%
   filter(!is.na(name))
 
 # filter for everything that is not a signature mutation
-nomatch.df <- complete.df %>%
+nomatch.df <- complete_df %>%
   filter(is.na(name))
 
 cat("Writing signature mutation file to ", sigmut_output_file, "...\n")
@@ -178,30 +178,30 @@ write.csv(
 
 ## ----getting_unique_muts_bulk, include = FALSE--------------------------------
 # get  NT mutations only, input for the signature matrix
-mutations.vector <- match.df$gene_mut_collapsed
+muations_vec <- match.df$gene_mut_collapsed
 
 # get bulk frequency values, will be input for the deconvolution function
-bulk_freq.vector <- as.numeric(match.df$freq)
+bulk_freq_vec <- as.numeric(match.df$freq)
 
 # only execute the deconvolution when at least one signature mutation was found
-executeDeconvolution <- length(mutations.vector) > 0
+execute_deconvolution <- length(muations_vec) > 0
 
 
-if (executeDeconvolution) {
+if (execute_deconvolution) {
   ## ----creating_signature_matrix, include = FALSE-----------------------------
   # create an empty data frame add a column for the Wildtype
   # Wildtype in this case means the reference version of SARS-Cov-2
   # for the deconvolution to work we need the "wild type" frequencies too.
   # The matrix from above got mirrored, wild type mutations are simulated the
   # following: e.g. T210I (mutation) -> T210T ("wild type")
-  msig_simple <- createSigMatrix(mutations.vector, mutation_sheet)
+  msig_simple <- createSigMatrix(muations_vec, mutation_sheet)
 
   # When multiple columns look like the same, the deconvolution will not work,
   # because the function can't distinguish between those columns. The workaround
   # for now is to identify those equal columns and merge them into one,
   # returning also a vector with the information about which of the columns were
   # merged.
-  msig_simple <- cbind(muts = mutations.vector, msig_simple)
+  msig_simple <- cbind(muts = muations_vec, msig_simple)
   msig_transposed <- dedupeDF(msig_simple)
   msig_stable_transposed <- msig_transposed[[1]]
   msig_dedupe_transposed <- msig_transposed[[2]]
@@ -249,11 +249,11 @@ if (executeDeconvolution) {
   for (lineage in deconv_lineages) {
     if (grepl(",", lineage)) {
       group <- unlist(str_split(lineage, ","))
-      avrg <- sum(sig_mutations.df$name %in% group) / length(group)
+      avrg <- sum(sigmut_df$name %in% group) / length(group)
       value <- sum(msig_simple_unique[lineage]) / avrg
     } else {
       value <- sum(msig_simple_unique[lineage]) /
-        sum(sig_mutations.df$name == lineage)
+        sum(sigmut_df$name == lineage)
     }
     sigmut_proportion_weights[lineage] <- value
   }
@@ -271,7 +271,7 @@ if (executeDeconvolution) {
   ## ----simulating_WT_mutations, include = FALSE-------------------------------
   # construct additional WT mutations that are not weighted
   msig_stable_all <- simulateWT(
-    mutations.vector, bulk_freq.vector,
+    muations_vec, bulk_freq_vec,
     msig_simple_unique_weighted[, -which(
       names(msig_simple_unique_weighted) == "muts"
     )],
@@ -468,7 +468,7 @@ if (executeDeconvolution) {
   # one aa mutation can have different codon mutations reported with
   # different freqs- for the summary table they have to be summed up
   # (process see line 1872 of documentation)
-  complete.df <- complete.df %>%
+  complete_df <- complete_df %>%
     group_by(across(c(-freq, -gene_mut, -gene_mut_collapsed, AA_mut))) %>%
     summarise(
       freq = sum(as.numeric(freq)),
@@ -483,8 +483,8 @@ if (executeDeconvolution) {
 
   # report the gene, translated_AA_mut and NT mut accordingly
   # easier to spot translation inconsitentcies that way
-  all_mutations <- paste(complete.df$AA_mut[!is.na(complete.df$AA_mut)],
-    complete.df$gene_mut,
+  all_mutations <- paste(complete_df$AA_mut[!is.na(complete_df$AA_mut)],
+    complete_df$gene_mut,
     sep = "::"
   )
 
@@ -512,12 +512,12 @@ if (executeDeconvolution) {
 
   # write mutation frequency values to df
   for (i in all_mutations) {
-    i_NT <- str_split(i, "::")[[1]][2]
-    if (i_NT %in% complete.df$gene_mut) { # split gene name to match with AA mut
+    i_nt <- str_split(i, "::")[[1]][2]
+    if (i_nt %in% complete_df$gene_mut) { # split gene name to match with AA mut
       # check if variant already has a column
       if (i %in% colnames(output_mutation_frame)) {
-        output_mutation_frame[, i] <- complete.df$freq[which(
-          complete.df$gene_mut == i_NT
+        output_mutation_frame[, i] <- complete_df$freq[which(
+          complete_df$gene_mut == i_nt
         )]
       }
     }
