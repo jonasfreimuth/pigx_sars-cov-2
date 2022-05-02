@@ -28,6 +28,7 @@ knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
 
 library(ggplot2)
 library(DT)
+library(base64url)
 ```
 
 
