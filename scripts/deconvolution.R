@@ -325,7 +325,7 @@ if (executeDeconvolution) {
     mutation_output_dir,
     paste0(
       sample_name,
-      "variant_proportion_barplot_data.csv"
+      "_variant_abundance.csv"
     )
   ))
 
