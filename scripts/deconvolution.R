@@ -492,4 +492,56 @@ if (executeDeconvolution) {
     sep = "\t",
     row.names = FALSE, quote = FALSE
   )
+} else {
+  # write dummy files
+
+  variant_abundance_colnames <- c(
+    "gene_pos",
+    "gene_mut",
+    "freq",
+    "cov",
+    "gene_mut_loc.1",
+    "gene_mut_loc.2",
+    "gene_mut_loc.3",
+    "prot_mut_loc",
+    "AAs.1", "AAs.2",
+    "Conseq", "genes",
+    "AA_mut", "name",
+    "gene_mut_collapsed"
+  )
+
+  write.csv(
+    setNames(
+      data.frame(matrix(nrow = 0, ncol = length(variant_abundance_colnames))),
+      variant_abundance_colnames
+    ),
+    file.path(
+      mutation_output_dir,
+      paste0(
+        sample_name,
+        "_variant_abundance.csv"
+      )
+    )
+  )
+
+  mutation_output_colnames <- c(
+    "samplename",
+    "dates",
+    "location_name",
+    "coordinates_lat",
+    "coordinates_long",
+    "WT",
+    "b117",
+    "b1351",
+    "b16172",
+    "p1",
+    "others")
+
+  write.table(setNames(
+    data.frame(matrix(nrow = 0, ncol = length(mutation_output_colnames))),
+    mutation_output_colnames
+  ), output_mutations,
+  sep = "\t",
+  row.names = FALSE, quote = FALSE
+  )
 }
