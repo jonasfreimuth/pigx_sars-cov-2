@@ -195,24 +195,6 @@ get_protein_mut <- function(vepfile) {
 }
 
 
-dedupeMuts <- function(mut, sigmut.df, dedup.df) {
-  #' this function is a different version of "dedupe"
-  #' if a signature mutation is shared by multiple variants the mutation-tables
-  #' would have seperate rows for the same mutation. This function is for
-  #' concatenating all the variants that share that mutation. It requires the
-  #' original df with all mutations, the deduplicated one (only one row per
-  #' mutation) and the mutation for which this procedure should be applied
-  #' This function is not yet completely refined and should be improved further
-  # get variant group per mutation
-  duped_muts <- grep(mut, sigmut.df$value)
-  grouped <- sigmut.df$name[duped_muts]
-  groupName <- paste(grouped, collapse = ",")
-
-  dedup.df$name[dedup.df$value == mut] <- groupName
-  return(dedup.df)
-}
-
-
 createSigMatrix <- function(mutations.vector, mutation_sheet) {
   #' for making the signature matrix based on the signature mutations found in
   #' the sample (given as input as a vector)for it self
