@@ -93,42 +93,22 @@ variant_abundance_file <- file.path(
 
 ## ----process_signature_mutations, include = FALSE-----------------------------
 # Read signature data
-sigmut_df <- read.csv(mutation_sheet, header = TRUE)
-
-if ("source" %in% colnames(sigmut_df)) {
-  sigmut_df <- sigmut_df[, -(which(names(sigmut_df) %in%
-    "source"))]
-}
-
-sigmut_df <- sigmut_df %>%
+sigmut_df <- read.csv(mutation_sheet, header = TRUE) %>%
+  dplyr::select(- matches("source")) %>%
   dplyr::na_if("") %>%
-  tidyr::pivot_longer(everything(), values_drop_na = TRUE)
+  tidyr::pivot_longer(everything(), values_drop_na = TRUE) %>%
+  dplyr::select(variant = name, mutation = value)
 
-vep_output_df <- read.table(params$vep_file, sep = ",", header = TRUE)
+vep_output_df <- read.table(params$vep_file, sep = ",", header = TRUE) %>%
+  dplyr::na_if("-")
 
-vep_output_df <- na_if(vep_output_df, "-")
+sigmuts_deduped <- sigmut_df %>%
+  group_by(mutation) %>%
+  summarise(variant = paste(variant, collapse = ","))
 
-# deduplicate dataframe
-# reasoning see description of "dedupeMuts"
-# FIXME: I was not sure, how I can include this in my function but should be
-# possible, will come back to it later
-dupes <- duplicated(sigmut_df$value, fromLast = TRUE)
-allDupes <- dupes | duplicated(sigmut_df$value, fromLast = FALSE)
-
-if (any(allDupes)) {
-  sigmuts_deduped <- sigmut_df[!dupes, ]
-}
-
-# FIXME: I think this should be done with some apply() function?
-for (mut in sigmut_df$value) {
-  sigmuts_deduped <- dedupeMuts(mut, sigmut_df, sigmuts_deduped)
-}
-
+# remove mutation type info
 sigmuts_deduped_no_gene <- sigmuts_deduped %>%
-  rowwise() %>%
-  mutate(mutation = str_split(value, ":")[[1]][2]) %>%
-  dplyr::select(name, mutation)
-
+  mutate(mutation = str_extract(mutation, "(?<=:)[[:alnum:]]+"))
 
 ## ----match_snvs_to_signature_mutations, include = FALSE-----------------------
 variant_protein_mut <- get_protein_mut(params$vep_file)
