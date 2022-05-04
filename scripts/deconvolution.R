@@ -160,9 +160,6 @@ write.csv(
 # get  NT mutations only, input for the signature matrix
 muations_vec <- match.df$gene_mut_collapsed
 
-# get bulk frequency values, will be input for the deconvolution function
-bulk_freq_vec <- as.numeric(match.df$freq)
-
 # only execute the deconvolution when at least one signature mutation was found
 execute_deconvolution <- length(muations_vec) > 0
 
@@ -250,6 +247,10 @@ if (execute_deconvolution) {
 
   ## ----simulating_WT_mutations, include = FALSE-------------------------------
   # construct additional WT mutations that are not weighted
+
+  # get bulk frequency values, will be input for the deconvolution function
+  bulk_freq_vec <- as.numeric(match.df$freq)
+
   msig_stable_all <- simulateWT(
     muations_vec, bulk_freq_vec,
     msig_simple_unique_weighted[, -which(
