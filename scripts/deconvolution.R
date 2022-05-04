@@ -94,7 +94,7 @@ variant_abundance_file <- file.path(
 ## ----process_signature_mutations, include = FALSE-----------------------------
 # Read signature data
 sigmut_df <- read.csv(mutation_sheet, header = TRUE) %>%
-  dplyr::select(- matches("source")) %>%
+  dplyr::select(-matches("source")) %>%
   dplyr::na_if("") %>%
   tidyr::pivot_longer(everything(), values_drop_na = TRUE) %>%
   dplyr::select(variant = name, mutation = value)
@@ -189,7 +189,7 @@ if (execute_deconvolution) {
   # for every variant update the rownames with the group they are in
   # FIXME: Shorten this and similar constructs
   for (variant in rownames(
-    msig_stable_transposed[- (rownames(msig_stable_transposed) %in% "muts"), ])
+    msig_stable_transposed[-(rownames(msig_stable_transposed) %in% "muts"), ])
   ) {
     grouping_res <- dedupeVariants(
       variant,
@@ -276,6 +276,8 @@ if (execute_deconvolution) {
   )
 
   bulk_all <- as.numeric(msig_stable_all[[2]])
+
+  # central deconvolution step
   variant_abundance <- deconv(bulk_all, sig)
 
 
