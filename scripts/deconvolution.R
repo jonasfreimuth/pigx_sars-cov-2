@@ -135,11 +135,11 @@ complete_df <- dplyr::left_join(lofreq.info, vep.info,
 
 # filter for mutations which are signature mutations
 match.df <- complete_df %>%
-  filter(!is.na(name))
+  filter(!is.na(variant))
 
 # filter for everything that is not a signature mutation
 nomatch.df <- complete_df %>%
-  filter(is.na(name))
+  filter(is.na(variant))
 
 cat("Writing signature mutation file to ", sigmut_output_file, "...\n")
 write.csv(
@@ -226,11 +226,11 @@ if (execute_deconvolution) {
   for (lineage in deconv_lineages) {
     if (grepl(",", lineage)) {
       group <- unlist(str_split(lineage, ","))
-      avrg <- sum(sigmut_df$name %in% group) / length(group)
+      avrg <- sum(sigmut_df$variant %in% group) / length(group)
       value <- sum(msig_simple_unique[lineage]) / avrg
     } else {
       value <- sum(msig_simple_unique[lineage]) /
-        sum(sigmut_df$name == lineage)
+        sum(sigmut_df$variant == lineage)
     }
     sigmut_proportion_weights[lineage] <- value
   }
@@ -329,13 +329,13 @@ if (execute_deconvolution) {
     grouped_rows <- which(str_detect(variants, ","))
     for (row in grouped_rows) {
       if (df[row, "value"] == 0) {
-        grouped_variants <- unlist(str_split(df[row, "name"], ","))
+        grouped_variants <- unlist(str_split(df[row, "variant"], ","))
         for (variant in grouped_variants) {
           # add new rows, one for each variant
           df <- rbind(df, c(variant, 0))
         }
       } else if (df[row, "value"] != 0) {
-        grouped_variants <- unlist(str_split(df[row, "name"], ","))
+        grouped_variants <- unlist(str_split(df[row, "variant"], ","))
         # normal distribution, devide deconv value by number of grouped variants
         distributed_freq_value <-
           as.numeric(as.numeric(df[row, "value"]) / length(grouped_variants))
