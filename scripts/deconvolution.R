@@ -171,14 +171,15 @@ if (execute_deconvolution) {
   # for the deconvolution to work we need the "wild type" frequencies too.
   # The matrix from above got mirrored, wild type mutations are simulated the
   # following: e.g. T210I (mutation) -> T210T ("wild type")
-  msig_simple <- createSigMatrix(muations_vec, mutation_sheet)
+  msig_simple <- createSigMatrix(muations_vec, mutation_sheet) %>%
 
-  # When multiple columns look like the same, the deconvolution will not work,
-  # because the function can't distinguish between those columns. The workaround
-  # for now is to identify those equal columns and merge them into one,
-  # returning also a vector with the information about which of the columns were
-  # merged.
-  msig_simple <- cbind(muts = muations_vec, msig_simple)
+    # When multiple columns look like the same, the deconvolution will not work,
+    # because the function can't distinguish between those columns. The
+    # workaround for now is to identify those equal columns and merge them into
+    # one, returning also a vector with the information about which of the
+    # columns were merged.
+    cbind(muts = muations_vec, .)
+
   msig_transposed <- dedupeDF(msig_simple)
   msig_stable_transposed <- msig_transposed[[1]]
   msig_dedupe_transposed <- msig_transposed[[2]]
