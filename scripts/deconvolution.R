@@ -1,5 +1,4 @@
 ## ----setup, include = FALSE, warning = FALSE----------------------------------
-knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
 
 library(knitr)
 library(dplyr)
@@ -41,13 +40,12 @@ params <- list(
 ## function loading
 source(params$deconvolution_functions)
 
-
-## ----print_input_settings, echo = FALSE---------------------------------------
+## ----printInputSettings, echo = FALSE-----------------------------------------
 sample_name         <- params$sample_name
 sample_sheet        <- data.table::fread(params$sample_sheet)
 mutation_sheet      <- params$mutation_sheet
 
-csv_output_dir      <- file.path(params$output_dir, "variants")
+variants_output_dir <- file.path(params$output_dir, "variants")
 mutation_output_dir <- file.path(params$output_dir, "mutations")
 
 
@@ -82,13 +80,16 @@ mutation_output_file <- file.path(
     "_mutations.csv")
 )
 
-variant_abundance_file <- file.path(
-  mutation_output_dir,
+variants_file <- file.path(
+  variants_output_dir,
   paste0(
     sample_name,
-    "_variant_abundance.csv"
+    "_variants.csv"
   )
 )
+
+variants_with_meta_file <- file.path(variants_output_dir,
+ paste0(sample_name, "_variants_with_meta.csv"))
 
 
 ## ----process_signature_mutations, include = FALSE-----------------------------
@@ -155,8 +156,7 @@ write.csv(
 
 # Tables are displayed here in report
 
-
-## ----getting_unique_muts_bulk, include = FALSE--------------------------------
+## ----echo = FALSE-------------------------------------------------------------
 # get  NT mutations only, input for the signature matrix
 muations_vec <- match.df$gene_mut_collapsed
 
@@ -313,13 +313,14 @@ if (execute_deconvolution) {
   )
 
   df <- df %>%
-    tidyr::pivot_longer(everything())
+    tidyr::pivot_longer(everything()) %>%
+    dplyr::select(variant = name, abundance = value)
 
   # Handling of ambiguous cases and grouped variants
 
   # case 1: add dropped variants again with value 0 in case all of the other
   # variants add up to 1
-  if (round(sum(df$value), 1) == 1) {
+  if (round(sum(df$abundance), 1) == 1) {
     for (variant in dropped_variants) {
       df <- rbind(df, c(variant, 0))
     }
@@ -331,17 +332,18 @@ if (execute_deconvolution) {
   if (any(str_detect(variants, ","))) {
     grouped_rows <- which(str_detect(variants, ","))
     for (row in grouped_rows) {
-      if (df[row, "value"] == 0) {
+      if (df[row, "abundance"] == 0) {
         grouped_variants <- unlist(str_split(df[row, "variant"], ","))
         for (variant in grouped_variants) {
           # add new rows, one for each variant
           df <- rbind(df, c(variant, 0))
         }
-      } else if (df[row, "value"] != 0) {
+      } else if (df[row, "abundance"] != 0) {
         grouped_variants <- unlist(str_split(df[row, "variant"], ","))
         # normal distribution, devide deconv value by number of grouped variants
         distributed_freq_value <-
-          as.numeric(as.numeric(df[row, "value"]) / length(grouped_variants))
+          as.numeric(as.numeric(df[row, "abundance"]) /
+            length(grouped_variants))
         for (variant in grouped_variants) {
           # add new rows, one for each variant
           df <- rbind(df, c(variant, distributed_freq_value))
@@ -352,15 +354,84 @@ if (execute_deconvolution) {
     }
   }
 
-  df <- transform(df, value = as.numeric(value))
+  df <- transform(df, abundance = as.numeric(abundance))
 
 
-  cat("Writing variant abundance file to ", variant_abundance_file, "...\n")
-  write.csv(df, variant_abundance_file)
+  cat("Writing variant abundance file to ", variants_file, "...\n")
+  write.csv(df, variants_file)
 
   # plot comes here in report
 
+} else {
+  # write dummy variants file
+  # TODO: do this as a proper emty table with the correct col names
+  file.create(variants_file)
+}
 
+# TODO: check if the else of the above if is handled correctly
+
+## ----csv_output_variant_plot, include = F-------------------------------------
+# prepare processed variant values to output them as a csv which will be used for the plots in index.rmd
+# those outputs are not offically declared as outputs which can lead to issues - that part should be handled by a seperate
+# file (and maybe rule)
+output_variant_plot <- data.frame(samplename = character(),
+  dates = character(),
+  location_name = character(),
+  coordinates_lat = character(),
+  coordinates_long = character())
+if (!execute_deconvolution) {
+  # if no signatur mutation found write empty output file
+  # TODO: sombody should check whether this empty file with header is enough, or a more sensible default is required
+  write.csv(output_variant_plot, variants_with_meta_file,
+    na = "NA", row.names = FALSE, quote = FALSE
+  )
+} else {
+  # get all possible variants
+  all_variants <- colnames(msig_simple[, -which(names(msig_simple) %in% "muts")])
+  # add columns for all possible variants to the dataframe
+  for (variant in all_variants) {
+    output_variant_plot[, variant] <- numeric()
+  }
+  meta_data <- c(samplename = sample_name,
+    dates = date,
+    location_name = location_name,
+    coordinates_lat = coordinates_lat,
+    coordinates_long = coordinates_long)
+
+  output_variant_plot <- bind_rows(output_variant_plot, meta_data)
+
+  # get rownumber for current sample
+  sample_row <- which(grepl(sample_name, output_variant_plot$samplename))
+
+  # write mutation frequency values to df
+  for (i in all_variants) {
+    if (i %in% df$variant) {
+      # check if variant already has a column
+      if (i %in% colnames(output_variant_plot)) {
+        output_variant_plot[sample_row, ][i] <- df$abundance[df$variant == i]
+        output_variant_plot <- output_variant_plot %>% mutate(others = 1 - rowSums(across(all_of(all_variants)), na.rm = TRUE))
+      }
+    }
+  }
+
+  ## # TODO: This chunk hast to go into a seperate rule
+  ## # 2. check if file exists already
+  ## if (file.exists (variants_with_meta_file)) {
+  ##   previous_df <- read.csv (variants_with_meta_file,
+  ##                              header = TRUE, colClasses = "character", check.names = FALSE)
+  ##   # convert numeric values to character
+  ##   output_variant_plot <- as.data.frame(lapply(output_variant_plot, as.character), check.names = FALSE)
+  ##   # merge with adding cols and rows
+  ##   output_variant_plot <- full_join(previous_df, output_variant_plot, by = colnames(previous_df), copy = TRUE)
+  ## }
+
+  # 3. write to output file
+  write.csv(output_variant_plot, variants_with_meta_file,
+    na = "NA", row.names = FALSE, quote = FALSE)
+
+}
+
+if (execute_deconvolution) {
   ## ----csv_output_mutation_plot, include = FALSE------------------------------
   # prepare processed mutation values to output them as a csv which will be used
   # for the plots in index.rmd those outputs are not officially declared as
@@ -425,6 +496,8 @@ if (execute_deconvolution) {
       }
     }
   }
+
+
   colnames(output_mutation_frame) <- as.character(colnames(
     output_mutation_frame
   ))
@@ -448,38 +521,8 @@ if (execute_deconvolution) {
   )
 
 } else {
-  # write dummy files
 
-  # TODO: create headers dynamically
-  variant_abundance_colnames <- c(
-    "gene_pos",
-    "gene_mut",
-    "freq",
-    "cov",
-    "gene_mut_loc.1",
-    "gene_mut_loc.2",
-    "gene_mut_loc.3",
-    "prot_mut_loc",
-    "AAs.1", "AAs.2",
-    "Conseq", "genes",
-    "AA_mut", "name",
-    "gene_mut_collapsed"
-  )
-
-  cat(
-    "Writing dummy variant abundance file to ",
-    variant_abundance_file,
-    "...\n"
-  )
-
-  write.csv(
-    setNames(
-      data.frame(matrix(nrow = 0, ncol = length(variant_abundance_colnames))),
-      variant_abundance_colnames
-    ),
-    variant_abundance_file
-  )
-
+  # TODO: make cols dynamic
   mutation_output_colnames <- c(
     "samplename",
     "dates",

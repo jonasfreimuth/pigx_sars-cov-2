@@ -7,7 +7,7 @@ params:
   sample_name: ""
   sigmut_file: ""
   non_sigmut_file: ""
-  variant_abundance_file: ""
+  variants_file: ""
   vep_file: ""
   snv_file: ""
   logo: ""
@@ -67,7 +67,7 @@ SignatureTable <- data.frame(
   "SNV" = match.df$gene_mut,
   "gene" = match.df$genes,
   "protein_mutation" = match.df$AA_mut,
-  "variant" = match.df$name, # TODO: more nice writing of it e.g B1.1.7
+  "variant" = match.df$variant, # TODO: more nice writing of it e.g B1.1.7
   "frequency" = match.df$freq, # TODO: more clear name stating which frequency
   "coverage" = match.df$cov
 ) # TODO: more clear title stating which coverage
@@ -159,12 +159,12 @@ Variant_colors <- c(
 )
 # TODO this should be put into a separate color palette function in a separate file
 
-df <- read.csv(params$variant_abundance_file)
+df <- read.csv(params$variants_file)
 
 font_family <- "DejaVu Sans"
 
-ggplot(data = df, aes(name, value,
-  fill = name
+ggplot(data = df, aes(variant, abundance,
+  fill = variant
 )) +
   geom_bar(stat = "identity") +
   labs(
@@ -172,7 +172,7 @@ ggplot(data = df, aes(name, value,
     x = "Variants",
     y = "Percentage"
   ) +
-  scale_x_discrete(limits = df$name) +
+  scale_x_discrete(limits = df$variant) +
   scale_y_continuous(
     limits = c(0, 1), breaks = seq(0, 1, 0.1),
     labels = scales::percent_format(accuracy = 1)
@@ -182,15 +182,15 @@ ggplot(data = df, aes(name, value,
   # need to provide it here.
   geom_text(aes(
     family = font_family,
-    label = sprintf("%0.3f", round(value, digits = 3))
+    label = sprintf("%0.3f", round(abundance, digits = 3))
   ),
   position = position_dodge(width = 0.9),
   vjust = -0.25
   ) +
   scale_fill_discrete(
     name = "Variants",
-    breaks = df$name,
-    labels = df$name
+    breaks = df$variant,
+    labels = df$variant
   ) +
   theme_gray(base_family = font_family)
 ```
@@ -229,7 +229,6 @@ vep <- readLines(params$vep_file) %>%
   paste0(collapse = "\n") %>%
   base64_urlencode()
 ```
-
 
 
 Called SNVs:  
