@@ -100,7 +100,7 @@ sigmut_df <- read.csv(mutation_sheet, header = TRUE) %>%
   tidyr::pivot_longer(everything(), values_drop_na = TRUE) %>%
   dplyr::select(variant = name, mutation = value)
 
-vep_output_df <- read.table(params$vep_file, sep = ",", header = TRUE) %>%
+vep_output_df <- read.csv(params$vep_file, sep = ",", header = TRUE) %>%
   dplyr::na_if("-")
 
 sigmuts_deduped <- sigmut_df %>%
@@ -515,8 +515,7 @@ if (execute_deconvolution) {
 
   # 3. write to output file
   cat("Writing mutation file to ", mutation_output_file, "...\n")
-  write.table(output_mutation_frame, mutation_output_file,
-    sep = "\t",
+  write.csv(output_mutation_frame, mutation_output_file,
     row.names = FALSE, quote = FALSE
   )
 
@@ -538,11 +537,11 @@ if (execute_deconvolution) {
 
   cat("Writing dummy mutation file to ", mutation_output_file, "...\n")
 
-  write.table(setNames(
+  write.csv(setNames(
     data.frame(matrix(nrow = 0, ncol = length(mutation_output_colnames))),
     mutation_output_colnames
   ), mutation_output_file,
-  sep = "\t",
   row.names = FALSE, quote = FALSE
   )
+
 }

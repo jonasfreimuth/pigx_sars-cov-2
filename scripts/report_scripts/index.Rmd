@@ -53,13 +53,13 @@ library(ggplot2)
 library(dplyr)
 library(viridis)
 
-df_var <- read.table(params$variants_csv,
-  sep = "\t",
+df_var <- read.csv(params$variants_csv,
+  
   header = TRUE,
   check.names = FALSE
 )
-df_mut <- read.table(params$mutations_csv,
-  sep = "\t",
+df_mut <- read.csv(params$mutations_csv,
+  
   header = TRUE,
   check.names = FALSE
 )
