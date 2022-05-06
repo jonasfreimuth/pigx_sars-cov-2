@@ -89,7 +89,7 @@ variants_file <- file.path(
 )
 
 variants_with_meta_file <- file.path(variants_output_dir,
- paste0(sample_name, "_variants_with_meta.csv"))
+  paste0(sample_name, "_variants_with_meta.csv"))
 
 
 ## ----process_signature_mutations, include = FALSE-----------------------------
@@ -134,12 +134,15 @@ complete_df <- dplyr::left_join(lofreq.info, vep.info,
   rowwise() %>%
   mutate(gene_mut_collapsed = paste(genes, gene_mut, sep = ":"))
 
+# TODO: let the read coverage filter be set dynamically over the setting file
+complete_cov_filtered.df <- complete_df %>% filter(!(as.numeric(cov) < 100))
+
 # filter for mutations which are signature mutations
-match.df <- complete_df %>%
+match.df <- complete_cov_filtered.df %>%
   filter(!is.na(variant))
 
 # filter for everything that is not a signature mutation
-nomatch.df <- complete_df %>%
+nomatch.df <- complete_cov_filtered.df %>%
   filter(is.na(variant))
 
 cat("Writing signature mutation file to ", sigmut_output_file, "...\n")
@@ -222,10 +225,13 @@ if (execute_deconvolution) {
 
   # create list of proportion values that will be used as weigths
   sigmut_proportion_weights <- list()
-
-
   for (lineage in deconv_lineages) {
-    if (grepl(",", lineage)) {
+    if (lineage == "Others") {
+      # !! 17/02/2022 It's not yet tested how robust this behaves when one would
+      # mindlessly clutter the mutationsheet
+      # with lineages that are very unlikely to detect or not detected
+      value <- nrow(msig_simple_unique) / nrow(sigmuts_deduped)
+    } else if (grepl(",", lineage)) {
       group <- unlist(str_split(lineage, ","))
       avrg <- sum(sigmut_df$variant %in% group) / length(group)
       value <- sum(msig_simple_unique[lineage]) / avrg
@@ -241,8 +247,11 @@ if (execute_deconvolution) {
   # applying weights on signature matrix
   # FIXME: there should be a way to do this vectorized
   msig_simple_unique_weighted <- msig_simple_unique
+
   for (lineage in deconv_lineages) {
-    msig_simple_unique_weighted[lineage] <- msig_simple_unique_weighted[lineage] / as.numeric(sigmut_proportion_weights[lineage])
+    weight <- msig_simple_unique_weighted[lineage] / as.numeric(sigmut_proportion_weights[lineage])
+    msig_simple_unique_weighted[lineage] <- as.numeric(ifelse(is.na(weight), 0, unlist(weight)))
+
   }
 
 
@@ -251,17 +260,13 @@ if (execute_deconvolution) {
 
   # get bulk frequency values, will be input for the deconvolution function
   bulk_freq_vec <- as.numeric(match.df$freq)
-
-  msig_stable_all <- simulateWT(
-    muations_vec, bulk_freq_vec,
-    msig_simple_unique_weighted[, -which(
-      names(msig_simple_unique_weighted) == "muts"
-    )],
-    match.df$cov
-  )
-
+  # construct additional WT mutations that are not weighted
+  Others_weight <- as.numeric(sigmut_proportion_weights["Others"])
+  msig_stable_all <- simulateOthers(muations_vec, bulk_freq_vec,
+    msig_simple_unique_weighted[, -which(names(msig_simple_unique_weighted) == "muts")],
+    match.df$cov,
+    Others_weight)
   msig_stable_unique <- msig_stable_all[[1]]
-
 
   ## ----deconvolution, include = FALSE-----------------------------------------
   # this hack is necessary because otherwise the deconvolution will throw:
@@ -287,31 +292,7 @@ if (execute_deconvolution) {
   variants <- colnames(msig_stable_unique[, -1])
   df <- data.frame(rbind(variant_abundance))
 
-  # TODO: Replace the long column name consisting of concatenated variant
-  # names with "others" and put the variant names in a label.
-  # TODO: This should be done much earlier when building the data frame.
-  condensed_variants_names <- unlist(
-    lapply(
-      variants,
-      function(x) {
-        if (str_detect(x, ".*,.*,.*")) {
-          "others"
-        } else {
-          x
-        }
-      }
-    )
-  )
-
-  colnames(df) <- condensed_variants_names
-
-  variants_labels <- unlist(
-    lapply(
-      variants,
-      function(x) str_replace_all(x, ",", "\n")
-    )
-  )
-
+  colnames(df) <- variants
   df <- df %>%
     tidyr::pivot_longer(everything()) %>%
     dplyr::select(variant = name, abundance = value)
@@ -327,12 +308,15 @@ if (execute_deconvolution) {
   }
 
   # case 2: in case "others" == 0, both variants can be split up again and being
-  # given the value 0 OR case 3: in case multiple vars can really not be
-  # distinguished from each other they will be distributed normaly
-  if (any(str_detect(variants, ","))) {
-    grouped_rows <- which(str_detect(variants, ","))
+  # given the value 0 OR
+  # case 3: in case multiple vars can really not be distinguished from each
+  # other they will be distributed normaly
+  while (any(str_detect(df$name, ","))) {
+    grouped_rows <- which(str_detect(df$name, ","))
+    # fixme: this loop might be unneccessary, since only the first row should
+    # been picked, everything else will be handled by the while loop
     for (row in grouped_rows) {
-      if (df[row, "abundance"] == 0) {
+      if (df[row, "value"] == 0) {
         grouped_variants <- unlist(str_split(df[row, "variant"], ","))
         for (variant in grouped_variants) {
           # add new rows, one for each variant
