@@ -17,16 +17,7 @@ params <- list(
 
 ## ----libraries--------------------------------------------------------------------
 
-library(plotly)
-library(htmltools)
-library(reshape2)
-library(base64url)
-library(DT)
-library(data.table)
-library(stringr)
-library(ggplot2)
 library(dplyr)
-library(viridis)
 
 
 ## ----input------------------------------------------------------------------------
