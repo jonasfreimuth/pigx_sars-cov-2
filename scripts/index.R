@@ -108,39 +108,41 @@ if (VARIANTS_FOUND) {
 
 
 ## ----linear_regression, eval=RUN_MUTATION_REGRESSION------------------------------
-source(params$fun_lm)
+if (RUN_MUTATION_REGRESSION) {
+  source(params$fun_lm)
 
-mutation_sheet <- params$mutation_sheet
-sigmuts.df <- read.csv(mutation_sheet, header = TRUE) %>%
-  na_if("") %>%
-  # split gene name of for easier matching
-  mutate_all(funs(str_replace(., "^[^:]*:", "")))
+  mutation_sheet <- params$mutation_sheet
+  sigmuts.df <- read.csv(mutation_sheet, header = TRUE) %>%
+    na_if("") %>%
+    # split gene name of for easier matching
+    mutate_all(funs(str_replace(., "^[^:]*:", "")))
 
 
-changing_muts <- parsing_mutation_plot_data(approved_mut_plot)
-mutations_sig_unfiltered <- refined_lm_model(changing_muts)
-mutations_sig <-
-  filter_lm_res_top20(mutations_sig_unfiltered, 0.05)
+  changing_muts <- parsing_mutation_plot_data(approved_mut_plot)
+  mutations_sig_unfiltered <- refined_lm_model(changing_muts)
+  mutations_sig <-
+    filter_lm_res_top20(mutations_sig_unfiltered, 0.05)
 
-# filter good samples for only mutations with sig pvalues for plotting
-filtered_approved_mut_plot <-
-  dplyr::select(
-    approved_mut_plot,
-    c(
-      samplename,
-      dates,
-      location_name,
-      coordinates_lat,
-      coordinates_long,
-      mutations_sig$mutation
+  # filter good samples for only mutations with sig pvalues for plotting
+  filtered_approved_mut_plot <-
+    dplyr::select(
+      approved_mut_plot,
+      c(
+        samplename,
+        dates,
+        location_name,
+        coordinates_lat,
+        coordinates_long,
+        mutations_sig$mutation
+      )
     )
+
+  # check if the filtered df has actual values besides meta data
+  APPROVED_MUTATIONS_FOUND <- (length(filtered_approved_mut_plot) > 5) &&
+    (nrow(filtered_approved_mut_plot) > 0)
+
+  approved_mut_plot_location_pooled <- pool_by_mean(filtered_approved_mut_plot,
+    na_handling = TRUE,
+    group_fun = "day_location"
   )
-
-# check if the filtered df has actual values besides meta data
-APPROVED_MUTATIONS_FOUND <- (length(filtered_approved_mut_plot) > 5) &&
-  (nrow(filtered_approved_mut_plot) > 0)
-
-approved_mut_plot_location_pooled <- pool_by_mean(filtered_approved_mut_plot,
-  na_handling = TRUE,
-  group_fun = "day_location"
-)
+}
