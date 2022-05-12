@@ -1,24 +1,23 @@
 params <- list(
-    variants_csv = "",
-    mutations_csv = "",
-    coverage_dir = "",
-    sample_sheet = "",
-    mutation_sheet = "",
-    mutation_coverage_threshold = "90",
-    logo = "",
-    fun_cvrg_scr = "",
-    fun_lm = "",
-    fun_tbls = "",
-    fun_pool = "",
-    overviewQC = "",
-    output_dir = ""
-  )
+  variants_csv = "/home/jonas/proj/akalin_lab/pigx_sars-cov-2/tests/output/variants/data_variant_plot.csv",
+  mutations_csv = "/home/jonas/proj/akalin_lab/pigx_sars-cov-2/tests/output/variants/data_mutation_plot.csv",
+  coverage_dir = "/home/jonas/proj/akalin_lab/pigx_sars-cov-2/tests/output/coverage",
+  sample_sheet = "/home/jonas/proj/akalin_lab/pigx_sars-cov-2/tests/sample_sheet.csv",
+  mutation_sheet = "/home/jonas/proj/akalin_lab/pigx_sars-cov-2/tests/sample_data/mutation_sheet_211006_covidCG_NT_location.csv",
+  mutation_coverage_threshold = "90",
+  logo = "/home/jonas/proj/akalin_lab/pigx_sars-cov-2/images/Logo_PiGx.png",
+  fun_cvrg_scr = "/home/jonas/proj/akalin_lab/pigx_sars-cov-2/scripts/sample_coverage_score.R",
+  fun_lm = "/home/jonas/proj/akalin_lab/pigx_sars-cov-2/scripts/pred_mutation_increase.R",
+  fun_tbls = "/home/jonas/proj/akalin_lab/pigx_sars-cov-2/scripts/table_extraction.R",
+  fun_pool = "/home/jonas/proj/akalin_lab/pigx_sars-cov-2/scripts/pooling.R",
+  overviewQC = "/home/jonas/proj/akalin_lab/pigx_sars-cov-2/tests/output/overview_QC.csv",
+  output_dir = "/home/jonas/proj/akalin_lab/pigx_sars-cov-2/tests/output"
+)
 
 
 ## ----libraries--------------------------------------------------------------------
 
 library(dplyr)
-
 
 ## ----input------------------------------------------------------------------------
 df_var <- read.csv(params$variants_csv,
@@ -90,6 +89,7 @@ RUN_MUTATION_REGRESSION <- if (MUTATIONS_FOUND) {
 } else {
   FALSE
 }
+
 # predefine to reuse later
 APPROVED_MUTATIONS_FOUND <- RUN_MUTATION_REGRESSION
 
@@ -145,4 +145,9 @@ if (RUN_MUTATION_REGRESSION) {
     na_handling = TRUE,
     group_fun = "day_location"
   )
+
+  # write csvs:
+  # 
+
+  write.csv(appro)
 }
