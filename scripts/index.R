@@ -1,18 +1,15 @@
 params <- list(
-    variants_csv = "",
-    mutations_csv = "",
-    coverage_dir = "",
-    sample_sheet = "",
-    mutation_sheet = "",
-    mutation_coverage_threshold = "90",
-    logo = "",
-    fun_cvrg_scr = "",
-    fun_lm = "",
-    fun_tbls = "",
-    fun_pool = "",
-    overviewQC = "",
-    output_dir = ""
-  )
+  variants_csv = "",
+  mutations_csv = "",
+  coverage_dir = "",
+  mutation_sheet = "",
+  mutation_coverage_threshold = "90",
+  fun_cvrg_scr = "",
+  fun_lm = "",
+  fun_pool = "",
+  overviewQC = "",
+  output_dir = ""
+)
 
 
 ## ----libraries--------------------------------------------------------------------
