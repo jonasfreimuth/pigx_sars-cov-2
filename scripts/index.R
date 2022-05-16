@@ -142,4 +142,19 @@ if (RUN_MUTATION_REGRESSION) {
     na_handling = TRUE,
     group_fun = "day_location"
   )
+
+  ## file output ---------------------------------------------
+
+  # write csvs:
+  # all logical switches (TODO: check whether they can be computed)
+  # APPROVED_MUTATIONS_FOUND, MUTATIONS_FOUND, RUN_MUTATION_REGRESSION, VARIANTS_FOUND
+
+  # approved_var_plot
+  # weights
+
+  # mutations_sig
+  write.csv(mutations_sig_unfiltered,
+    file.path(output_dir, "linear_regression_results.csv"),
+    na = "NA", row.names = FALSE, quote = FALSE
+  )
 }
