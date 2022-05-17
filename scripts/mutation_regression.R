@@ -12,7 +12,8 @@ if (length(args) == 0) {
     fun_lm = "",
     fun_pool = "",
     overviewQC = "",
-    output_dir = ""
+    mut_count_outfile = "",
+    unfilt_mutation_sig_outfile = ""
   )
 }
 
@@ -24,7 +25,9 @@ params <- list(
   fun_lm = args[[5]],
   fun_pool = args[[6]],
   overviewQC = args[[7]],
-  output_dir = args[[8]])
+  mut_count_outfile = args[[8]],
+  unfilt_mutation_sig_outfile = args[[9]]
+)
 
 
 ## ----libraries----------------------------------------------------------------
@@ -89,13 +92,20 @@ if (nrow(approved_mut_plot) > 0 &&
 }
 
 ## file output ---------------------------------------------
-output_dir <- params$output_dir
-
 # write to file
-write.csv(count_frame, file.path(output_dir, "mutations_counts.csv"),
-  na = "NA", row.names = FALSE, quote = FALSE)
+write.csv(count_frame,
+  file.path(
+    params$mut_count_outfile,
+    "mutations_counts.csv"
+  ),
+  na = "NA", row.names = FALSE, quote = FALSE
+)
 
 # mutations_sig
 write.csv(mutations_sig_unfiltered,
-  file.path(output_dir, "linear_regression_results.csv"),
-  na = "NA", row.names = FALSE, quote = FALSE)
+  file.path(
+    params$unfilt_mutation_sig_outfile,
+    "linear_regression_results.csv"
+  ),
+  na = "NA", row.names = FALSE, quote = FALSE
+)
