@@ -82,19 +82,6 @@ RUN_MUTATION_REGRESSION <- if (MUTATIONS_FOUND) {
 APPROVED_MUTATIONS_FOUND <- RUN_MUTATION_REGRESSION
 
 
-if (VARIANTS_FOUND) {
-  approved_var_plot_location_pooled <- pool_by_weighted_mean(
-    approved_var_plot,
-    weights, "day_location"
-  )
-} else {
-  warning(paste0(
-    "\nNot enough variants were found or passed the quality filters.",
-    "\nThe associated plots are skipped."
-  ))
-}
-
-
 ## ----linear_regression, eval=RUN_MUTATION_REGRESSION------------------------------
 if (RUN_MUTATION_REGRESSION) {
   source(params$fun_lm)
