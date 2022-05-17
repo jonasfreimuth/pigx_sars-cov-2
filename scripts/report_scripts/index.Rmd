@@ -10,6 +10,7 @@ params:
   logo: ""
   fun_tbls: ""
   output_dir: ""
+  overviewQC: ""
 ---
 
 <style>
@@ -90,7 +91,10 @@ library(viridis)
 # APPROVED_MUTATIONS_FOUND, MUTATIONS_FOUND, RUN_MUTATION_REGRESSION, VARIANTS_FOUND
 
 # approved_var_plot
-# weights
+
+# pool the samples per day, discard locations
+weights <- read.csv(params$overviewQC, header = TRUE, check.names = FALSE) %>%
+  dplyr::select(c(samplename, total_reads))
 
 # mutations_sig
 # mutations_sig_unfiltered
