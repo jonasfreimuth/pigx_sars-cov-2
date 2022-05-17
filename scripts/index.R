@@ -98,29 +98,6 @@ if (RUN_MUTATION_REGRESSION) {
   mutations_sig <-
     filter_lm_res_top20(mutations_sig_unfiltered, 0.05)
 
-  # filter good samples for only mutations with sig pvalues for plotting
-  filtered_approved_mut_plot <-
-    dplyr::select(
-      approved_mut_plot,
-      c(
-        samplename,
-        dates,
-        location_name,
-        coordinates_lat,
-        coordinates_long,
-        mutations_sig$mutation
-      )
-    )
-
-  # check if the filtered df has actual values besides meta data
-  APPROVED_MUTATIONS_FOUND <- (length(filtered_approved_mut_plot) > 5) &&
-    (nrow(filtered_approved_mut_plot) > 0)
-
-  approved_mut_plot_location_pooled <- pool_by_mean(filtered_approved_mut_plot,
-    na_handling = TRUE,
-    group_fun = "day_location"
-  )
-
   ## ----mutation_counts----------------------------------------------------------
 
   # make the mutation count frame
