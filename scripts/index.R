@@ -89,37 +89,34 @@ if (nrow(approved_mut_plot) > 0 &&
   mutations_sig <-
     filter_lm_res_top20(mutations_sig_unfiltered, 0.05)
 
-  ## ----mutation_counts----------------------------------------------------------
-
-  # make the mutation count frame
-  if (exists("mutations_sig")) {
-    # get functions for counting and writing
-    source(params$fun_tbls)
-    count_frame <- write_mutations_count(df_mut, sigmuts.df, mutations_sig)
-  } else {
-    # TODO: This will generate an error when read as csv
-    # write empty files
-    count_frame <- data.frame()
-    mutations_sig_unfiltered <- data.frame()
-  }
-
-  ## file output ---------------------------------------------
-
-  # write csvs:
-
-  # approved_var_plot
-  # weights
-
-  output_dir <- params$output_dir
-
-  # write to file
-  write.csv(count_frame, file.path(output_dir, "mutations_counts.csv"),
-    na = "NA", row.names = FALSE, quote = FALSE
-  )
-
-  # mutations_sig
-  write.csv(mutations_sig_unfiltered,
-    file.path(output_dir, "linear_regression_results.csv"),
-    na = "NA", row.names = FALSE, quote = FALSE
-  )
+  ## ----mutation_counts--------------------------------------------------------
+  # get functions for counting and writing
+  source(params$fun_tbls)
+  count_frame <- write_mutations_count(df_mut, sigmuts.df, mutations_sig)
+} else {
+  # TODO: This will generate an error when read as csv
+  # write empty files
+  count_frame <- data.frame()
+  mutations_sig_unfiltered <- data.frame()
 }
+
+## file output ---------------------------------------------
+
+# write csvs:
+
+# approved_var_plot
+# approved_mut_plot
+
+output_dir <- params$output_dir
+
+# write to file
+write.csv(count_frame, file.path(output_dir, "mutations_counts.csv"),
+  na = "NA", row.names = FALSE, quote = FALSE
+)
+
+# mutations_sig
+write.csv(mutations_sig_unfiltered,
+  file.path(output_dir, "linear_regression_results.csv"),
+  na = "NA", row.names = FALSE, quote = FALSE
+)
+
