@@ -11,6 +11,7 @@ params:
   fun_tbls: ""
   output_dir: ""
   overviewQC: ""
+  fun_lm: ""
 ---
 
 <style>
@@ -410,6 +411,9 @@ if (!RUN_MUTATION_REGRESSION) {
 
 
 ```{r linear_regression_tables, warning=TRUE, results='asis', eval=RUN_MUTATION_REGRESSION}
+source(params$fun_lm)
+mutations_sig <- filter_lm_res_top20(mutations_sig_unfiltered, 0.05)
+
 if (nrow(mutations_sig) > 0) {
   # flag if mutation is signature mutation
   mutations_sig <- mutations_sig %>%
