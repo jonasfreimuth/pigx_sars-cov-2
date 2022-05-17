@@ -1,5 +1,4 @@
 params <- list(
-  variants_csv = "",
   mutations_csv = "",
   coverage_dir = "",
   mutation_sheet = "",
@@ -15,9 +14,6 @@ params <- list(
 library(dplyr)
 
 ## ----input--------------------------------------------------------------------
-df_var <- read.csv(params$variants_csv,
-  header = TRUE,
-  check.names = FALSE)
 df_mut <- read.csv(params$mutations_csv,
   header = TRUE,
   check.names = FALSE)
