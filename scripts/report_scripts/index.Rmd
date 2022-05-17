@@ -98,8 +98,6 @@ df_mut <- read.csv(params$mutations_csv,
   header = TRUE,
   check.names = FALSE
 )
-
-# bad_samples.df
 ```
 
 ```{r format_threshold}
@@ -153,7 +151,7 @@ if (!(length(coverages.df) == 0)) {
   good_samples.df <- coverages.df %>%
     filter(as.numeric(proport_muts_covered) >= mutation_coverage_threshold)
 
-  bad_samples.df <- coverages.df %>%
+  bad_samples_df <- coverages.df %>%
     filter(!(samplename %in% good_samples.df$samplename))
 } else {
   warning("\n No coverage values found.")
@@ -330,8 +328,10 @@ cat(
 ```{r variant_location_maps_plot, out.width="900px", out.height="900px", eval=VARIANTS_FOUND}
 # TODO: the note about arbitray locations should be enable to be turned on and off
 
-approved_var_plot_day_pooled <-
-  pool_by_weighted_mean(approved_var_plot, weights, "day")
+approved_var_plot_day_pooled <- pool_by_weighted_mean(
+  approved_var_plot,
+  weights, "day"
+)
 
 melted <- reshape2::melt(
   approved_var_plot_day_pooled,
@@ -346,8 +346,7 @@ melted <- reshape2::melt(
 ) %>%
   mutate(value = round(value, 4))
 
-locations <-
-  approved_var_plot_day_pooled %>%
+locations <- approved_var_plot_day_pooled %>%
   mutate(dates = as.character(strptime(dates, format = "%Y-%m-%d"))) %>%
   reshape2::melt(id.vars = c("coordinates_lat", "coordinates_long"))
 
@@ -501,28 +500,27 @@ if (nrow(mutations_sig_unfiltered) > 0) {
 ```
 
 ```{r filter_pool_mutations, eval=RUN_MUTATION_REGRESSION}
-  # filter good samples for only mutations with sig pvalues for plotting
-  filtered_approved_mut_plot <-
-    dplyr::select(
-      approved_mut_plot,
-      c(
-        samplename,
-        dates,
-        location_name,
-        coordinates_lat,
-        coordinates_long,
-        mutations_sig$mutation
-      )
-    )
-
-  # check if the filtered df has actual values besides meta data
-  APPROVED_MUTATIONS_FOUND <- (length(filtered_approved_mut_plot) > 5) &&
-    (nrow(filtered_approved_mut_plot) > 0)
-
-  approved_mut_plot_location_pooled <- pool_by_mean(filtered_approved_mut_plot,
-    na_handling = TRUE,
-    group_fun = "day_location"
+# filter good samples for only mutations with sig pvalues for plotting
+filtered_approved_mut_plot <- dplyr::select(
+  approved_mut_plot,
+  c(
+    samplename,
+    dates,
+    location_name,
+    coordinates_lat,
+    coordinates_long,
+    mutations_sig$mutation
   )
+)
+
+# check if the filtered df has actual values besides meta data
+APPROVED_MUTATIONS_FOUND <- (length(filtered_approved_mut_plot) > 5) &&
+  (nrow(filtered_approved_mut_plot) > 0)
+
+approved_mut_plot_location_pooled <- pool_by_mean(filtered_approved_mut_plot,
+  na_handling = TRUE,
+  group_fun = "day_location"
+)
 ```
 
 ```{r mutation_trends_pooled_text, results='asis', eval=APPROVED_MUTATIONS_FOUND}
@@ -845,8 +843,8 @@ cat(
 ```{r table_ample_quality_score}
 if (!(length(coverages.df) == 0)) {
   # TODO refine column names --> e.g "coverage in percent",
-  bad_samples.df <- bad_samples.df %>% slice_head(n = 20)
-  create_dt(bad_samples.df)
+  bad_samples_df <- bad_samples_df %>% slice_head(n = 20)
+  create_dt(bad_samples_df)
 } else {
     cat("\n No coverage values found.")
 }
