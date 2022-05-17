@@ -12,6 +12,7 @@ params:
   output_dir: ""
   overviewQC: ""
   fun_lm: ""
+  unfiltered_mutation_sig_file: ""
 ---
 
 <style>
@@ -95,8 +96,7 @@ library(viridis)
 weights <- read.csv(params$overviewQC, header = TRUE, check.names = FALSE) %>%
   dplyr::select(c(samplename, total_reads))
 
-# mutations_sig
-# mutations_sig_unfiltered
+mutations_sig_unfiltered <- read.csv(params$unfiltered_mutation_sig_file)
 
 df_var <- read.csv(params$variants_csv,
   header = TRUE,
