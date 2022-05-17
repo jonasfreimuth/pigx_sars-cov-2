@@ -87,15 +87,6 @@ library(viridis)
 ```
 
 ```{r load_data}
-# all logical switches (TODO: check whether they can be computed)
-# APPROVED_MUTATIONS_FOUND, MUTATIONS_FOUND, RUN_MUTATION_REGRESSION, VARIANTS_FOUND
-
-# approved_var_plot
-
-# pool the samples per day, discard locations
-weights <- read.csv(params$overviewQC, header = TRUE, check.names = FALSE) %>%
-  dplyr::select(c(samplename, total_reads))
-
 mutations_sig_unfiltered <- read.csv(params$unfiltered_mutation_sig_file)
 
 df_var <- read.csv(params$variants_csv,
@@ -150,6 +141,10 @@ approved_var_plot <- df_var %>%
   unique()
 approved_mut_plot <- df_mut %>%
   filter(samplename %in% good_samples.df$samplename)
+
+# pool the samples per day, discard locations
+weights <- read.csv(params$overviewQC, header = TRUE, check.names = FALSE) %>%
+  dplyr::select(c(samplename, total_reads))
 ```
 
 ```{r plotting_variants_text, results='asis', fig.width=4, fig.height=4, eval=VARIANTS_FOUND}
