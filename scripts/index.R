@@ -3,7 +3,6 @@ params <- list(
   mutations_csv = "",
   coverage_dir = "",
   mutation_sheet = "",
-  mutation_coverage_threshold = "90",
   fun_cvrg_scr = "",
   fun_lm = "",
   fun_pool = "",
@@ -26,14 +25,6 @@ df_mut <- read.csv(params$mutations_csv,
   header = TRUE,
   check.names = FALSE
 )
-
-mutation_coverage_threshold <- params$mutation_coverage_threshold %>%
-  # check if value is given as fraction [0,1] or percentage [0,100]
-  ifelse(. >= 0 & . <= 1,
-    . * 100,
-    .
-  ) %>%
-  as.numeric()
 
 
 ## ----sample_quality_score---------------------------------------------------------

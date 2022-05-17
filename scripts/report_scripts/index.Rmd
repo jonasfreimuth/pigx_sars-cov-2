@@ -83,6 +83,16 @@ library(dplyr)
 library(viridis)
 ```
 
+```{r format_threshold}
+mutation_coverage_threshold <- params$mutation_coverage_threshold %>%
+  # check if value is given as fraction [0,1] or percentage [0,100]
+  ifelse(. >= 0 & . <= 1,
+    . * 100,
+    .
+  ) %>%
+  as.numeric()
+```
+
 This pipeline performs mutation analysis of SARS-CoV-2 and reports and 
 quantifies the occurrence of lineages and single nucleotide (single-NT)
 mutations.
