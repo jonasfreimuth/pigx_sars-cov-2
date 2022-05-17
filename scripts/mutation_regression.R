@@ -1,12 +1,30 @@
+
+# argparsing -------------------------------------------------------------------
+args <- commandArgs(trailingOnly = TRUE)
+
+# give default parameters
+if (length(args) == 0) {
+  args <- c(
+    mutations_csv = "",
+    coverage_dir = "",
+    mutation_sheet = "",
+    fun_cvrg_scr = "",
+    fun_lm = "",
+    fun_pool = "",
+    overviewQC = "",
+    output_dir = ""
+  )
+}
+
 params <- list(
-  mutations_csv = "",
-  coverage_dir = "",
-  mutation_sheet = "",
-  fun_cvrg_scr = "",
-  fun_lm = "",
-  fun_pool = "",
-  overviewQC = "",
-  output_dir = "")
+  mutations_csv = args[[1]],
+  coverage_dir = args[[2]],
+  mutation_sheet = args[[3]],
+  fun_cvrg_scr = args[[4]],
+  fun_lm = args[[5]],
+  fun_pool = args[[6]],
+  overviewQC = args[[7]],
+  output_dir = args[[8]])
 
 
 ## ----libraries----------------------------------------------------------------
