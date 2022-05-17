@@ -146,6 +146,16 @@ Institute of Medical System Biology (BIMSB).
 These plots provide an overview of the relative frequency dynamics of
 identified lineages at specific wastewater sampling locations over time. 
 
+
+```{r filter_plot_frames_samplescore, warning=TRUE}
+# only use good samples for processing and visualiztaion
+approved_var_plot <- df_var %>%
+  filter(samplename %in% good_samples.df$samplename) %>%
+  unique()
+approved_mut_plot <- df_mut %>%
+  filter(samplename %in% good_samples.df$samplename)
+```
+
 ```{r plotting_variants_text, results='asis', fig.width=4, fig.height=4, eval=VARIANTS_FOUND}
 cat("## Lineage abundances stacked {.tabset .tabset-fade}\n\n",
   "The summary plot shows the results pooled by day and across locations by ",
