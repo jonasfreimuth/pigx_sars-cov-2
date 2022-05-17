@@ -69,21 +69,12 @@ approved_mut_plot <- df_mut %>%
 weights <- read.csv(params$overviewQC, header = TRUE, check.names = FALSE) %>%
   dplyr::select(c(samplename, total_reads))
 
-# check if filtered dataframe has actual values
-VARIANTS_FOUND <- nrow(approved_var_plot) > 0
-MUTATIONS_FOUND <- nrow(approved_mut_plot) > 0
-# only run regression if at least two dates are left over
-RUN_MUTATION_REGRESSION <- if (MUTATIONS_FOUND) {
-  length(unique(approved_mut_plot$dates)) > 1
-} else {
-  FALSE
-}
-# predefine to reuse later
-APPROVED_MUTATIONS_FOUND <- RUN_MUTATION_REGRESSION
-
 
 ## ----linear_regression, eval=RUN_MUTATION_REGRESSION------------------------------
-if (RUN_MUTATION_REGRESSION) {
+# only run regression if there are values after filtering and at least two dates
+# are left over
+if (nrow(approved_mut_plot) > 0 &&
+  length(unique(approved_mut_plot$dates)) > 1) {
   source(params$fun_lm)
 
   mutation_sheet <- params$mutation_sheet
@@ -115,8 +106,6 @@ if (RUN_MUTATION_REGRESSION) {
   ## file output ---------------------------------------------
 
   # write csvs:
-  # all logical switches (TODO: check whether they can be computed)
-  # APPROVED_MUTATIONS_FOUND, MUTATIONS_FOUND, RUN_MUTATION_REGRESSION, VARIANTS_FOUND
 
   # approved_var_plot
   # weights
