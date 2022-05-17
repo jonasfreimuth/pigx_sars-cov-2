@@ -137,6 +137,31 @@ Institute of Medical System Biology (BIMSB).
 These plots provide an overview of the relative frequency dynamics of
 identified lineages at specific wastewater sampling locations over time. 
 
+```{r sample_quality_score}
+# TODO given as input? or only the scripts dir? similar variant_report
+source(params$fun_cvrg_scr)
+
+coverages.df <- merge(get_genome_cov(params$coverage_dir),
+  get_mutation_cov(params$coverage_dir),
+  by = "samplename"
+) %>%
+  mutate(
+    proport_muts_covered = round(
+      (as.numeric(total_muts_cvrd) * 100) / as.numeric(total_num_muts), 1
+    )
+  )
+
+if (!(length(coverages.df) == 0)) {
+  # take only the samples over the mutation coverage threshold
+  good_samples.df <- coverages.df %>%
+    filter(as.numeric(proport_muts_covered) >= mutation_coverage_threshold)
+
+  bad_samples.df <- coverages.df %>%
+    filter(!(samplename %in% good_samples.df$samplename))
+} else {
+  warning("\n No coverage values found.")
+}
+```
 
 ```{r filter_plot_frames_samplescore, warning=TRUE}
 # only use good samples for processing and visualiztaion
