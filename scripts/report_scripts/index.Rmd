@@ -13,6 +13,7 @@ params:
   overviewQC: ""
   fun_lm: ""
   unfiltered_mutation_sig_file: ""
+  mut_count_file: ""
 ---
 
 <style>
@@ -772,6 +773,8 @@ Frequencies per mutation per sample
 `r create_html_download_link(df_mut_download, filename = "mutation_frequencies.csv")`
 
 ```{r mutation_counts}
+count_frame <- read.csv(params$mut_count_file)
+
 # show and make downloadable
 count_frame_download <- count_frame %>%
   dump_csv() %>%
