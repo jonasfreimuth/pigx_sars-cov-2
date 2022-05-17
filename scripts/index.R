@@ -25,6 +25,19 @@ df_mut <- read.csv(params$mutations_csv,
 
 ## ----filter_plot_frames_samplescore, warning=TRUE-----------------------------
 source(params$fun_pool)
+source(params$fun_cvrg_scr)
+
+# FIXME: Check if all this computation is necessary for the tasks below
+good_samples_df <- merge(get_genome_cov(params$coverage_dir),
+  get_mutation_cov(params$coverage_dir),
+  by = "samplename") %>%
+  mutate(proport_muts_covered = round(
+    (as.numeric(total_muts_cvrd) * 100) / as.numeric(total_num_muts), 1
+  )) %>%
+  filter(as.numeric(proport_muts_covered) >= mutation_coverage_threshold)
+
+approved_mut_plot <- df_mut %>%
+  filter(samplename %in% good_samples_df$samplename)
 
 # pool the samples per day, discard locations
 weights <- read.csv(params$overviewQC, header = TRUE, check.names = FALSE) %>%
