@@ -57,14 +57,6 @@ if (!(length(coverages.df) == 0)) {
 ## ----filter_plot_frames_samplescore, warning=TRUE---------------------------------
 source(params$fun_pool)
 
-# only use good samples for processing and visualiztaion
-approved_var_plot <-
-  df_var %>%
-  filter(samplename %in% good_samples.df$samplename) %>%
-  unique()
-approved_mut_plot <- df_mut %>%
-  filter(samplename %in% good_samples.df$samplename)
-
 # pool the samples per day, discard locations
 weights <- read.csv(params$overviewQC, header = TRUE, check.names = FALSE) %>%
   dplyr::select(c(samplename, total_reads))
