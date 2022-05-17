@@ -27,33 +27,6 @@ df_mut <- read.csv(params$mutations_csv,
 )
 
 
-## ----sample_quality_score---------------------------------------------------------
-# TODO given as input? or only the scripts dir? similar variant_report
-source(params$fun_cvrg_scr)
-
-coverages.df <- merge(get_genome_cov(params$coverage_dir),
-  get_mutation_cov(params$coverage_dir),
-  by = "samplename"
-) %>%
-  mutate(
-    proport_muts_covered = round(
-      (as.numeric(total_muts_cvrd) * 100) / as.numeric(total_num_muts), 1
-    )
-  )
-
-if (!(length(coverages.df) == 0)) {
-  # take only the samples with > 90% mutation coverage
-  good_samples.df <- coverages.df %>%
-    # TODO stringecy should be given by user, maybe even through visualization
-    filter(as.numeric(proport_muts_covered) >= 90)
-
-  bad_samples.df <- coverages.df %>%
-    filter(!(samplename %in% good_samples.df$samplename))
-} else {
-  warning("\n No coverage values found.")
-}
-
-
 ## ----filter_plot_frames_samplescore, warning=TRUE---------------------------------
 source(params$fun_pool)
 
