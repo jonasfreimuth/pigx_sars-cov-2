@@ -701,18 +701,21 @@ rule create_overviewQC_table:
     
 rule run_mutation_regression:
     input:
-        script = os.path.join(SCRIPTS_DIR, "mutation_regression.R"),
-        mutations_csv = os.path.join(VARIANTS_DIR, 'data_mutation_plot.csv'),
-        overviewQC = os.path.join(OUTPUT_DIR, 'overview_QC.csv')
-    params:
-        fun_cvrg_scr = os.path.join(SCRIPTS_DIR, 'sample_coverage_score.R'),
-        fun_lm = os.path.join(SCRIPTS_DIR, 'pred_mutation_increase.R'),
-        fun_pool = os.path.join(SCRIPTS_DIR, 'pooling.R')
+        script=os.path.join(SCRIPTS_DIR, "mutation_regression.R"),
+        mutations_csv=os.path.join(VARIANTS_DIR, "data_mutation_plot.csv"),
+        overviewQC=os.path.join(OUTPUT_DIR, "overview_QC.csv"),
+        fun_cvrg_scr=os.path.join(SCRIPTS_DIR, "sample_coverage_score.R"),
+        fun_lm=os.path.join(SCRIPTS_DIR, "pred_mutation_increase.R"),
+        fun_pool=os.path.join(SCRIPTS_DIR, "pooling.R"),
     output:
-        mut_count_file = os.path.join(OUTPUT_DIR, "mutations_counts.csv"),
-        unfiltered_mutation_sig_file = os.path.join(OUTPUT_DIR, "unfiltered_mutations_sig.csv")
-    log: os.path.join(LOG_DIR, "reports", "mutation_regression.log")
-    shell: """
+        mut_count_outfile=os.path.join(OUTPUT_DIR, "mutations_counts.csv"),
+        unfilt_mutation_sig_outfile=os.path.join(
+            OUTPUT_DIR, "unfiltered_mutations_sig.csv"
+        ),
+    log:
+        os.path.join(LOG_DIR, "reports", "mutation_regression.log"),
+    shell:
+        """
         {RSCRIPT_EXEC} {input.script} \
             {input.mutations_csv} \
             {COVERAGE_DIR} \
@@ -720,10 +723,11 @@ rule run_mutation_regression:
             {input.fun_cvrg_scr} \
             {input.fun_lm} \
             {input.fun_pool} \
+            {MUTATION_COVERAGE_THRESHOLD} \
             {input.overviewQC} \
             {output.mut_count_outfile} \
             {output.unfilt_mutation_sig_outfile}
-             > {log} 2>&1
+            > {log} 2>&1
         """
 
 

@@ -3,6 +3,7 @@
 args <- commandArgs(trailingOnly = TRUE)
 
 # give default parameters
+# FIXME: Order these args sensibly, needs also to be adjusted in snakefile
 if (length(args) == 0) {
   args <- c(
     mutations_csv = "",
@@ -11,6 +12,7 @@ if (length(args) == 0) {
     fun_cvrg_scr = "",
     fun_lm = "",
     fun_pool = "",
+    mutation_coverage_threshold = "",
     overviewQC = "",
     mut_count_outfile = "",
     unfilt_mutation_sig_outfile = ""
@@ -24,20 +26,21 @@ params <- list(
   fun_cvrg_scr = args[[4]],
   fun_lm = args[[5]],
   fun_pool = args[[6]],
-  overviewQC = args[[7]],
-  mut_count_outfile = args[[8]],
-  unfilt_mutation_sig_outfile = args[[9]]
+  mutation_coverage_threshold = args[[7]],
+  overviewQC = args[[8]],
+  mut_count_outfile = args[[9]],
+  unfilt_mutation_sig_outfile = args[[10]]
 )
 
 
 ## ----libraries----------------------------------------------------------------
-
 library(dplyr)
 
 ## ----input--------------------------------------------------------------------
 df_mut <- read.csv(params$mutations_csv,
   header = TRUE,
-  check.names = FALSE)
+  check.names = FALSE
+)
 
 
 ## ----filter_plot_frames_samplescore, warning=TRUE-----------------------------
@@ -47,11 +50,12 @@ source(params$fun_cvrg_scr)
 # FIXME: Check if all this computation is necessary for the tasks below
 good_samples_df <- merge(get_genome_cov(params$coverage_dir),
   get_mutation_cov(params$coverage_dir),
-  by = "samplename") %>%
+  by = "samplename"
+) %>%
   mutate(proport_muts_covered = round(
     (as.numeric(total_muts_cvrd) * 100) / as.numeric(total_num_muts), 1
   )) %>%
-  filter(as.numeric(proport_muts_covered) >= mutation_coverage_threshold)
+  filter(as.numeric(proport_muts_covered) >= params$mutation_coverage_threshold)
 
 approved_mut_plot <- df_mut %>%
   filter(samplename %in% good_samples_df$samplename)
@@ -82,6 +86,7 @@ if (nrow(approved_mut_plot) > 0 &&
 
   ## ----mutation_counts--------------------------------------------------------
   # get functions for counting and writing
+  # TODO: check where the fun_tbls script is needed
   source(params$fun_tbls)
   count_frame <- write_mutations_count(df_mut, sigmuts_df, mutations_sig)
 } else {
@@ -95,8 +100,7 @@ if (nrow(approved_mut_plot) > 0 &&
 # write to file
 write.csv(count_frame,
   file.path(
-    params$mut_count_outfile,
-    "mutations_counts.csv"
+    params$mut_count_outfile
   ),
   na = "NA", row.names = FALSE, quote = FALSE
 )
@@ -104,8 +108,7 @@ write.csv(count_frame,
 # mutations_sig
 write.csv(mutations_sig_unfiltered,
   file.path(
-    params$unfilt_mutation_sig_outfile,
-    "linear_regression_results.csv"
+    params$unfilt_mutation_sig_outfile
   ),
   na = "NA", row.names = FALSE, quote = FALSE
 )
