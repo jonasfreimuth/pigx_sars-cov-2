@@ -89,26 +89,27 @@ if (nrow(approved_mut_plot) > 0 &&
   # TODO: check where the fun_tbls script is needed
   source(params$fun_tbls)
   count_frame <- write_mutations_count(df_mut, sigmuts_df, mutations_sig)
+
+  # write to file
+  write.csv(count_frame,
+    file.path(
+      params$mut_count_outfile
+    ),
+    na = "NA", row.names = FALSE, quote = FALSE
+  )
+
+  # mutations_sig
+  write.csv(mutations_sig_unfiltered,
+    file.path(
+      params$unfilt_mutation_sig_outfile
+    ),
+    na = "NA", row.names = FALSE, quote = FALSE
+  )
+
 } else {
   # TODO: This will generate an error when read as csv
   # write empty files
-  count_frame <- data.frame()
-  mutations_sig_unfiltered <- data.frame()
+  err_msg <- "Not significantly increasing mutations found..."
+  writeLines(err_msg,  params$mut_count_outfile)
+  writeLines(err_msg,  params$unfilt_mutation_sig_outfile)
 }
-
-## file output ---------------------------------------------
-# write to file
-write.csv(count_frame,
-  file.path(
-    params$mut_count_outfile
-  ),
-  na = "NA", row.names = FALSE, quote = FALSE
-)
-
-# mutations_sig
-write.csv(mutations_sig_unfiltered,
-  file.path(
-    params$unfilt_mutation_sig_outfile
-  ),
-  na = "NA", row.names = FALSE, quote = FALSE
-)
