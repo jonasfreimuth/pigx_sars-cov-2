@@ -8,12 +8,10 @@ params:
   mutation_sheet: ""
   mutation_coverage_threshold: ""
   logo: ""
-  fun_tbls: ""
-  output_dir: ""
-  overviewQC: ""
   fun_lm: ""
-  unfiltered_mutation_sig_file: ""
-  mut_count_file: ""
+  fun_tbls: ""
+  overviewQC: ""
+  output_dir: ""
 ---
 
 <style>
