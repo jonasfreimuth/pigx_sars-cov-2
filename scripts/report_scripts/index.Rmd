@@ -174,6 +174,17 @@ weights <- read.csv(params$overviewQC, header = TRUE, check.names = FALSE) %>%
 # execution
 VARIANTS_FOUND <- nrow(approved_var_plot) > 0
 MUTATIONS_FOUND <- nrow(approved_mut_plot) > 0
+
+# only run regression related chunks if at least two dates are left over
+RUN_MUTATION_REGRESSION <- if (MUTATIONS_FOUND) {
+  length(unique(approved_mut_plot$dates)) > 1
+} else {
+  FALSE
+}
+
+# define here in case mutation regression was not executed, as that would lead
+# to an error otherwise
+APPROVED_MUTATIONS_FOUND <- RUN_MUTATION_REGRESSION
 ```
 
 ```{r plotting_variants_text, results='asis', fig.width=4, fig.height=4, eval=VARIANTS_FOUND}
