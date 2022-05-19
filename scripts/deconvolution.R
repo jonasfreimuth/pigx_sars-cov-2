@@ -76,8 +76,10 @@ non_sigmut_output_file <- file.path(
 
 mutation_output_file <- file.path(
   mutation_output_dir,
-  paste0(sample_name,
-    "_mutations.csv")
+  paste0(
+    sample_name,
+    "_mutations.csv"
+  )
 )
 
 variants_file <- file.path(
@@ -88,8 +90,10 @@ variants_file <- file.path(
   )
 )
 
-variants_with_meta_file <- file.path(variants_output_dir,
-  paste0(sample_name, "_variants_with_meta.csv"))
+variants_with_meta_file <- file.path(
+  variants_output_dir,
+  paste0(sample_name, "_variants_with_meta.csv")
+)
 
 
 ## ----process_signature_mutations, include = FALSE-----------------------------
@@ -192,7 +196,8 @@ if (execute_deconvolution) {
   # for every variant update the rownames with the group they are in
   # FIXME: Shorten this and similar constructs
   for (variant in rownames(
-    msig_stable_transposed[-(rownames(msig_stable_transposed) %in% "muts"), ])
+    msig_stable_transposed[-(rownames(msig_stable_transposed) %in% "muts"), ]
+  )
   ) {
     grouping_res <- dedupeVariants(
       variant,
@@ -251,7 +256,6 @@ if (execute_deconvolution) {
   for (lineage in deconv_lineages) {
     weight <- msig_simple_unique_weighted[lineage] / as.numeric(sigmut_proportion_weights[lineage])
     msig_simple_unique_weighted[lineage] <- as.numeric(ifelse(is.na(weight), 0, unlist(weight)))
-
   }
 
 
@@ -262,10 +266,12 @@ if (execute_deconvolution) {
   bulk_freq_vec <- as.numeric(match.df$freq)
   # construct additional WT mutations that are not weighted
   Others_weight <- as.numeric(sigmut_proportion_weights["Others"])
-  msig_stable_all <- simulateOthers(muations_vec, bulk_freq_vec,
+  msig_stable_all <- simulateOthers(
+    muations_vec, bulk_freq_vec,
     msig_simple_unique_weighted[, -which(names(msig_simple_unique_weighted) == "muts")],
     match.df$cov,
-    Others_weight)
+    Others_weight
+  )
   msig_stable_unique <- msig_stable_all[[1]]
 
   ## ----deconvolution, include = FALSE-----------------------------------------
@@ -345,7 +351,6 @@ if (execute_deconvolution) {
   write.csv(df, variants_file)
 
   # plot comes here in report
-
 } else {
   # write dummy variants file
   # TODO: do this as a proper emty table with the correct col names
@@ -358,11 +363,13 @@ if (execute_deconvolution) {
 # prepare processed variant values to output them as a csv which will be used for the plots in index.rmd
 # those outputs are not offically declared as outputs which can lead to issues - that part should be handled by a seperate
 # file (and maybe rule)
-output_variant_plot <- data.frame(samplename = character(),
+output_variant_plot <- data.frame(
+  samplename = character(),
   dates = character(),
   location_name = character(),
   coordinates_lat = character(),
-  coordinates_long = character())
+  coordinates_long = character()
+)
 if (!execute_deconvolution) {
   # if no signatur mutation found write empty output file
   # TODO: sombody should check whether this empty file with header is enough, or a more sensible default is required
@@ -376,11 +383,13 @@ if (!execute_deconvolution) {
   for (variant in all_variants) {
     output_variant_plot[, variant] <- numeric()
   }
-  meta_data <- c(samplename = sample_name,
+  meta_data <- c(
+    samplename = sample_name,
     dates = date,
     location_name = location_name,
     coordinates_lat = coordinates_lat,
-    coordinates_long = coordinates_long)
+    coordinates_long = coordinates_long
+  )
 
   output_variant_plot <- bind_rows(output_variant_plot, meta_data)
 
@@ -411,8 +420,8 @@ if (!execute_deconvolution) {
 
   # 3. write to output file
   write.csv(output_variant_plot, variants_with_meta_file,
-    na = "NA", row.names = FALSE, quote = FALSE)
-
+    na = "NA", row.names = FALSE, quote = FALSE
+  )
 }
 
 if (execute_deconvolution) {
@@ -502,7 +511,6 @@ if (execute_deconvolution) {
   write.csv(output_mutation_frame, mutation_output_file,
     row.names = FALSE, quote = FALSE
   )
-
 } else {
 
   # TODO: make cols dynamic
@@ -517,7 +525,8 @@ if (execute_deconvolution) {
     "b1351",
     "b16172",
     "p1",
-    "others")
+    "others"
+  )
 
   cat("Writing dummy mutation file to ", mutation_output_file, "...\n")
 
@@ -527,5 +536,4 @@ if (execute_deconvolution) {
   ), mutation_output_file,
   row.names = FALSE, quote = FALSE
   )
-
 }
