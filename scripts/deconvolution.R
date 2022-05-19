@@ -513,27 +513,10 @@ if (execute_deconvolution) {
   )
 } else {
 
-  # TODO: make cols dynamic
-  mutation_output_colnames <- c(
-    "samplename",
-    "dates",
-    "location_name",
-    "coordinates_lat",
-    "coordinates_long",
-    "WT",
-    "b117",
-    "b1351",
-    "b16172",
-    "p1",
-    "others"
-  )
-
   cat("Writing dummy mutation file to ", mutation_output_file, "...\n")
 
-  write.csv(setNames(
-    data.frame(matrix(nrow = 0, ncol = length(mutation_output_colnames))),
-    mutation_output_colnames
-  ), mutation_output_file,
-  row.names = FALSE, quote = FALSE
+  writeLines(
+    "Deconvolution not run, this is a dummy file.",
+    mutation_output_file
   )
 }
