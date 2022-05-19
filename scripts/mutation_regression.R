@@ -108,7 +108,7 @@ if (nrow(approved_mut_plot) > 0 &&
 } else {
   # TODO: This will generate an error when read as csv
   # write empty files
-  err_msg <- "Not significantly increasing mutations found..."
+  err_msg <- "No significantly increasing mutations found..."
   writeLines(err_msg, params$mut_count_outfile)
   writeLines(err_msg, params$unfilt_mutation_sig_outfile)
 }
