@@ -173,6 +173,11 @@ approved_mut_plot <- df_mut %>%
 # pool the samples per day, discard locations
 weights <- read.csv(params$overviewQC, header = TRUE, check.names = FALSE) %>%
   dplyr::select(c(samplename, total_reads))
+
+# check if filtered dataframe has actual values and get vars for conditional
+# execution
+VARIANTS_FOUND <- nrow(approved_var_plot) > 0
+MUTATIONS_FOUND <- nrow(approved_mut_plot) > 0
 ```
 
 ```{r plotting_variants_text, results='asis', fig.width=4, fig.height=4, eval=VARIANTS_FOUND}
