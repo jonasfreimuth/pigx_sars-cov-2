@@ -1,5 +1,5 @@
-# requires dplyr and stringr
-# TODO: ensure necessary packages are available
+library("stringr")
+library("dplyr")
 
 parse_snv_csv <- function(snvfile, ...) { # allele frequency from v-pipe vcf
   #' input: csv file derived from vpipe vcf when using LoFreq,
