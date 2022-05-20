@@ -1,4 +1,4 @@
-# TODO: Get necessary packages
+library("DT")
 
 ## ----functions--------------------------------------------------------------------
 # function for downloadable tables
