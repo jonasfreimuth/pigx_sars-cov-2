@@ -373,8 +373,10 @@ def fastq_ext(fastq_file):
         ext = ''.join([root_ext,ext])
     return ext
 
+
 # fixme: single-end version needed
 # Note: fastqc does not process reads in pairs. files are processed as single units.
+# ANNOT: Do quality control on single end sample fastq read files.
 rule fastqc_raw_se:
     input: trim_reads_input
     output:
@@ -394,7 +396,10 @@ rule fastqc_raw_se:
                     mv {params.output_dir}/{tmp_zip} {output.zip}
                 fi """)
 
+
 # fixme: or discard completely and change multiqc to use fastp --> fastp rule would have to be adjusted to create reasonable outputs
+# ANNOT: Do quality control on paired end sample fastq read files.
+# FIXME: Should this rule be called `fastqc_raw_pe`?
 rule fastqc_raw:
     input: trim_reads_input
     output:
@@ -450,7 +455,10 @@ rule fastqc_primer_trimmed:
         output_dir = os.path.join(FASTQC_DIR, '{sample}')
     shell: "{FASTQC_EXEC} -o {params.output_dir} {input} >> {log} 2>&1"
 
+
 # TODO think about adding a global version to include all samples
+# ANNOT: Generate overall QC report from all the per sample QC reports already
+# generated in previous rules.
 rule multiqc:
   input: multiqc_input
   output: os.path.join(MULTIQC_DIR, '{sample}', 'multiqc_report.html')
@@ -471,7 +479,9 @@ def no_variant_vep(sample, lofreq_output):
         open(lofreq_output.format(sample=sample), 'a').write(
             "NC_000000.0\t00\t.\tA\tA\t00\tPASS\tDP=0;AF=0;SB=0;DP4=0,0,0,0")
 
+
 # TODO it should be possible to add customized parameter
+# ANNOT: Call variants of primer trimmed alignments.
 rule lofreq:
     input:
         aligned_bam = os.path.join(MAPPED_READS_DIR, '{sample}_aligned_sorted_primer-trimmed_sorted.bam'),
@@ -485,6 +495,7 @@ rule lofreq:
         no_variant_vep(wildcards.sample, output.vcf)
 
 
+# ANNOT: Convert lofreq output vcf to a csv file.
 rule vcf2csv:
     input: os.path.join(VARIANTS_DIR, '{sample}_snv.vcf')
     output: os.path.join(VARIANTS_DIR, '{sample}_snv.csv')
@@ -493,6 +504,8 @@ rule vcf2csv:
     log: os.path.join(LOG_DIR, 'vcf2csv_{sample}.log')
     shell: "{PYTHON_EXEC} {params.script} {input} >> {log} 2>&1"
 
+
+# ANNOT: Predict the effect each SNV will have.
 rule vep:
     input: os.path.join(VARIANTS_DIR, '{sample}_snv.vcf')
     output: os.path.join(VARIANTS_DIR, '{sample}_vep_sarscov2.txt')
