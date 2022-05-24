@@ -170,6 +170,8 @@ def trim_reads_input(args):
   sample = args[0]
   return [os.path.join(READS_DIR, f) for f in lookup('name', sample, ['reads', 'reads2']) if f]
 
+# ANNOT: function to return the read files belonging to a sample, independent
+# of their end mode (single vs paired)
 def map_input(args):
     sample = args[0]
     reads_files = [os.path.join(READS_DIR, f) for f in lookup('name', sample, ['reads', 'reads2']) if f]
@@ -227,6 +229,10 @@ def vep_input(args):
 
 # Trimming in three steps: general by qual and cutoff, get remaining adapters out, get remaining primers out
 
+
+# ANNOT: I don't understand this rule... It seems to extract primer sequences
+# from the reference sequence, given some genomic intervals in the bed file?
+# But why? are primer sequences not given?
 rule get_primer_seqs:
     input:
         ref = REFERENCE_FASTA,
@@ -236,8 +242,10 @@ rule get_primer_seqs:
     shell: "{BEDTOOLS_EXEC} getfasta -fi  {input.ref}\
             -bed {input.bed} -name > {output} 2>> {log} 3>&2"
 
+
 # TODO the output suffix should be dynamic depending on the input
 # TODO with the use of fastp the use of fastqc becomes partly reduntant, fastqc should be removed or adjusted
+# ANNOT: Perform fastq preprocessing for paired end sequencing data
 rule fastp:
     input: trim_reads_input
     output:
@@ -250,6 +258,8 @@ rule fastp:
          {FASTP_EXEC} -i {input[0]} -I {input[1]} -o {output.r1} -O {output.r2} --html {output.html} --json {output.json} >> {log}t 2>&1
      """
 
+
+# ANNOT: Perform fastq preprocessing for single end sequencing data
 rule fastp_se:
     input: trim_reads_input
     output:
@@ -261,6 +271,14 @@ rule fastp_se:
         {FASTP_EXEC} -i {input[0]} -o {output.r} --html {output.html} --json {output.json} >> {log}t 2>&1
     """
 
+
+# ANNOT: generate index file for a fasta reference sequence file for downstream
+# rules that require an indexed reference. As bwa generates index files in
+# place, we first must link the reference file to the dir where we want our
+# index file to be and then actually index it. The link needs to remain here
+# as the downstream rules require reference and index file to be in the same dir
+# FIXME: check if the precreation of the dir is necessary, snakemake may create
+# that dir before the shell command executes
 rule bwa_index:
     input: REFERENCE_FASTA
     output:
@@ -275,6 +293,8 @@ rule bwa_index:
         """
 
 # alignment works with both single and paired-end files
+# ANNOT: Align reads against the reference. Output temporary files (_tmp_), as 
+# they will be filtered later. Why is the input function necessary?
 rule bwa_align:
     input:
         fastq = map_input,
@@ -286,8 +306,11 @@ rule bwa_align:
     log: os.path.join(LOG_DIR, 'bwa_align_{sample}.log')
     shell: "{BWA_EXEC} mem -t {params.threads} {input.ref} {input.fastq} > {output} 2>> {log} 3>&2"
 
+
 # TODO verify that subsequent tools do not require filtering for proper pairs
 # NOTE verification of flags can be done with "samtools view -h -f 4 <file.sam|file.bam> | samtools flagstat -
+# ANNOT: Filter aligngments to exclude unmapped reads, supplementary reads, and,
+# if we deal with paried end data, reads which are not proper pairs.
 rule samtools_filter_aligned:
     input: os.path.join(MAPPED_READS_DIR, '{sample}_aligned_tmp.sam')
     output: os.path.join(MAPPED_READS_DIR, '{sample}_aligned.bam')
@@ -298,6 +321,8 @@ rule samtools_filter_aligned:
     shell: # exclude (F) reads that are not mapped (4) and supplementary (2048)
         "{SAMTOOLS_EXEC} view -bh {params.proper_pair} -F 4 -F 2048 {input} > {output} 2>> {log} 3>&2"
 
+
+# ANNOT: Filter alignments to obtain all unmapped reads
 rule samtools_filter_unaligned:
     input: os.path.join(MAPPED_READS_DIR, '{sample}_aligned_tmp.sam')
     output: os.path.join(MAPPED_READS_DIR, '{sample}_unaligned.bam')
@@ -305,18 +330,25 @@ rule samtools_filter_unaligned:
     shell: # keep (-f) reads that are unmapped (4)
         "{SAMTOOLS_EXEC} view -bh -f 4 {input} > {output} 2>> {log} 3>&2"
 
+
+# ANNOT: Sort filtered alignments.
 rule samtools_sort_preprimertrim:
     input: os.path.join(MAPPED_READS_DIR, '{sample}_aligned.bam')
     output: os.path.join(MAPPED_READS_DIR, '{sample}_aligned_sorted.bam')
     log: os.path.join(LOG_DIR, 'samtools_sort_{sample}.log')
     shell: "{SAMTOOLS_EXEC} sort -o {output} {input} >> {log} 2>&1"
 
+
+# ANNOT: Generate index files for sorted and filtered alignments.
 rule samtools_index_preprimertrim:
     input: os.path.join(MAPPED_READS_DIR, '{sample}_aligned_sorted.bam')
     output: os.path.join(MAPPED_READS_DIR, '{sample}_aligned_sorted.bai')
     log: os.path.join(LOG_DIR, 'samtools_index_{sample}.log')
     shell: "{SAMTOOLS_EXEC} index {input} {output} >> {log} 2>&1"
 
+
+# ANNOT: Use iVar to trim primer sequences from filtered, sorted & indexed
+# aligments with preset parameters.
 rule ivar_primer_trim:
     input:
         primers = AMPLICONS_BED,
