@@ -346,8 +346,10 @@ def fastq_ext(fastq_file):
         ext = ''.join([root_ext,ext])
     return ext
 
-# fixme: single-end version needed
-# Note: fastqc does not process reads in pairs. files are processed as single units.
+
+# FIXME: single-end version needed
+# NOTE: fastqc does not process reads in pairs. files are processed as single units.
+# ANNOT: Do quality control on single end sample fastq read files.
 rule fastqc_raw_se:
     input: trim_reads_input
     output:
@@ -367,7 +369,10 @@ rule fastqc_raw_se:
                     mv {params.output_dir}/{tmp_zip} {output.zip}
                 fi """)
 
-# fixme: or discard completely and change multiqc to use fastp --> fastp rule would have to be adjusted to create reasonable outputs
+
+# FIXME: or discard completely and change multiqc to use fastp --> fastp rule would have to be adjusted to create reasonable outputs
+# ANNOT: Do quality control on paired end sample fastq read files.
+# FIXME: Should this rule be called `fastqc_raw_pe`?
 rule fastqc_raw:
     input: trim_reads_input
     output:
