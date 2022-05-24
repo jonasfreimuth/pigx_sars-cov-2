@@ -351,6 +351,7 @@ rule ivar_primer_trim:
 
 # Vic_0825: I don't know if this double sorting and indexing is really necessary but seemed to be since ivar as
 # well as lofreq ask for sorted and indexed bam files
+# TODO: Check this
 
 rule samtools_sort_postprimertrim:
     input: os.path.join(MAPPED_READS_DIR, '{sample}_aligned_sorted_primer-trimmed.bam')
