@@ -29,42 +29,6 @@ import re
 import inspect
 from pathlib import Path
 
-SAMPLE_SHEET_CSV = config['locations']['sample-sheet']
-MUTATION_SHEET_CSV = config['locations']['mutation-sheet']
-READS_DIR        = config['locations']['reads-dir']
-REFERENCE_FASTA  = config['locations']['reference-fasta']
-AMPLICONS_BED    = config['locations']['amplicons-bed']
-MUTATIONS_BED    = config['locations']['mutations-bed']
-KRAKEN_DB        = config['locations']['kraken-db-dir']
-KRONA_DB         = config['locations']['krona-db-dir']
-VEP_DB           = config['locations']['vep-db-dir']
-OUTPUT_DIR       = config['locations']['output-dir']
-
-# TODO: get default read length from multiqc
-READ_LENGTH      = config['trimming']['read-length']
-CUT_OFF          = config['trimming']['cut-off']
-
-MUTATION_COVERAGE_THRESHOLD = config['reporting']['mutation-coverage-threshold']
-
-INDEX_DIR         = os.path.join(OUTPUT_DIR, 'index')
-TRIMMED_READS_DIR = os.path.join(OUTPUT_DIR, 'trimmed_reads')
-LOG_DIR           = os.path.join(OUTPUT_DIR, 'logs')
-MAPPED_READS_DIR  = os.path.join(OUTPUT_DIR, 'mapped_reads')
-VARIANTS_DIR      = os.path.join(OUTPUT_DIR, 'variants')
-MUTATIONS_DIR     = os.path.join(OUTPUT_DIR, 'mutations')
-KRAKEN_DIR        = os.path.join(OUTPUT_DIR, 'kraken')
-COVERAGE_DIR      = os.path.join(OUTPUT_DIR, 'coverage')
-REPORT_DIR        = os.path.join(OUTPUT_DIR, 'report')
-FASTQC_DIR        = os.path.join(REPORT_DIR, 'fastqc')
-MULTIQC_DIR       = os.path.join(REPORT_DIR, 'multiqc')
-SCRIPTS_DIR       = os.path.join(config['locations']['pkglibexecdir'], 'scripts/')
-TMP_DIR           = os.path.join(config['locations']['output-dir'], 'pigx_work')
-
-if os.getenv("PIGX_UNINSTALLED"):
-    LOGO = os.path.join(config['locations']['pkgdatadir'], "images/Logo_PiGx.png")
-else:
-    LOGO = os.path.join(config['locations']['pkgdatadir'], "Logo_PiGx.png")
-
 
 def toolArgs(name):
     if 'args' in config['tools'][name]:
@@ -76,27 +40,6 @@ def tool(name):
     cmd = config['tools'][name]['executable']
     return cmd + " " + toolArgs(name)
 
-BWA_EXEC             = tool("bwa")
-FASTP_EXEC           = tool("fastp")
-FASTQC_EXEC          = tool("fastqc")
-GUNZIP_EXEC          = tool("gunzip")
-GZIP_EXEC            = tool("gzip")
-MULTIQC_EXEC         = tool("multiqc")
-IMPORT_TAXONOMY_EXEC = tool("import_taxonomy")
-KRAKEN2_EXEC         = tool("kraken2")
-LOFREQ_EXEC          = tool("lofreq")
-PYTHON_EXEC          = tool("python")
-RSCRIPT_EXEC         = tool("Rscript")
-SAMTOOLS_EXEC        = tool("samtools")
-VEP_EXEC             = tool("vep")
-IVAR_EXEC            = tool("ivar")
-
-## Load sample sheet
-with open(SAMPLE_SHEET_CSV, 'r') as fp:
-  rows =  [row for row in csv.reader(fp, delimiter=',')]
-  header = rows[0]; rows = rows[1:]
-  SAMPLE_SHEET = [dict(zip(header, row)) for row in rows]
-
 # Convenience function to access fields of sample sheet columns that
 # match the predicate.  The predicate may be a string.
 def lookup(column, predicate, fields=[]):
@@ -105,65 +48,6 @@ def lookup(column, predicate, fields=[]):
   else:
     records = [line for line in SAMPLE_SHEET if line[column]==predicate]
   return [record[field] for record in records for field in fields]
-
-SAMPLES = [line['name'] for line in SAMPLE_SHEET]
-
-targets = {
-    'help': {
-        'description': "Print all rules and their descriptions.",
-        'files': []
-    },
-    'final_reports': {
-        'description': "Produce a comprehensive report. This is the default target.",
-        'files': (
-            expand(os.path.join(REPORT_DIR, '{sample}.qc_report_per_sample.html'), sample=SAMPLES) +
-            expand(os.path.join(REPORT_DIR, '{sample}.variantreport_p_sample.html'), sample=SAMPLES) +
-            expand(os.path.join(REPORT_DIR, '{sample}.taxonomic_classification.html'), sample=SAMPLES) +
-            expand(os.path.join(REPORT_DIR, '{sample}.Krona_report.html'), sample=SAMPLES) +
-            [os.path.join(REPORT_DIR, 'index.html')]
-        )
-    },
-    'lofreq': {
-        'description': "Call variants and produce .vcf file and overview .csv file.",
-        'files': (
-            expand(os.path.join(VARIANTS_DIR, '{sample}_snv.csv'), sample=SAMPLES)
-        )
-    },
-    'multiqc': {
-        'description': "Create MultiQC reports for including raw and trimmed reads.",
-        'files': (
-            expand(os.path.join(MULTIQC_DIR, '{sample}', 'multiqc_report.html'), sample=SAMPLES)
-        )
-    }
-}
-selected_targets = ['final_reports']
-OUTPUT_FILES = list(chain.from_iterable([targets[name]['files'] for name in selected_targets]))
-
-
-rule all:
-    input: OUTPUT_FILES
-
-# Record any existing output files, so that we can detect if they have
-# changed.
-expected_files = {}
-onstart:
-    if OUTPUT_FILES:
-        for name in OUTPUT_FILES:
-            if os.path.exists(name):
-                expected_files[name] = os.path.getmtime(name)
-
-# Print generated target files.
-onsuccess:
-    if OUTPUT_FILES:
-        # check if any existing files have been modified
-        generated = []
-        for name in OUTPUT_FILES:
-            if name not in expected_files or os.path.getmtime(name) != expected_files[name]:
-                generated.append(name)
-        if generated:
-            print("The following files have been generated:")
-            for name in generated:
-                print("  - {}".format(name))
 
 # function to pass read files to trim/filter/qc improvement
 def trim_reads_input(args):
@@ -226,6 +110,143 @@ def vep_input(args):
             empty_snv_csv = os.path.join(VARIANTS_DIR, "{sample}_snv_empty.csv".format(sample=sample))
             Path( empty_snv_csv ).touch()
             return [empty_vep_txt, empty_snv_csv]
+
+# WIP create a dummy entry if no variant is found - use this as long as the input-function solution doesn't work
+def no_variant_vep(sample, lofreq_output):
+    content = open(lofreq_output.format(sample=sample), 'r').read()
+    if re.findall('^NC', content, re.MULTILINE):  # regex ok or not?
+        # trigger vep path
+        print('File can be used for downstream processing')
+    else:
+        # write smth so that vep does not crash - deal with everything later in the variant_report
+        print('adding dummy entry to vcf file, because no variants were found')
+        open(lofreq_output.format(sample=sample), 'a').write(
+            "NC_000000.0\t00\t.\tA\tA\t00\tPASS\tDP=0;AF=0;SB=0;DP4=0,0,0,0")
+
+# function to determine the extension of the input files
+def fastq_ext(fastq_file):
+    "Function to determine the fastq file extension"
+    root, ext = os.path.splitext(fastq_file)
+    if ext == ".gz":
+        root_root, root_ext = os.path.splitext(root)
+        ext = ''.join([root_ext,ext])
+    return ext
+
+SAMPLE_SHEET_CSV = config['locations']['sample-sheet']
+MUTATION_SHEET_CSV = config['locations']['mutation-sheet']
+READS_DIR        = config['locations']['reads-dir']
+REFERENCE_FASTA  = config['locations']['reference-fasta']
+AMPLICONS_BED    = config['locations']['amplicons-bed']
+MUTATIONS_BED    = config['locations']['mutations-bed']
+KRAKEN_DB        = config['locations']['kraken-db-dir']
+KRONA_DB         = config['locations']['krona-db-dir']
+VEP_DB           = config['locations']['vep-db-dir']
+OUTPUT_DIR       = config['locations']['output-dir']
+
+# TODO: get default read length from multiqc
+READ_LENGTH      = config['trimming']['read-length']
+CUT_OFF          = config['trimming']['cut-off']
+
+MUTATION_COVERAGE_THRESHOLD = config['reporting']['mutation-coverage-threshold']
+
+INDEX_DIR         = os.path.join(OUTPUT_DIR, 'index')
+TRIMMED_READS_DIR = os.path.join(OUTPUT_DIR, 'trimmed_reads')
+LOG_DIR           = os.path.join(OUTPUT_DIR, 'logs')
+MAPPED_READS_DIR  = os.path.join(OUTPUT_DIR, 'mapped_reads')
+VARIANTS_DIR      = os.path.join(OUTPUT_DIR, 'variants')
+MUTATIONS_DIR     = os.path.join(OUTPUT_DIR, 'mutations')
+KRAKEN_DIR        = os.path.join(OUTPUT_DIR, 'kraken')
+COVERAGE_DIR      = os.path.join(OUTPUT_DIR, 'coverage')
+REPORT_DIR        = os.path.join(OUTPUT_DIR, 'report')
+FASTQC_DIR        = os.path.join(REPORT_DIR, 'fastqc')
+MULTIQC_DIR       = os.path.join(REPORT_DIR, 'multiqc')
+SCRIPTS_DIR       = os.path.join(config['locations']['pkglibexecdir'], 'scripts/')
+TMP_DIR           = os.path.join(config['locations']['output-dir'], 'pigx_work')
+
+if os.getenv("PIGX_UNINSTALLED"):
+    LOGO = os.path.join(config['locations']['pkgdatadir'], "images/Logo_PiGx.png")
+else:
+    LOGO = os.path.join(config['locations']['pkgdatadir'], "Logo_PiGx.png")
+
+BWA_EXEC             = tool("bwa")
+FASTP_EXEC           = tool("fastp")
+FASTQC_EXEC          = tool("fastqc")
+GUNZIP_EXEC          = tool("gunzip")
+GZIP_EXEC            = tool("gzip")
+MULTIQC_EXEC         = tool("multiqc")
+IMPORT_TAXONOMY_EXEC = tool("import_taxonomy")
+KRAKEN2_EXEC         = tool("kraken2")
+LOFREQ_EXEC          = tool("lofreq")
+PYTHON_EXEC          = tool("python")
+RSCRIPT_EXEC         = tool("Rscript")
+SAMTOOLS_EXEC        = tool("samtools")
+VEP_EXEC             = tool("vep")
+IVAR_EXEC            = tool("ivar")
+
+## Load sample sheet
+with open(SAMPLE_SHEET_CSV, 'r') as fp:
+  rows =  [row for row in csv.reader(fp, delimiter=',')]
+  header = rows[0]; rows = rows[1:]
+  SAMPLE_SHEET = [dict(zip(header, row)) for row in rows]
+
+SAMPLES = [line['name'] for line in SAMPLE_SHEET]
+
+targets = {
+    'help': {
+        'description': "Print all rules and their descriptions.",
+        'files': []
+    },
+    'final_reports': {
+        'description': "Produce a comprehensive report. This is the default target.",
+        'files': (
+            expand(os.path.join(REPORT_DIR, '{sample}.qc_report_per_sample.html'), sample=SAMPLES) +
+            expand(os.path.join(REPORT_DIR, '{sample}.variantreport_p_sample.html'), sample=SAMPLES) +
+            expand(os.path.join(REPORT_DIR, '{sample}.taxonomic_classification.html'), sample=SAMPLES) +
+            expand(os.path.join(REPORT_DIR, '{sample}.Krona_report.html'), sample=SAMPLES) +
+            [os.path.join(REPORT_DIR, 'index.html')]
+        )
+    },
+    'lofreq': {
+        'description': "Call variants and produce .vcf file and overview .csv file.",
+        'files': (
+            expand(os.path.join(VARIANTS_DIR, '{sample}_snv.csv'), sample=SAMPLES)
+        )
+    },
+    'multiqc': {
+        'description': "Create MultiQC reports for including raw and trimmed reads.",
+        'files': (
+            expand(os.path.join(MULTIQC_DIR, '{sample}', 'multiqc_report.html'), sample=SAMPLES)
+        )
+    }
+}
+selected_targets = ['final_reports']
+OUTPUT_FILES = list(chain.from_iterable([targets[name]['files'] for name in selected_targets]))
+
+
+rule all:
+    input: OUTPUT_FILES
+
+# Record any existing output files, so that we can detect if they have
+# changed.
+expected_files = {}
+onstart:
+    if OUTPUT_FILES:
+        for name in OUTPUT_FILES:
+            if os.path.exists(name):
+                expected_files[name] = os.path.getmtime(name)
+
+# Print generated target files.
+onsuccess:
+    if OUTPUT_FILES:
+        # check if any existing files have been modified
+        generated = []
+        for name in OUTPUT_FILES:
+            if name not in expected_files or os.path.getmtime(name) != expected_files[name]:
+                generated.append(name)
+        if generated:
+            print("The following files have been generated:")
+            for name in generated:
+                print("  - {}".format(name))
 
 # Trimming in three steps: general by qual and cutoff, get remaining adapters out, get remaining primers out
 
@@ -378,15 +399,6 @@ rule samtools_index_postprimertrim:
     log: os.path.join(LOG_DIR, 'samtools_index_{sample}.log')
     shell: "{SAMTOOLS_EXEC} index {input} {output} >> {log} 2>&1"
 
-# function to determine the extension of the input files
-def fastq_ext(fastq_file):
-    "Function to determine the fastq file extension"
-    root, ext = os.path.splitext(fastq_file)
-    if ext == ".gz":
-        root_root, root_ext = os.path.splitext(root)
-        ext = ''.join([root_ext,ext])
-    return ext
-
 
 # FIXME: single-end version needed
 # NOTE: fastqc does not process reads in pairs. files are processed as single units.
@@ -480,18 +492,6 @@ rule multiqc:
     output_dir = os.path.join(MULTIQC_DIR, '{sample}')
   log: os.path.join(LOG_DIR, 'multiqc_{sample}.log')
   shell: "{MULTIQC_EXEC} -f -o {params.output_dir} {input} >> {log} 2>&1"
-
-# WIP create a dummy entry if no variant is found - use this as long as the input-function solution doesn't work
-def no_variant_vep(sample, lofreq_output):
-    content = open(lofreq_output.format(sample=sample), 'r').read()
-    if re.findall('^NC', content, re.MULTILINE):  # regex ok or not?
-        # trigger vep path
-        print('File can be used for downstream processing')
-    else:
-        # write smth so that vep does not crash - deal with everything later in the variant_report
-        print('adding dummy entry to vcf file, because no variants were found')
-        open(lofreq_output.format(sample=sample), 'a').write(
-            "NC_000000.0\t00\t.\tA\tA\t00\tPASS\tDP=0;AF=0;SB=0;DP4=0,0,0,0")
 
 
 # TODO it should be possible to add customized parameter
