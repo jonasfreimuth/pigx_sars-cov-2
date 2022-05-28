@@ -127,10 +127,6 @@ targets = {
                 sample=SAMPLES,
             )
             + expand(
-                os.path.join(REPORT_DIR, "{sample}.taxonomic_classification.html"),
-                sample=SAMPLES,
-            )
-            + expand(
                 os.path.join(REPORT_DIR, "{sample}.Krona_report.html"), sample=SAMPLES
             )
             + [os.path.join(REPORT_DIR, "index.html")]
@@ -418,17 +414,6 @@ rule samtools_filter_aligned:
         os.path.join(LOG_DIR, "samtools_filter_aligned_{sample}.log"),
     shell:  # exclude (F) reads that are not mapped (4) and supplementary (2048)
         "{SAMTOOLS_EXEC} view -bh {params.proper_pair} -F 4 -F 2048 {input} > {output} 2>> {log} 3>&2"
-
-
-rule samtools_filter_unaligned:
-    input:
-        os.path.join(MAPPED_READS_DIR, "{sample}_aligned_tmp.sam"),
-    output:
-        os.path.join(MAPPED_READS_DIR, "{sample}_unaligned.bam"),
-    log:
-        os.path.join(LOG_DIR, "samtools_filter_unaligned_{sample}.log"),
-    shell:  # keep (-f) reads that are unmapped (4)
-        "{SAMTOOLS_EXEC} view -bh -f 4 {input} > {output} 2>> {log} 3>&2"
 
 
 rule samtools_sort_preprimertrim:
@@ -731,43 +716,6 @@ rule parse_vep:
         "{PYTHON_EXEC} {params.script} {input} {output} >> {log} 2>&1"
 
 
-rule bam2fastq:
-    input:
-        os.path.join(MAPPED_READS_DIR, "{sample}_unaligned.bam"),
-    output:
-        os.path.join(MAPPED_READS_DIR, "{sample}_unaligned.fastq"),
-    log:
-        os.path.join(LOG_DIR, "bam2fastq_{sample}.log"),
-    shell:
-        "{SAMTOOLS_EXEC} fastq {input} > {output} 2>> {log} 3>&2"
-
-
-rule kraken:
-    input:
-        unaligned_fastq=os.path.join(MAPPED_READS_DIR, "{sample}_unaligned.fastq"),
-        database=KRAKEN_DB,
-    output:
-        os.path.join(KRAKEN_DIR, "{sample}_classified_unaligned_reads.txt"),
-    log:
-        os.path.join(LOG_DIR, "kraken_{sample}.log"),
-    shell:
-        "{KRAKEN2_EXEC} --report {output} --db {input.database} {input.unaligned_fastq} >> {log} 2>&1"
-
-
-rule krona_report:
-    input:
-        kraken_output=os.path.join(
-            KRAKEN_DIR, "{sample}_classified_unaligned_reads.txt"
-        ),
-        database=KRONA_DB,
-    output:
-        os.path.join(REPORT_DIR, "{sample}.Krona_report.html"),
-    log:
-        os.path.join(LOG_DIR, "krona_report_{sample}.log"),
-    shell:
-        "{IMPORT_TAXONOMY_EXEC} -m 3 -t 5 {input.kraken_output} -tax {input.database} -o {output} >> {log} 2>&1"
-
-
 # TODO: change amplicon naming to mutation site since it is misleading
 rule samtools_bedcov:
     input:
@@ -821,31 +769,6 @@ rule generate_navbar:
     shell:
         "{RSCRIPT_EXEC} {input.script} \
         {params.report_scripts_dir} {SAMPLE_SHEET_CSV} {output} > {log} 2>&1"
-
-
-rule render_kraken2_report:
-    input:
-        script=os.path.join(SCRIPTS_DIR, "renderReport.R"),
-        report=os.path.join(
-            SCRIPTS_DIR, "report_scripts", "taxonomic_classification.Rmd"
-        ),
-        header=os.path.join(REPORT_DIR, "_navbar.html"),
-        kraken=os.path.join(KRAKEN_DIR, "{sample}_classified_unaligned_reads.txt"),
-        krona=os.path.join(REPORT_DIR, "{sample}.Krona_report.html"),
-    output:
-        os.path.join(REPORT_DIR, "{sample}.taxonomic_classification.html"),
-    log:
-        os.path.join(LOG_DIR, "reports", "{sample}_taxonomic_classification.log"),
-    shell:
-        """{RSCRIPT_EXEC} {input.script} \
-        {input.report} {output} {input.header} \
-        '{{\
-          "sample_name": "{wildcards.sample}",  \
-          "site_dir":    "{REPORT_DIR}",        \
-          "krona_file":  "{input.krona}",       \
-          "kraken_file": "{input.kraken}",      \
-          "logo": "{LOGO}" \
-        }}' > {log} 2>&1"""
 
 
 rule render_variant_report:
