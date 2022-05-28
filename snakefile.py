@@ -267,22 +267,6 @@ rule bwa_index:
         """
 
 
-# TODO verify that subsequent tools do not require filtering for proper pairs
-# NOTE verification of flags can be done with "samtools view -h -f 4 <file.sam|file.bam> | samtools flagstat -
-rule samtools_filter_aligned:
-    input:
-        os.path.join(MAPPED_READS_DIR, "{sample}.sam"),
-    output:
-        os.path.join(MAPPED_READS_DIR, "{sample}_aligned.bam"),
-    params:
-        # add 'proper-pair' filter (-f 2) if sample is paired-end
-        proper_pair=lambda wc: "-f 2" if len(trim_reads_input(wc)) > 1 else "",
-    log:
-        os.path.join(LOG_DIR, "samtools_filter_aligned_{sample}.log"),
-    shell:  # exclude (F) reads that are not mapped (4) and supplementary (2048)
-        "{SAMTOOLS_EXEC} view -bh {params.proper_pair} -F 4 -F 2048 {input} > {output} 2>> {log} 3>&2"
-
-
 rule samtools_sort_preprimertrim:
     input:
         os.path.join(MAPPED_READS_DIR, "{sample}_aligned.bam"),
