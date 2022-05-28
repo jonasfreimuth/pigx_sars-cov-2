@@ -6,7 +6,6 @@ date: '`r format(as.POSIXct(if ("" != Sys.getenv("SOURCE_DATE_EPOCH")) { as.nume
 params:
   sample_name: ''
   coverage_file: ''
-  multiqc_report: ''
   logo: ''
 ---
 
@@ -78,11 +77,6 @@ datatable(t(Coverage), options = list(searching = FALSE, paging = FALSE))
 
 To improve alignment rates and mutation calling the pipeline contains trimming steps for primer, read-quality and adapter trimming. Parameter for read processing can be provided by [the pipeline’s settings file](link/to/etc/settings_file). For detailed method information please
 consult the [documentation](http://bioinformatics.mdc-berlin.de/pigx_docs/pigx-sars-cov-2.html#introduction).
-
-## MultiQC 
-In order to be able to assess and compare the read quality after each step multiple quality reports are generated which are presented below in a summarized format:
-
-Download: [MultiQC report of raw and processed data](`r params$multiqc_report`)
 
 ## Trimming
 

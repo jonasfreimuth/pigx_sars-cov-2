@@ -221,43 +221,6 @@ def map_input(args):
         ]
 
 
-# dynamically define the multiqc input files created by FastQC and fastp
-# TODO add kraken reports per sample
-def multiqc_input(args):
-    sample = args[0]
-    reads_files = [
-        os.path.join(READS_DIR, f)
-        for f in lookup("name", sample, ["reads", "reads2"])
-        if f
-    ]
-    # read_num is either ["_R1", "_R2"] or [""] depending on number of read files
-    read_num = [
-        "_R" + str(f) if len(reads_files) > 1 else ""
-        for f in range(1, len(reads_files) + 1)
-    ]
-    se_or_pe = ["pe" if len(reads_files) > 1 else "se"]
-    files = [
-        # fastqc after primer trimming
-        expand(
-            os.path.join(
-                FASTQC_DIR,
-                "{sample}",
-                "{sample}_aligned_sorted_primer-trimmed_sorted_fastqc.html",
-            ),
-            sample=sample,
-        ),
-        expand(
-            os.path.join(
-                FASTQC_DIR,
-                "{sample}",
-                "{sample}_aligned_sorted_primer-trimmed_sorted_fastqc.zip",
-            ),
-            sample=sample,
-        ),
-    ]
-    return list(chain.from_iterable(files))
-
-
 # WIP - until then use hack that create a single line in the lofreq output
 def vep_input(args):
     sample = args[0]
@@ -315,7 +278,7 @@ rule bwa_index:
 # NOTE verification of flags can be done with "samtools view -h -f 4 <file.sam|file.bam> | samtools flagstat -
 rule samtools_filter_aligned:
     input:
-        os.path.join(MAPPED_READS_DIR, "{sample}_aligned_tmp.sam"),
+        os.path.join(MAPPED_READS_DIR, "{sample}.sam"),
     output:
         os.path.join(MAPPED_READS_DIR, "{sample}_aligned.bam"),
     params:
@@ -349,93 +312,6 @@ rule samtools_index_preprimertrim:
         "{SAMTOOLS_EXEC} index {input} {output} >> {log} 2>&1"
 
 
-rule ivar_primer_trim:
-    input:
-        primers=AMPLICONS_BED,
-        aligned_bam=os.path.join(MAPPED_READS_DIR, "{sample}_aligned_sorted.bam"),
-        aligned_bai=os.path.join(MAPPED_READS_DIR, "{sample}_aligned_sorted.bai"),
-    output:
-        os.path.join(MAPPED_READS_DIR, "{sample}_aligned_sorted_primer-trimmed.bam"),
-    params:
-        output=os.path.join(MAPPED_READS_DIR, "{sample}_aligned_sorted_primer-trimmed"),
-    log:
-        os.path.join(LOG_DIR, "ivar_{sample}.log"),
-    # TODO number parameter should be accessible over settings file
-    shell:
-        """
-        {IVAR_EXEC} trim -b {input.primers} -p {params.output} -i {input.aligned_bam} -q 15 -m 180 -s 4 >> {log} 2>&1 """
-
-
-# Vic_0825: I don't know if this double sorting and indexing is really necessary but seemed to be since ivar as
-# well as lofreq ask for sorted and indexed bam files
-
-
-rule samtools_sort_postprimertrim:
-    input:
-        os.path.join(MAPPED_READS_DIR, "{sample}_aligned_sorted_primer-trimmed.bam"),
-    output:
-        os.path.join(
-            MAPPED_READS_DIR, "{sample}_aligned_sorted_primer-trimmed_sorted.bam"
-        ),
-    log:
-        os.path.join(LOG_DIR, "samtools_sort_{sample}.log"),
-    shell:
-        "{SAMTOOLS_EXEC} sort -o {output} {input} >> {log} 2>&1"
-
-
-rule samtools_index_postprimertrim:
-    input:
-        os.path.join(
-            MAPPED_READS_DIR, "{sample}_aligned_sorted_primer-trimmed_sorted.bam"
-        ),
-    output:
-        os.path.join(
-            MAPPED_READS_DIR, "{sample}_aligned_sorted_primer-trimmed_sorted.bai"
-        ),
-    log:
-        os.path.join(LOG_DIR, "samtools_index_{sample}.log"),
-    shell:
-        "{SAMTOOLS_EXEC} index {input} {output} >> {log} 2>&1"
-
-
-rule fastqc_primer_trimmed:
-    input:
-        os.path.join(
-            MAPPED_READS_DIR, "{sample}_aligned_sorted_primer-trimmed_sorted.bam"
-        ),
-    output:
-        html=os.path.join(
-            FASTQC_DIR,
-            "{sample}",
-            "{sample}_aligned_sorted_primer-trimmed_sorted_fastqc.html",
-        ),
-        zip=os.path.join(
-            FASTQC_DIR,
-            "{sample}",
-            "{sample}_aligned_sorted_primer-trimmed_sorted_fastqc.zip",
-        ),
-    log:
-        os.path.join(LOG_DIR, "fastqc_{sample}_aligned_primer-trimmed.log"),
-    params:
-        output_dir=os.path.join(FASTQC_DIR, "{sample}"),
-    shell:
-        "{FASTQC_EXEC} -o {params.output_dir} {input} >> {log} 2>&1"
-
-
-# TODO think about adding a global version to include all samples
-rule multiqc:
-    input:
-        multiqc_input,
-    output:
-        os.path.join(MULTIQC_DIR, "{sample}", "multiqc_report.html"),
-    params:
-        output_dir=os.path.join(MULTIQC_DIR, "{sample}"),
-    log:
-        os.path.join(LOG_DIR, "multiqc_{sample}.log"),
-    shell:
-        "{MULTIQC_EXEC} -f -o {params.output_dir} {input} >> {log} 2>&1"
-
-
 # WIP create a dummy entry if no variant is found - use this as long as the input-function solution doesn't work
 def no_variant_vep(sample, lofreq_output):
     content = open(lofreq_output.format(sample=sample), "r").read()
@@ -454,10 +330,10 @@ def no_variant_vep(sample, lofreq_output):
 rule lofreq:
     input:
         aligned_bam=os.path.join(
-            MAPPED_READS_DIR, "{sample}_aligned_sorted_primer-trimmed_sorted.bam"
+            MAPPED_READS_DIR, "{sample}_aligned_sorted.bam"
         ),
         aligned_bai=os.path.join(
-            MAPPED_READS_DIR, "{sample}_aligned_sorted_primer-trimmed_sorted.bai"
+            MAPPED_READS_DIR, "{sample}_aligned_sorted.bai"
         ),
         ref=os.path.join(INDEX_DIR, "{}".format(os.path.basename(REFERENCE_FASTA))),
     output:
@@ -606,8 +482,7 @@ rule render_qc_report:
         script=os.path.join(SCRIPTS_DIR, "renderReport.R"),
         report=os.path.join(SCRIPTS_DIR, "report_scripts", "qc_report_per_sample.Rmd"),
         header=os.path.join(REPORT_DIR, "_navbar.html"),
-        coverage=os.path.join(COVERAGE_DIR, "{sample}_merged_covs.csv"),
-        multiqc=os.path.join(MULTIQC_DIR, "{sample}", "multiqc_report.html"),
+        coverage=os.path.join(COVERAGE_DIR, "{sample}_merged_covs.csv")
     output:
         os.path.join(REPORT_DIR, "{sample}.qc_report_per_sample.html"),
     params:
@@ -620,7 +495,6 @@ rule render_qc_report:
         '{{\
           "sample_name": "{wildcards.sample}",  \
           "coverage_file": "{input.coverage}",   \
-          "multiqc_report": "{params.multiqc_rel_path}", \
           "logo": "{LOGO}" \
         }}' > {log} 2>&1"""
 
