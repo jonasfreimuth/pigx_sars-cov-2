@@ -269,7 +269,7 @@ rule bwa_index:
 
 rule samtools_sort_preprimertrim:
     input:
-        os.path.join(MAPPED_READS_DIR, "{sample}_aligned.bam"),
+        os.path.join(READS_DIR, "{sample}.bam"),
     output:
         os.path.join(MAPPED_READS_DIR, "{sample}_aligned_sorted.bam"),
     log:
