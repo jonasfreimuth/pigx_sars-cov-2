@@ -35,8 +35,6 @@ READS_DIR = config["locations"]["reads-dir"]
 REFERENCE_FASTA = config["locations"]["reference-fasta"]
 AMPLICONS_BED = config["locations"]["amplicons-bed"]
 MUTATIONS_BED = config["locations"]["mutations-bed"]
-KRAKEN_DB = config["locations"]["kraken-db-dir"]
-KRONA_DB = config["locations"]["krona-db-dir"]
 VEP_DB = config["locations"]["vep-db-dir"]
 OUTPUT_DIR = config["locations"]["output-dir"]
 
@@ -52,7 +50,6 @@ LOG_DIR = os.path.join(OUTPUT_DIR, "logs")
 MAPPED_READS_DIR = os.path.join(OUTPUT_DIR, "mapped_reads")
 VARIANTS_DIR = os.path.join(OUTPUT_DIR, "variants")
 MUTATIONS_DIR = os.path.join(OUTPUT_DIR, "mutations")
-KRAKEN_DIR = os.path.join(OUTPUT_DIR, "kraken")
 COVERAGE_DIR = os.path.join(OUTPUT_DIR, "coverage")
 REPORT_DIR = os.path.join(OUTPUT_DIR, "report")
 FASTQC_DIR = os.path.join(REPORT_DIR, "fastqc")
@@ -85,7 +82,6 @@ GUNZIP_EXEC = tool("gunzip")
 GZIP_EXEC = tool("gzip")
 MULTIQC_EXEC = tool("multiqc")
 IMPORT_TAXONOMY_EXEC = tool("import_taxonomy")
-KRAKEN2_EXEC = tool("kraken2")
 LOFREQ_EXEC = tool("lofreq")
 PYTHON_EXEC = tool("python")
 RSCRIPT_EXEC = tool("Rscript")
@@ -124,9 +120,6 @@ targets = {
             + expand(
                 os.path.join(REPORT_DIR, "{sample}.variantreport_p_sample.html"),
                 sample=SAMPLES,
-            )
-            + expand(
-                os.path.join(REPORT_DIR, "{sample}.Krona_report.html"), sample=SAMPLES
             )
             + [os.path.join(REPORT_DIR, "index.html")]
         ),
