@@ -238,43 +238,6 @@ def multiqc_input(args):
     ]
     se_or_pe = ["pe" if len(reads_files) > 1 else "se"]
     files = [
-        # fastp on raw files
-        expand(
-            os.path.join(FASTQC_DIR, "{sample}", "{sample}_{end}_fastp.html"),
-            sample=sample,
-            end=se_or_pe,
-        ),
-        expand(
-            os.path.join(FASTQC_DIR, "{sample}", "{sample}_{end}_fastp.json"),
-            sample=sample,
-            end=se_or_pe,
-        ),
-        # fastqc on raw files
-        expand(
-            os.path.join(FASTQC_DIR, "{sample}", "{sample}{read_num}_fastqc.html"),
-            sample=sample,
-            read_num=read_num,
-        ),
-        expand(
-            os.path.join(FASTQC_DIR, "{sample}", "{sample}{read_num}_fastqc.zip"),
-            sample=sample,
-            read_num=read_num,
-        ),
-        # fastqc after trimming
-        expand(
-            os.path.join(
-                FASTQC_DIR, "{sample}", "{sample}_trimmed{read_num}_fastqc.html"
-            ),
-            sample=sample,
-            read_num=read_num,
-        ),
-        expand(
-            os.path.join(
-                FASTQC_DIR, "{sample}", "{sample}_trimmed{read_num}_fastqc.zip"
-            ),
-            sample=sample,
-            read_num=read_num,
-        ),
         # fastqc after primer trimming
         expand(
             os.path.join(
@@ -328,39 +291,6 @@ def vep_input(args):
 
 
 # Trimming in three steps: general by qual and cutoff, get remaining adapters out, get remaining primers out
-
-
-# TODO the output suffix should be dynamic depending on the input
-# TODO with the use of fastp the use of fastqc becomes partly reduntant, fastqc should be removed or adjusted
-rule fastp:
-    input:
-        trim_reads_input,
-    output:
-        r1=os.path.join(TRIMMED_READS_DIR, "{sample}_trimmed_R1.fastq.gz"),
-        r2=os.path.join(TRIMMED_READS_DIR, "{sample}_trimmed_R2.fastq.gz"),
-        html=os.path.join(FASTQC_DIR, "{sample}", "{sample}_pe_fastp.html"),
-        json=os.path.join(FASTQC_DIR, "{sample}", "{sample}_pe_fastp.json"),
-    log:
-        os.path.join(LOG_DIR, "fastp_{sample}.log"),
-    shell:
-        """
-        {FASTP_EXEC} -i {input[0]} -I {input[1]} -o {output.r1} -O {output.r2} --html {output.html} --json {output.json} >> {log}t 2>&1
-        """
-
-
-rule fastp_se:
-    input:
-        trim_reads_input,
-    output:
-        r=os.path.join(TRIMMED_READS_DIR, "{sample}_trimmed.fastq.gz"),
-        html=os.path.join(FASTQC_DIR, "{sample}", "{sample}_se_fastp.html"),
-        json=os.path.join(FASTQC_DIR, "{sample}", "{sample}_se_fastp.json"),
-    log:
-        os.path.join(LOG_DIR, "fastp_{sample}.log"),
-    shell:
-        """
-        {FASTP_EXEC} -i {input[0]} -o {output.r} --html {output.html} --json {output.json} >> {log}t 2>&1
-        """
 
 
 rule bwa_index:
@@ -467,118 +397,6 @@ rule samtools_index_postprimertrim:
         os.path.join(LOG_DIR, "samtools_index_{sample}.log"),
     shell:
         "{SAMTOOLS_EXEC} index {input} {output} >> {log} 2>&1"
-
-
-# function to determine the extension of the input files
-def fastq_ext(fastq_file):
-    "Function to determine the fastq file extension"
-    root, ext = os.path.splitext(fastq_file)
-    if ext == ".gz":
-        root_root, root_ext = os.path.splitext(root)
-        ext = "".join([root_ext, ext])
-    return ext
-
-
-# fixme: single-end version needed
-# Note: fastqc does not process reads in pairs. files are processed as single units.
-rule fastqc_raw_se:
-    input:
-        trim_reads_input,
-    output:
-        # all outputs are provided to ensure atomicity
-        rep=os.path.join(FASTQC_DIR, "{sample}", "{sample}_fastqc.html"),
-        zip=os.path.join(FASTQC_DIR, "{sample}", "{sample}_fastqc.zip"),
-    log:
-        os.path.join(LOG_DIR, "fastqc_{sample}_raw.log"),
-    params:
-        output_dir=os.path.join(FASTQC_DIR, "{sample}"),
-    run:
-        # renaming the ".fastq.gz" suffix to "_fastqc.html"
-        tmp_output = os.path.basename(input[0]).replace(
-            fastq_ext(input[0]), "_fastqc.html"
-        )
-        tmp_zip = os.path.basename(input[0]).replace(fastq_ext(input[0]), "_fastqc.zip")
-        shell(
-            """{FASTQC_EXEC} -o {params.output_dir} {input} >> {log} 2>&1;
-        if [[ {tmp_output} != {wildcards.sample}_fastqc.html ]]; then
-            mv {params.output_dir}/{tmp_output} {output.rep} &&\
-            mv {params.output_dir}/{tmp_zip} {output.zip}
-        fi """
-        )
-
-
-# fixme: or discard completely and change multiqc to use fastp --> fastp rule would have to be adjusted to create reasonable outputs
-rule fastqc_raw:
-    input:
-        trim_reads_input,
-    output:
-        r1_rep=os.path.join(FASTQC_DIR, "{sample}", "{sample}_R1_fastqc.html"),
-        r1_zip=os.path.join(FASTQC_DIR, "{sample}", "{sample}_R1_fastqc.zip"),
-        r2_rep=os.path.join(FASTQC_DIR, "{sample}", "{sample}_R2_fastqc.html"),
-        r2_zip=os.path.join(FASTQC_DIR, "{sample}", "{sample}_R2_fastqc.zip"),  # all outputs are provided to ensure atomicity
-    log:
-        [
-            os.path.join(LOG_DIR, "fastqc_{sample}_raw_R1.log"),
-            os.path.join(LOG_DIR, "fastqc_{sample}_raw_R2.log"),
-        ],
-    params:
-        output_dir=os.path.join(FASTQC_DIR, "{sample}"),
-    run:
-        # renaming the ".fastq.gz" suffix to "_fastqc.html"
-        tmp_R1_output = os.path.basename(input[0]).replace(
-            fastq_ext(input[0]), "_fastqc.html"
-        )
-        tmp_R1_zip = os.path.basename(input[0]).replace(
-            fastq_ext(input[0]), "_fastqc.zip"
-        )
-        tmp_R2_output = os.path.basename(input[1]).replace(
-            fastq_ext(input[0]), "_fastqc.html"
-        )
-        tmp_R2_zip = os.path.basename(input[1]).replace(
-            fastq_ext(input[0]), "_fastqc.zip"
-        )
-        shell(
-            """{FASTQC_EXEC} -o {params.output_dir} {input} >> {log} 2>&1;
-        if [[ {tmp_R1_output} != {wildcards.sample}_R1_fastqc.html ]]; then
-            mv {params.output_dir}/{tmp_R1_output} {output.r1_rep} &&\
-            mv {params.output_dir}/{tmp_R1_zip} {output.r1_zip} &&\
-            mv {params.output_dir}/{tmp_R2_output} {output.r2_rep} &&\
-            mv {params.output_dir}/{tmp_R2_zip} {output.r2_zip}
-        fi """
-        )
-
-
-# TODO: can probably be done by using map_input, no seperate functions neccessary?
-rule fastqc_trimmed_se:
-    input:
-        os.path.join(TRIMMED_READS_DIR, "{sample}_trimmed.fastq.gz"),
-    output:
-        html=os.path.join(FASTQC_DIR, "{sample}", "{sample}_trimmed_fastqc.html"),
-        zip=os.path.join(FASTQC_DIR, "{sample}", "{sample}_trimmed_fastqc.zip"),
-    log:
-        os.path.join(LOG_DIR, "fastqc_{sample}_trimmed.log"),
-    params:
-        output_dir=os.path.join(FASTQC_DIR, "{sample}"),
-    shell:
-        "{FASTQC_EXEC} -o {params.output_dir} {input} >> {log} 2>&1"
-
-
-rule fastqc_trimmed_pe:
-    input:
-        os.path.join(TRIMMED_READS_DIR, "{sample}_trimmed_R{read_num}.fastq.gz"),
-    output:
-        html=os.path.join(
-            FASTQC_DIR, "{sample}", "{sample}_trimmed_R{read_num}_fastqc.html"
-        ),
-        zip=os.path.join(
-            FASTQC_DIR, "{sample}", "{sample}_trimmed_R{read_num}_fastqc.zip"
-        ),
-    log:
-        os.path.join(LOG_DIR, "fastqc_{sample}_trimmed_R{read_num}.log"),
-    params:
-        output_dir=os.path.join(FASTQC_DIR, "{sample}"),
-    shell:
-        "{FASTQC_EXEC} -o {params.output_dir} {input} >> {log} 2>&1"
 
 
 rule fastqc_primer_trimmed:
