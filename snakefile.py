@@ -382,24 +382,6 @@ rule bwa_index:
         """
 
 
-# alignment works with both single and paired-end files
-rule bwa_align:
-    input:
-        fastq=map_input,
-        ref=os.path.join(INDEX_DIR, "{}".format(os.path.basename(REFERENCE_FASTA))),
-        index=os.path.join(
-            INDEX_DIR, "{}.bwt".format(os.path.basename(REFERENCE_FASTA))
-        ),
-    output:
-        os.path.join(MAPPED_READS_DIR, "{sample}_aligned_tmp.sam"),
-    params:
-        threads=4,
-    log:
-        os.path.join(LOG_DIR, "bwa_align_{sample}.log"),
-    shell:
-        "{BWA_EXEC} mem -t {params.threads} {input.ref} {input.fastq} > {output} 2>> {log} 3>&2"
-
-
 # TODO verify that subsequent tools do not require filtering for proper pairs
 # NOTE verification of flags can be done with "samtools view -h -f 4 <file.sam|file.bam> | samtools flagstat -
 rule samtools_filter_aligned:
