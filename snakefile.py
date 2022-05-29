@@ -396,8 +396,6 @@ rule render_qc_report:
         coverage=os.path.join(COVERAGE_DIR, "{sample}_merged_covs.csv")
     output:
         os.path.join(REPORT_DIR, "{sample}.qc_report_per_sample.html"),
-    params:
-        multiqc_rel_path=lambda wildcards, input: input.multiqc[len(REPORT_DIR) + 1 :],
     log:
         os.path.join(LOG_DIR, "reports", "{sample}_qc_report.log"),
     shell:
