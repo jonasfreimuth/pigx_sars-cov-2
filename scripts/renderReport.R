@@ -41,6 +41,17 @@ sample {font-weight: bold; color: #2C1966} \
 sample:before {content: \" Sample: \"} \
 ", file = css)
 
+
+# pretty print parameters for easier debugging
+cat("Rendering report with parameters:\n\n")
+par_vec <- c()
+for (i in seq_along(parameters)) {
+  par_vec[i] <- paste0(names(parameters)[i], ": \"", parameters[[i]], "\"")
+}
+cat(paste(par_vec, collapse = ",\n"))
+cat("\n\n")
+
+
 settings <- html_document(includes=includes(before_body=header),
                           css=css,
                           theme="lumen",
