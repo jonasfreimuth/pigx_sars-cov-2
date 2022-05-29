@@ -4,14 +4,14 @@ nav: "Variant report"
 author: "BIMSB Bioinformatics Platform"
 date: '`r format(as.POSIXct(if ("" != Sys.getenv("SOURCE_DATE_EPOCH")) { as.numeric(Sys.getenv("SOURCE_DATE_EPOCH")) } else { Sys.time() }, origin="1970-01-01"), "%Y-%m-%d %H:%M:%S")`'
 params:
-  sample_name: ''
-  output_dir: ''
-  vep_file: ''
-  snv_file: ''
-  sample_sheet: ''
-  mutation_sheet: ''
-  deconvolution_functions: ''
-  logo: ''
+  sample_name: "file_150",
+  output_dir: "/home/jfreige/pigx_pipeline_runs/UCSD_spike_in/output",
+  vep_file: "/home/jfreige/pigx_pipeline_runs/UCSD_spike_in/output/variants/file_150_vep_sarscov2_parsed.txt",
+  snv_file: "/home/jfreige/pigx_pipeline_runs/UCSD_spike_in/output/variants/file_150_snv.csv",
+  sample_sheet: "/home/jfreige/pigx_pipeline_runs/UCSD_spike_in/sample_sheet_complete_bam.csv",
+  mutation_sheet: "/home/jfreige/pigx_pipeline_runs/UCSD_spike_in/sample_data/mutation_sheet_ucsd_220309_t07.csv",
+  deconvolution_functions: "/home/jfreige/.local/libexec/pigx_sars-cov-2/scripts/deconvolution.R",
+  logo: "/home/jfreige/.local/share/pigx_sars-cov-2/Logo_PiGx.png"
 ---
 
 <style>
@@ -620,13 +620,19 @@ meta_data <- c (samplename = sample_name,
 output_mutation_frame <- bind_rows(output_mutation_frame, meta_data)
 
 # write mutation frequency values to df
-for (i in all_mutations){
-  i_NT <- str_split(i,"::")[[1]][2]
-  if (i_NT %in% complete.df$gene_mut ){ # split gene name to match with AA mut
+for (i in all_mutations) {
+  i_NT <- str_split(i, "::")[[1]][2]
+  if (i_NT %in% complete.df$gene_mut) { # split gene name to match with AA mut
     # check if variant already has a column
-    if ( i %in% colnames(output_mutation_frame)) {
-        output_mutation_frame[,i] <- complete.df$freq[ which(complete.df$gene_mut == i_NT)]
-}}}
+    if (i %in% colnames(output_mutation_frame)) {
+      # unique necessary in case of vep errors. If the error leads to different
+      # frequencies, this will still fail
+      output_mutation_frame[, i] <- unique(
+        complete.df$freq[which(complete.df$gene_mut == i_NT)]
+        )
+    }
+  }
+}
 colnames( output_mutation_frame ) <- as.character( colnames( output_mutation_frame ))
 output_mutation_frame <- output_mutation_frame %>% dplyr::select( -contains("NA" , ignore.case = FALSE))
 # convert numeric values to character
