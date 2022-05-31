@@ -95,6 +95,7 @@ def no_variant_vep(sample, lofreq_output):
 # Input functions
 
 
+
 # function to pass read files to trim/filter/qc improvement
 def trim_reads_input(args):
     """
@@ -136,6 +137,30 @@ def map_input(args):
             )
         ]
 
+
+def lofreq_input(wildcards):
+    sample = wildcards[0]
+
+    if (RUN_IVAR_PRIMER_TRIMING):
+        file_descript = "_aligned_sorted_primer-trimmed_sorted"
+
+    else:
+        file_descript = "_aligned_sorted"        
+
+    files = {
+        "aligned_bam": os.path.join(
+            MAPPED_READS_DIR,
+            f"{sample}{file_descript}.bam"),
+        "aligned_bai":  os.path.join(
+            MAPPED_READS_DIR,
+            f"{sample}{file_descript}.bai"),
+        "ref": os.path.join(
+            INDEX_DIR,
+            f"{os.path.basename(REFERENCE_FASTA)}"
+            )
+        }
+
+    return files
 
 # dynamically define the multiqc input files created by FastQC and fastp
 # TODO add kraken reports per sample
@@ -217,18 +242,44 @@ def multiqc_input(args):
 
 def render_qc_report_input(wildcards):
     sample = wildcards[0]
-    
 
-SAMPLE_SHEET_CSV = config['locations']['sample-sheet']
-MUTATION_SHEET_CSV = config['locations']['mutation-sheet']
-READS_DIR        = config['locations']['reads-dir']
-REFERENCE_FASTA  = config['locations']['reference-fasta']
-AMPLICONS_BED    = config['locations']['amplicons-bed']
-MUTATIONS_BED    = config['locations']['mutations-bed']
-KRAKEN_DB        = config['locations']['kraken-db-dir']
-KRONA_DB         = config['locations']['krona-db-dir']
-VEP_DB           = config['locations']['vep-db-dir']
-OUTPUT_DIR       = config['locations']['output-dir']
+    input = {
+        "script": os.path.join(SCRIPTS_DIR, "renderReport.R"),
+        "report": os.path.join(SCRIPTS_DIR, "report_scripts", "qc_report_per_sample.Rmd"),
+        "header": os.path.join(REPORT_DIR, "_navbar.html"),
+        "coverage": os.path.join(COVERAGE_DIR, "{sample}_merged_covs.csv"),
+        "logo": LOGO
+    }
+
+    if START_POINT != "bam":
+        input["multiqc"] = os.path.join(MULTIQC_DIR, "{sample}", "multiqc_report.html")
+
+    return input
+
+
+def render_qc_report_params(wildcards, input, output = None, threads = None, resources = None):
+    params = {"rscript_exec": RSCRIPT_EXEC}
+
+    if "multiqc" in input.keys():
+        params["multiqc_ran"]      = True
+        params["multiqc_rel_path"] = input.multiqc[len(REPORT_DIR) + 1 :]
+
+    else:
+        params["multiqc_ran"]      = False
+
+    return params
+
+
+SAMPLE_SHEET_CSV    = config["locations"]["sample-sheet"]
+MUTATION_SHEET_CSV  = config["locations"]["mutation-sheet"]
+READS_DIR           = config["locations"]["reads-dir"]
+REFERENCE_FASTA     = config["locations"]["reference-fasta"]
+AMPLICONS_BED       = config["locations"]["amplicons-bed"]
+MUTATIONS_BED       = config["locations"]["mutations-bed"]
+KRAKEN_DB           = config["locations"]["kraken-db-dir"]
+KRONA_DB            = config["locations"]["krona-db-dir"]
+VEP_DB              = config["locations"]["vep-db-dir"]
+OUTPUT_DIR          = config["locations"]["output-dir"]
 
 # TODO: get default read length from multiqc
 READ_LENGTH      = config['trimming']['read-length']
@@ -236,6 +287,11 @@ CUT_OFF          = config['trimming']['cut-off']
 
 MUTATION_DEPTH_THRESHOLD    = config["reporting"]["mutation-depth-threshold"]
 MUTATION_COVERAGE_THRESHOLD = config['reporting']['mutation-coverage-threshold']
+
+START_POINT = config["control"]["start"]
+TARGETS     = config["control"]["targets"]
+
+RUN_IVAR_PRIMER_TRIMING = config["control"]["run-ivar-primer-trimming"]
 
 INDEX_DIR         = os.path.join(OUTPUT_DIR, 'index')
 TRIMMED_READS_DIR = os.path.join(OUTPUT_DIR, 'trimmed_reads')
@@ -279,6 +335,20 @@ with open(SAMPLE_SHEET_CSV, 'r') as fp:
 
 SAMPLES = [line['name'] for line in SAMPLE_SHEET]
 
+# predefine files for targets
+final_report_files = (
+    expand(os.path.join(REPORT_DIR, '{sample}.qc_report_per_sample.html'), sample=SAMPLES) +
+    expand(os.path.join(REPORT_DIR, '{sample}.variantreport_p_sample.html'), sample=SAMPLES) +
+    [os.path.join(REPORT_DIR, 'index.html')]
+)
+
+if START_POINT != "bam":
+    final_report_files = (
+        final_report_files +
+        expand(os.path.join(REPORT_DIR, '{sample}.taxonomic_classification.html'), sample=SAMPLES) +
+        expand(os.path.join(REPORT_DIR, '{sample}.Krona_report.html'), sample=SAMPLES)
+    )
+
 targets = {
     'help': {
         'description': "Print all rules and their descriptions.",
@@ -286,13 +356,7 @@ targets = {
     },
     'final_reports': {
         'description': "Produce a comprehensive report. This is the default target.",
-        'files': (
-            expand(os.path.join(REPORT_DIR, '{sample}.qc_report_per_sample.html'), sample=SAMPLES) +
-            expand(os.path.join(REPORT_DIR, '{sample}.variantreport_p_sample.html'), sample=SAMPLES) +
-            expand(os.path.join(REPORT_DIR, '{sample}.taxonomic_classification.html'), sample=SAMPLES) +
-            expand(os.path.join(REPORT_DIR, '{sample}.Krona_report.html'), sample=SAMPLES) +
-            [os.path.join(REPORT_DIR, 'index.html')]
-        )
+        'files': final_report_files
     },
     'lofreq': {
         'description': "Call variants and produce .vcf file and overview .csv file.",
@@ -307,9 +371,17 @@ targets = {
         )
     }
 }
-selected_targets = ['final_reports']
+
+selected_targets = config["control"]["targets"]
 OUTPUT_FILES = list(chain.from_iterable([targets[name]['files'] for name in selected_targets]))
 
+run_params_info = (
+    f"Run parameters:\n"
+    f"\tStart point: {START_POINT}\n"
+    f"\tTargets: {TARGETS}\n"
+)
+
+logger.info(run_params_info)
 
 rule all:
     input: OUTPUT_FILES
@@ -421,16 +493,21 @@ rule samtools_index_preprimertrim:
 
 rule ivar_primer_trim:
     input:
-        primers = AMPLICONS_BED,
-        aligned_bam = os.path.join(MAPPED_READS_DIR, '{sample}_aligned_sorted.bam'),
-        aligned_bai = os.path.join(MAPPED_READS_DIR, '{sample}_aligned_sorted.bai')
-    output: os.path.join(MAPPED_READS_DIR, '{sample}_aligned_sorted_primer-trimmed.bam')
+        primers=AMPLICONS_BED,
+        aligned_bam=os.path.join(MAPPED_READS_DIR, "{sample}_aligned_sorted.bam"),
+        aligned_bai=os.path.join(MAPPED_READS_DIR, "{sample}_aligned_sorted.bai"),
+    output:
+        os.path.join(MAPPED_READS_DIR, "{sample}_aligned_sorted_primer-trimmed.bam"),
     params:
-        output = os.path.join(MAPPED_READS_DIR, "{sample}_aligned_sorted_primer-trimmed")
-    log: os.path.join(LOG_DIR, 'ivar_{sample}.log')
+        output=lambda wildcards, output: os.path.splitext(f"{output}")[0],
+    log:
+        os.path.join(LOG_DIR, "ivar_{sample}.log"),
     # TODO number parameter should be accessible over settings file
-    shell: """
-        {IVAR_EXEC} trim -b {input.primers} -p {params.output} -i {input.aligned_bam} -q 15 -m 180 -s 4 >> {log} 2>&1 """
+    shell:
+        """
+        {IVAR_EXEC} trim -b {input.primers} -p {params.output} -i {input.aligned_bam} -q 15 -m 180 -s 4 >> {log} 2>&1
+        """
+
 
 # Vic_0825: I don't know if this double sorting and indexing is really necessary but seemed to be since ivar as
 # well as lofreq ask for sorted and indexed bam files
@@ -539,14 +616,22 @@ rule multiqc:
 # TODO it should be possible to add customized parameter
 rule lofreq:
     input:
-        aligned_bam = os.path.join(MAPPED_READS_DIR, '{sample}_aligned_sorted_primer-trimmed_sorted.bam'),
-        aligned_bai = os.path.join(MAPPED_READS_DIR, '{sample}_aligned_sorted_primer-trimmed_sorted.bai'),
-        ref = os.path.join(INDEX_DIR, "{}".format(os.path.basename(REFERENCE_FASTA)))
+        unpack(lofreq_input)
     output: vcf = os.path.join(VARIANTS_DIR, '{sample}_snv.vcf')
     log: os.path.join(LOG_DIR, 'lofreq_{sample}.log')
     run:
-        shell("{LOFREQ_EXEC} call -f {input.ref} -o {output} --verbose {input.aligned_bam} >> {log} 2>&1")
-        # WIP create a dummy entry if no variant is found - use this as long as the input-function solution doesn't work
+        call = (f"{LOFREQ_EXEC} call "
+                f"-f {input.ref} "
+                f"-o {output} "
+                f"--verbose " 
+                f"{input.aligned_bam} "
+                f">> {log} 2>&1")
+
+        shell(f"echo {call} > {log}")
+        shell(call)
+        
+        # WIP create a dummy entry if no variant is found - use this as long as
+        # the input-function solution doesn't work
         no_variant_vep(wildcards.sample, output.vcf)
 
 
@@ -738,32 +823,23 @@ rule render_variant_report:
         """
 
 
+# ANNOT: Render quality control report, summarizing coverage, and linking to the
+# per sample fastq reports for the different stages of processing (see rule 
+# multiqc)
 rule render_qc_report:
     input:
-        script=os.path.join(SCRIPTS_DIR, "renderReport.R"),
-        report=os.path.join(SCRIPTS_DIR, "report_scripts", "qc_report_per_sample.Rmd"),
-        header=os.path.join(REPORT_DIR, "_navbar.html"),
-        coverage=os.path.join(COVERAGE_DIR, "{sample}_merged_covs.csv"),
-        multiqc=os.path.join(MULTIQC_DIR, "{sample}", "multiqc_report.html"),
+        unpack(render_qc_report_input)
     output:
         html_report=os.path.join(REPORT_DIR, "{sample}.qc_report_per_sample.html"),
         table_outfile=os.path.join(
             COVERAGE_DIR, "{sample}_report_download_coverage.csv"
         ),
     params:
-        multiqc_rel_path=lambda wildcards, input: input.multiqc[len(REPORT_DIR) + 1 :],
+        render_qc_report_params,
     log:
         os.path.join(LOG_DIR, "reports", "{sample}_qc_report.log"),
-    shell:
-        """{RSCRIPT_EXEC} {input.script} \
-        {input.report} {output.html_report} {input.header} \
-        '{{\
-          "sample_name": "{wildcards.sample}",  \
-          "coverage_file": "{input.coverage}",   \
-          "multiqc_report": "{params.multiqc_rel_path}", \
-          "logo": "{LOGO}", \
-          "coverage_table_outfile": "{output.table_outfile}" \
-        }}' > {log} 2>&1"""
+    script:
+        "snakefile_scripts/rule_render_qc_report.py"
 
 
 rule create_variants_summary:
