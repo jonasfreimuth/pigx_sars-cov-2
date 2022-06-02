@@ -153,26 +153,27 @@ complete_df <- dplyr::left_join(
   ) %>%
   mutate(gene_mut_collapsed = paste(genes, gene_mut, sep = ":"))
 
-complete_dep_filtered.df <- complete_df %>%
-  filter(as.numeric(dep) > params$mutation_depth_threshold)
+# TODO: let the read depth filter be set dynamically over the setting file
+complete_dep_filtered_df <- complete_df %>%
+ filter(as.numeric(dep) > params$mutation_depth_threshold)
 
 # filter for mutations which are signature mutations
-match.df <- complete_dep_filtered.df %>%
+match_df <- complete_dep_filtered_df %>%
   filter(!is.na(variant))
 
 # filter for everything that is not a signature mutation
-nomatch.df <- complete_dep_filtered.df %>%
+nomatch_df <- complete_dep_filtered_df %>%
   filter(is.na(variant))
 
 cat("Writing signature mutation file to ", sigmut_output_file, "...\n")
 write.csv(
-  match.df,
+  match_df,
   sigmut_output_file
 )
 
 cat("Writing non signature mutation file to ", non_sigmut_output_file, "...\n")
 write.csv(
-  nomatch.df,
+  nomatch_df,
   non_sigmut_output_file
 )
 
@@ -180,7 +181,7 @@ write.csv(
 
 ## ----echo = FALSE-------------------------------------------------------------
 # get  NT mutations only, input for the signature matrix
-muations_vec <- match.df$gene_mut_collapsed
+muations_vec <- match_df$gene_mut_collapsed
 
 # only execute the deconvolution when at least one signature mutation was found
 execute_deconvolution <- length(muations_vec) > 0
@@ -211,7 +212,7 @@ if (execute_deconvolution) {
   # for every variant update the rownames with the group they are in
   # FIXME: Shorten this and similar constructs
   for (variant in rownames(
-    msig_stable_transposed[-(rownames(msig_stable_transposed) %in% "muts"), ]
+    msig_stable_transposed[- (rownames(msig_stable_transposed) %in% "muts"), ]
   )
   ) {
     grouping_res <- dedupeVariants(
@@ -278,14 +279,15 @@ if (execute_deconvolution) {
   # construct additional WT mutations that are not weighted
 
   # get bulk frequency values, will be input for the deconvolution function
-  bulk_freq_vec <- as.numeric(match.df$freq)
+  bulk_freq_vec <- as.numeric(match_df$freq)
   # construct additional WT mutations that are not weighted
-  Others_weight <- as.numeric(sigmut_proportion_weights["Others"])
+  others_weight <- as.numeric(sigmut_proportion_weights["Others"])
+
   msig_stable_all <- simulateOthers(
     muations_vec, bulk_freq_vec,
     msig_simple_unique_weighted[, -which(names(msig_simple_unique_weighted) == "muts")],
-    match.df$cov,
-    Others_weight
+    match_df$cov,
+    others_weight
   )
   msig_stable_unique <- msig_stable_all[[1]]
 
