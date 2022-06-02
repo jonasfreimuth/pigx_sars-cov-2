@@ -16,13 +16,14 @@ args <- commandArgs(trailingOnly = TRUE)
 # give default parameters
 if (length(args) == 0) {
   args <- c(
-    sample_name = "",
-    output_dir = "",
-    vep_file = "",
-    snv_file = "",
-    sample_sheet = "",
-    mutation_sheet = "",
-    deconvolution_functions = ""
+    sample_name = "Test0",
+    output_dir = "/home/jfreige/proj/pigx_sars-cov-2/tests/output",
+    vep_file = "/home/jfreige/proj/pigx_sars-cov-2/tests/output/variants/Test0_vep_sarscov2_parsed.txt",
+    snv_file = "/home/jfreige/proj/pigx_sars-cov-2/tests/output/variants/Test0_snv.csv",
+    sample_sheet = "/home/jfreige/proj/pigx_sars-cov-2/tests/sample_sheet.csv",
+    mutation_sheet = "/home/jfreige/proj/pigx_sars-cov-2/tests/sample_data/mutation_sheet_211006_covidCG_NT_location.csv",
+    deconvolution_functions = "/home/jfreige/proj/pigx_sars-cov-2/scripts/deconvolution_funs.R",
+    mutation_depth_threshold = "100"
   )
 }
 
@@ -214,7 +215,7 @@ if (execute_deconvolution) {
   # FIXME: Shorten this and similar constructs
   for (variant in rownames(
     msig_stable_transposed[- (rownames(msig_stable_transposed) %in% "muts"), ]
-  )
+    )
   ) {
     grouping_res <- dedupe_variants(
       variant,
@@ -271,8 +272,11 @@ if (execute_deconvolution) {
   msig_simple_unique_weighted <- msig_simple_unique
 
   for (lineage in deconv_lineages) {
-    weight <- msig_simple_unique_weighted[lineage] / as.numeric(sigmut_proportion_weights[lineage])
-    msig_simple_unique_weighted[lineage] <- as.numeric(ifelse(is.na(weight), 0, unlist(weight)))
+    weight <- msig_simple_unique_weighted[lineage] /
+      as.numeric(sigmut_proportion_weights[lineage])
+    msig_simple_unique_weighted[lineage] <- as.numeric(
+      ifelse(is.na(weight), 0, unlist(weight))
+      )
   }
 
 
@@ -286,7 +290,9 @@ if (execute_deconvolution) {
 
 msig_stable_all <- simulate_others(
     mutations_vec, bulk_freq_vec,
-    msig_simple_unique_weighted[, -which(names(msig_simple_unique_weighted) == "muts")],
+    msig_simple_unique_weighted[
+      , -which(names(msig_simple_unique_weighted) == "muts")
+      ],
     match_df$cov,
     others_weight
   )
@@ -378,8 +384,9 @@ msig_stable_all <- simulate_others(
 # TODO: check if the else of the above if is handled correctly
 
 ## ----csv_output_variant_plot, include = F-------------------------------------
-# prepare processed variant values to output them as a csv which will be used for the plots in index.rmd
-# those outputs are not offically declared as outputs which can lead to issues - that part should be handled by a seperate
+# prepare processed variant values to output them as a csv which will be used
+# for the plots in index.rmd those outputs are not offically declared as outputs
+# which can lead to issues - that part should be handled by a seperate
 # file (and maybe rule)
 output_variant_plot <- data.frame(
   samplename = character(),
@@ -390,13 +397,16 @@ output_variant_plot <- data.frame(
 )
 if (!execute_deconvolution) {
   # if no signatur mutation found write empty output file
-  # TODO: sombody should check whether this empty file with header is enough, or a more sensible default is required
+  # TODO: sombody should check whether this empty file with header is enough,
+  # or a more sensible default is required
   write.csv(output_variant_plot, variants_with_meta_file,
     na = "NA", row.names = FALSE, quote = FALSE
   )
 } else {
   # get all possible variants
-  all_variants <- colnames(msig_simple[, -which(names(msig_simple) %in% "muts")])
+  all_variants <- colnames(
+    msig_simple[, -which(names(msig_simple) %in% "muts")]
+    )
   # add columns for all possible variants to the dataframe
   for (variant in all_variants) {
     output_variant_plot[, variant] <- numeric()
@@ -420,7 +430,10 @@ if (!execute_deconvolution) {
       # check if variant already has a column
       if (i %in% colnames(output_variant_plot)) {
         output_variant_plot[sample_row, ][i] <- df$abundance[df$variant == i]
-        output_variant_plot <- output_variant_plot %>% mutate(others = 1 - rowSums(across(all_of(all_variants)), na.rm = TRUE))
+        output_variant_plot <- output_variant_plot %>%
+          mutate(others = 1 - rowSums(
+            across(all_of(all_variants)), na.rm = TRUE
+            ))
       }
     }
   }
