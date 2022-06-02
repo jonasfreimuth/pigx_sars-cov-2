@@ -137,7 +137,7 @@ variant_protein_mut <- dplyr::left_join(variant_protein_mut,
 ## ----merge_vep_with_lofreq_info, include = FALSE------------------------------
 # get the SNV frequency values and coverage information for the mutations from
 # the LoFreq output
-lofreq.info <- as_data_frame(parse_snv_csv(params$snv_file))
+lofreq.info <- parse_snv_csv(params$snv_file)
 vep.info <- variant_protein_mut
 
 complete_df <- dplyr::left_join(lofreq.info, vep.info,
