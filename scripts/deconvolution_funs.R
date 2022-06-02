@@ -109,14 +109,14 @@ get_protein_mut <- function(vepfile) {
   # you should include in the vep script to parse out the #
   # in the beginning of the line or include that step here.
   # TODO: include check about correct VEP file input format
-  vepfile.df <- read.csv(vepfile, sep = ",", header = TRUE)
+  vepfile_df <- read.csv(vepfile, sep = ",", header = TRUE)
   # parsing snv and protmut location
 
   # parsing gene mutation
   gene_mutation <- data.frame(
-    gene_mut_loc = str_split_fixed(vepfile.df$Location, "[:-]+", n = 3),
+    gene_mut_loc = str_split_fixed(vepfile_df$Location, "[:-]+", n = 3),
     nucleotides = str_split_fixed(
-      str_split_fixed(vepfile.df$Uploaded_variation,
+      str_split_fixed(vepfile_df$Uploaded_variation,
         "[_-]+",
         n = 4
       )[, 4], "/",
@@ -132,12 +132,12 @@ get_protein_mut <- function(vepfile) {
 
   # parsing snv and protmut location
   locations <- data.frame(
-    gene_mut_loc = str_split_fixed(vepfile.df$Location, "[:-]+", n = 3),
+    gene_mut_loc = str_split_fixed(vepfile_df$Location, "[:-]+", n = 3),
     gene_mut = gene_mutation$gene_mut,
-    prot_mut_loc = vepfile.df$Protein_position,
-    AAs = str_split_fixed(vepfile.df$Amino_acids, "/", 2),
-    Conseq = vepfile.df$Consequence,
-    genes = vepfile.df$SYMBOL
+    prot_mut_loc = vepfile_df$Protein_position,
+    AAs = str_split_fixed(vepfile_df$Amino_acids, "/", 2),
+    Conseq = vepfile_df$Consequence,
+    genes = vepfile_df$SYMBOL
   )
 
   locations <- dplyr::na_if(locations, "")
@@ -147,19 +147,19 @@ get_protein_mut <- function(vepfile) {
   # specific B117 mutations: 21990-21993, 21764-21770, maybe also 3675-3677,
   # 69-70 - all there
 
-  deletions.df <- locations %>%
+  deletions_df <- locations %>%
     filter(gene_mut_loc.2 != gene_mut_loc.3 &
       Conseq == "inframe_deletion" &
       str_detect(prot_mut_loc, "-"))
 
-  colnames <- colnames(deletions.df)
+  colnames <- colnames(deletions_df)
 
   # if there is a deletion the snv would span a couple of positions, if there is
   # not such a spanning region there are no deletions
   # ! 06/05/2021 Vic - I think, I don't know how robust this is, but it will
   # work for the sig mutations we have so far
   if (nrow(locations) >= 1 && !(any(is.na(locations[, "gene_mut_loc.3"])))) {
-    deletions <- dplyr::bind_rows(apply(deletions.df, 1, detectable_deletions,
+    deletions <- dplyr::bind_rows(apply(deletions_df, 1, detectable_deletions,
       colnames = colnames
     ))
     locations <- dplyr::bind_rows(locations, deletions)
@@ -185,29 +185,30 @@ get_protein_mut <- function(vepfile) {
 }
 
 
-createSigMatrix <- function(mutations.vector, mutation_sheet) {
+create_sig_matrix <- function(mutations_vector, mutation_sheet) {
   #' for making the signature matrix based on the signature mutations found in
   #' the sample (given as input as a vector)for it self
   #' returns simple signature matrix as data.frame without frequency values
 
   # read in provided mutation sheet
-  mutations.df <- read.csv(mutation_sheet)
-  if ("source" %in% colnames(mutations.df)) {
-    mutations.df <- mutations.df[, -(which(names(mutations.df) %in% "source"))]
+  mutations_df <- read.csv(mutation_sheet)
+  if ("source" %in% colnames(mutations_df)) {
+    mutations_df <- mutations_df[, -(which(names(mutations_df) %in% "source"))]
   }
   # create an empty data frame add a column for the Wildtype
   # "Others" means that the particular mutation is not found and the mutation
   # site could be mutated otherwise or not at all
+  msig <- setNames(data.frame(matrix(ncol = ncol(mutations_df) + 1, nrow = 0)),
+    c("Others", colnames(mutations_df)))
 
-  msig <- setNames(data.frame(matrix(ncol = ncol(mutations.df) + 1, nrow = 0)), c("Others", colnames(mutations.df)))
-  msig <- bind_rows(tibble(muts = mutations.vector), msig)
+  msig <- bind_rows(tibble(muts = mutations_vector), msig)
 
   # making a matrix with the signature mutations found in the sample
   # make binary matrix matching the mutations to the mutation-list per variant
   # to see how many characterising mutations where found by variant
 
-  for (variant in names(mutations.df)) {
-    msig[[variant]] <- msig$muts %in% mutations.df[[variant]]
+  for (variant in names(mutations_df)) {
+    msig[[variant]] <- msig$muts %in% mutations_df[[variant]]
   }
   msig[is.na(msig)] <- 0
 
@@ -215,54 +216,62 @@ createSigMatrix <- function(mutations.vector, mutation_sheet) {
   return(msig[, -match("muts", names(msig))] * 1)
 }
 
-simulateOthers <- function(mutations.vector, bulk_freq.vector,
-                           simple_sigmat.dataframe, coverage.vector, Others_weight) {
+simulate_others <- function(
+  mutations_vector, bulk_freq_vektor,
+  simple_sigmat_dataframe, coverage_vektor, others_weight
+  ) {
   #' for the deconvolution to work we need the "wild type" frequencies too. The
   #' matrix from above got mirrored, wild type mutations are simulated the
   #' following: e.g. T210I (mutation) -> T210T ("wild type")
 
   # 1. make "Others mutations"
-  muts_Others <- lapply(mutations.vector, function(x) str_replace(x, regex(".$"),
-    str_sub(str_split(x, ":")[[1]][2], 1, 1)))
-  muts_Others.df <- data.frame(muts = unlist(muts_Others))
+  muts_others <- lapply(mutations_vector, function(x) {
+    str_replace(
+      x, regex(".$"),
+      str_sub(str_split(x, ":")[[1]][2], 1, 1)
+    )
+  })
+  muts_others_df <- data.frame(muts = unlist(muts_others))
   # 2. make frequency values, subtract the observed freqs for the real mutations
   # from 1
-  bulk_Others <- lapply(bulk_freq.vector, function(x) {
+  bulk_others <- lapply(bulk_freq_vektor, function(x) {
     1 - x
   })
 
   # 3. make matrix with Others mutations and inverse the values and wild type
   # freqs
-  msig_inverse <- bind_cols(muts_Others.df,
-    as.data.frame(+(!simple_sigmat.dataframe)))
+msig_inverse <- bind_cols(
+  muts_others_df,
+  as.data.frame(+(!simple_sigmat_dataframe))
+)
 
   # 4. apply Others weight
   # fixme: it could be this can be implemented in the step above already
-  msig_inverse[msig_inverse == 1] <- 1 / Others_weight
+  msig_inverse[msig_inverse == 1] <- 1 / others_weight
 
   # fixme: not sure if this really is a nice way to concat those things...
-  muts_all <- c(muts_Others, mutations.vector)
-  muts_all.df <- data.frame(muts = unlist(muts_all))
+  muts_all <- c(muts_others, mutations_vector)
+  muts_all_df <- data.frame(muts = unlist(muts_all))
 
-  bulk_all <- c(bulk_Others, bulk_freq.vector)
-  bulk_all.df <- data.frame(freq = unlist(bulk_all))
+  bulk_all <- c(bulk_others, bulk_freq_vektor)
+  bulk_all_df <- data.frame(freq = unlist(bulk_all))
 
-  coverage_all <- c(coverage.vector, coverage.vector)
-  coverage_all.df <- data.frame(cov = unlist(coverage_all))
+  coverage_all <- c(coverage_vektor, coverage_vektor)
+  coverage_all_df <- data.frame(cov = unlist(coverage_all))
 
   msig_all <- rbind(
     msig_inverse[, -which(names(msig_inverse) %in% "muts")],
-    simple_sigmat.dataframe
+    simple_sigmat_dataframe
   )
 
   # 4. concat the data frames
   # without bulk freq for building the signature matrix
-  msig_stable <- bind_cols(muts_all.df, msig_all)
+  msig_stable <- bind_cols(muts_all_df, msig_all)
 
   # with bulk freq for export and overview
   msig_stable_complete <- bind_cols(
-    muts_all.df, msig_all, bulk_all.df,
-    coverage_all.df
+    muts_all_df, msig_all, bulk_all_df,
+    coverage_all_df
   )
 
   return(list(msig_stable, bulk_all, msig_stable_complete))
@@ -273,7 +282,7 @@ simulateOthers <- function(mutations.vector, bulk_freq.vector,
 # for now is to identify those equal columns and merge them into one, returning
 # also a vector with the information about which of the columns were merged.
 # deduplicate dataframe
-dedupeDF <- function(msig_stable) {
+dedupe_df <- function(msig_stable) {
   # transpose and add mutations as first column
   msig_stable_transposed <- as.data.frame(cbind(
     variants = colnames(msig_stable),
@@ -292,27 +301,31 @@ dedupeDF <- function(msig_stable) {
   return(list(msig_stable_transposed, msig_dedupe_transposed))
 }
 
-dedupeVariants <- function(variant, variants.df, dedup_variants.df) {
+dedupe_variants <- function(variant, variants_df, depup_variants_df) {
   # get variant group per mutation pattern
-  # duped_variants <- grep (variant, variants.df$variants)
   duped_variants <- c()
-  row_number_variant <- which(grepl(variant, variants.df$variants))
-  for (row in 1:nrow(variants.df)) {
-    if (all (variants.df[row_number_variant, -1] == variants.df[row, -1])) { # TODO: what are those magic numbers?
-      duped_variants <- c(duped_variants, variants.df[row, "variants"])
+  row_number_variant <- which(grepl(variant, variants_df$variants))
+  for (row in 1:nrow(variants_df)) {
+    # TODO: what are those magic numbers?
+    if (all(variants_df[row_number_variant, -1] == variants_df[row, -1])) {
+      duped_variants <- c(duped_variants, variants_df[row, "variants"])
     }
   }
-  # grouped_variants <- variants.df$variants[duped_variants]
-  groupName_variants <- paste(duped_variants, collapse = ",")
-  for (row in dedup_variants.df$variants) {
-    if (grepl(row, groupName_variants)) {
+  group_name_variants <- paste(duped_variants, collapse = ",")
+  for (row in depup_variants_df$variants) {
+    if (grepl(row, group_name_variants)) {
 
-      # if variants are getting pooled with Others they are just Others and nothing else
-      if (str_detect(groupName_variants, "Others")) {
-        rownames (dedup_variants.df)[rownames(dedup_variants.df) == row] <- "Others"
+      # if variants are getting pooled with Others they are just Others and
+      # nothing else
+      if (str_detect(group_name_variants, "Others")) {
+        rownames(depup_variants_df)[
+          rownames(depup_variants_df) == row
+          ] <- "Others"
         variants_to_drop <- duped_variants[!grepl("Others", duped_variants)]
       } else {
-        rownames (dedup_variants.df)[rownames(dedup_variants.df) == row] <- groupName_variants
+        rownames(depup_variants_df)[
+          rownames(depup_variants_df) == row
+          ] <- group_name_variants
         variants_to_drop <- NA
         # TODO you can stop after this ( I think)
       }
@@ -320,7 +333,7 @@ dedupeVariants <- function(variant, variants.df, dedup_variants.df) {
   }
   # clean the vector to know which variants has to be add with value 0 after deconvolution
   variants_to_drop <- unique(variants_to_drop)[!is.na(variants_to_drop)]
-  return (list(dedup_variants.df, variants_to_drop))
+  return(list(depup_variants_df, variants_to_drop))
 }
 
 deconv <- function(bulk, sig) {
@@ -335,9 +348,10 @@ deconv <- function(bulk, sig) {
 
   rlm_coefficients <- ifelse(rlm_coefficients < 0, 0, rlm_coefficients)
 
-  sumOfCof <- sum(rlm_coefficients)
+  sum_of_cof <- sum(rlm_coefficients)
 
-  rlm_coefficients <- rlm_coefficients / sumOfCof # normalize so coefficients add to 1
+  # normalize so coefficients add to 1
+  rlm_coefficients <- rlm_coefficients / sum_of_cof
 
   as.vector(rlm_coefficients)
 }
@@ -354,9 +368,10 @@ deconv_debug <- function(bulk, sig) {
 
   rlm_coefficients <- ifelse(rlm_coefficients < 0, 0, rlm_coefficients)
 
-  sumOfCof <- sum(rlm_coefficients)
+  sum_of_cof <- sum(rlm_coefficients)
 
-  rlm_coefficients <- rlm_coefficients / sumOfCof # normalize so coefficients add to 1
+  # normalize so coefficients add to 1
+  rlm_coefficients <- rlm_coefficients / sum_of_cof
 
   return(list(as.vector(rlm_coefficients), rlm_model$fitted.values))
 }
