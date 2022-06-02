@@ -143,13 +143,13 @@ variant_protein_mut <- dplyr::left_join(variant_protein_mut,
 ## ----merge_vep_with_lofreq_info, include = FALSE------------------------------
 # get the SNV frequency values and coverage information for the mutations from
 # the LoFreq output
-lofreq.info <- parse_snv_csv(params$snv_file)
-vep.info <- variant_protein_mut
+lofreq_info <- parse_snv_csv(params$snv_file)
 
-complete_df <- dplyr::left_join(lofreq.info, vep.info,
-  by = c("gene_mut" = "gene_mut"), copy = TRUE
-) %>%
-  rowwise() %>%
+complete_df <- dplyr::left_join(
+  lofreq_info,
+  variant_protein_mut,
+  by = "gene_mut", copy = TRUE
+  ) %>%
   mutate(gene_mut_collapsed = paste(genes, gene_mut, sep = ":"))
 
 # TODO: let the read coverage filter be set dynamically over the setting file
