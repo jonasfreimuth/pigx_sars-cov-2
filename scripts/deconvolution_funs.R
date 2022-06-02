@@ -25,10 +25,10 @@ detectable_deletions <- function(x, colnames) {
   #' deletions can span a range of position values indicated by a dash in the
   #' prot_mut_loc column. In those cases those ranges have to be split up in
   #' order to be able to detect single positions. This function should be used
-  #' on a already filtered set of deletions derived from the vep-output. They are
-  #' then split up and expanded with the number of rows related to the number
-  #' of position. The function returns those extended lines as a dataframe which
-  #' structure is matching the df structure which is returned by
+  #' on a already filtered set of deletions derived from the vep-output. They
+  #' are then split up and expanded with the number of rows related to the
+  #' number of position. The function returns those extended lines as a
+  #' dataframe which structure is matching the df structure which is returned by
   #' "get_protein_mut"
 
   # check that the mutations spans multiple nucleotides AND multiple Amino Acids
@@ -238,8 +238,8 @@ simulate_others <- function(
     1 - x
   })
 
-  # 3. make matrix with Others mutations and inverse the values and wild type
-  # freqs
+# 3. make matrix with Others mutations and inverse the values and wild type
+# freqs
 msig_inverse <- bind_cols(
   muts_others_df,
   as.data.frame(+(!simple_sigmat_dataframe))
@@ -292,7 +292,9 @@ dedupe_df <- function(msig_stable) {
   # mark duplicated columns, forward and backwards to get ALL the duplicates,
   # otherwise the first one would missing
   dupes_variants <- duplicated(
-    msig_stable_transposed[, -which(names(msig_stable_transposed) %in% "variants")],
+    msig_stable_transposed[
+      , -which(names(msig_stable_transposed) %in% "variants")
+      ],
     fromLast = TRUE
   )
 
@@ -331,14 +333,16 @@ dedupe_variants <- function(variant, variants_df, depup_variants_df) {
       }
     }
   }
-  # clean the vector to know which variants has to be add with value 0 after deconvolution
+  # clean the vector to know which variants has to be add with value 0 after
+  # deconvolution
   variants_to_drop <- unique(variants_to_drop)[!is.na(variants_to_drop)]
   return(list(depup_variants_df, variants_to_drop))
 }
 
 deconv <- function(bulk, sig) {
-  #' This function performs the deconvolution using a signature matrix for the mutations found in the sample
-  #' and bulk frequency values derived by the SNV caller
+  #' This function performs the deconvolution using a signature matrix for the
+  #' mutations found in the sample and bulk frequency values derived by the SNV
+  #' caller
   #' it was build by Altuna
 
   rlm_model <- suppressWarnings(MASS::rlm(sig, bulk, maxit = 100, method = "M"))
