@@ -33,7 +33,8 @@ params <- list(
   snv_file = args[[4]],
   sample_sheet = args[[5]],
   mutation_sheet = args[[6]],
-  deconvolution_functions = args[[7]]
+  deconvolution_functions = args[[7]],
+  mutation_depth_threshold = args[[8]]
 )
 
 # pretty print parameters for easier debugging
@@ -152,8 +153,8 @@ complete_df <- dplyr::left_join(
   ) %>%
   mutate(gene_mut_collapsed = paste(genes, gene_mut, sep = ":"))
 
-# TODO: let the read depth filter be set dynamically over the setting file
-complete_dep_filtered.df <- complete_df %>% filter(!(as.numeric(dep) < 100))
+complete_dep_filtered.df <- complete_df %>%
+  filter(as.numeric(dep) > params$mutation_depth_threshold)
 
 # filter for mutations which are signature mutations
 match.df <- complete_dep_filtered.df %>%
