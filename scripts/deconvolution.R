@@ -107,6 +107,10 @@ variants_with_meta_file <- file.path(
 ## ----process_signature_mutations, include = FALSE-----------------------------
 # Read signature data
 sigmut_df <- read.csv(mutation_sheet, header = TRUE) %>%
+
+  # preprocess signature data
+  # TODO Is the first select necessary? The sample sheet seems to have no
+  # such column
   dplyr::select(-matches("source")) %>%
   dplyr::na_if("") %>%
   tidyr::pivot_longer(everything(), values_drop_na = TRUE) %>%
@@ -115,11 +119,13 @@ sigmut_df <- read.csv(mutation_sheet, header = TRUE) %>%
 vep_output_df <- read.csv(params$vep_file, sep = ",", header = TRUE) %>%
   dplyr::na_if("-")
 
+# group variants with the same muation
+# TODO Why are variants with the same mutation grouped?
 sigmuts_deduped <- sigmut_df %>%
   group_by(mutation) %>%
   summarise(variant = paste(variant, collapse = ","))
 
-# remove mutation type info
+# remove mutation type info / extract info on base changes
 sigmuts_deduped_no_gene <- sigmuts_deduped %>%
   mutate(mutation = str_extract(mutation, "(?<=:)[[:alnum:]]+"))
 
