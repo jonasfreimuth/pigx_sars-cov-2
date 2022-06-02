@@ -181,10 +181,10 @@ write.csv(
 
 ## ----echo = FALSE-------------------------------------------------------------
 # get  NT mutations only, input for the signature matrix
-muations_vec <- match_df$gene_mut_collapsed
+mutations_vec <- match_df$gene_mut_collapsed
 
 # only execute the deconvolution when at least one signature mutation was found
-execute_deconvolution <- length(muations_vec) > 0
+execute_deconvolution <- length(mutations_vec) > 0
 
 
 if (execute_deconvolution) {
@@ -194,16 +194,17 @@ if (execute_deconvolution) {
   # for the deconvolution to work we need the "wild type" frequencies too.
   # The matrix from above got mirrored, wild type mutations are simulated the
   # following: e.g. T210I (mutation) -> T210T ("wild type")
-  msig_simple <- createSigMatrix(muations_vec, mutation_sheet) %>%
+  msig_simple <- create_sig_matrix(mutations_vec, mutation_sheet) %>%
 
     # When multiple columns look like the same, the deconvolution will not work,
     # because the function can't distinguish between those columns. The
     # workaround for now is to identify those equal columns and merge them into
     # one, returning also a vector with the information about which of the
     # columns were merged.
-    cbind(muts = muations_vec, .)
+    cbind(muts = mutations_vec, .)
 
-  msig_transposed <- dedupeDF(msig_simple)
+
+  msig_transposed <- dedupe_df(msig_simple)
   msig_stable_transposed <- msig_transposed[[1]]
   msig_dedupe_transposed <- msig_transposed[[2]]
 
@@ -215,7 +216,7 @@ if (execute_deconvolution) {
     msig_stable_transposed[- (rownames(msig_stable_transposed) %in% "muts"), ]
   )
   ) {
-    grouping_res <- dedupeVariants(
+    grouping_res <- dedupe_variants(
       variant,
       msig_stable_transposed,
       msig_dedupe_transposed
@@ -283,8 +284,8 @@ if (execute_deconvolution) {
   # construct additional WT mutations that are not weighted
   others_weight <- as.numeric(sigmut_proportion_weights["Others"])
 
-  msig_stable_all <- simulateOthers(
-    muations_vec, bulk_freq_vec,
+msig_stable_all <- simulate_others(
+    mutations_vec, bulk_freq_vec,
     msig_simple_unique_weighted[, -which(names(msig_simple_unique_weighted) == "muts")],
     match_df$cov,
     others_weight
