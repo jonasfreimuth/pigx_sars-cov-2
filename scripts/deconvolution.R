@@ -141,7 +141,7 @@ variant_protein_mut <- dplyr::left_join(variant_protein_mut,
 
 
 ## ----merge_vep_with_lofreq_info, include = FALSE------------------------------
-# get the SNV frequency values and coverage information for the mutations from
+# get the SNV frequency values and read depth information for the mutations from
 # the LoFreq output
 lofreq_info <- parse_snv_csv(params$snv_file)
 
@@ -152,15 +152,15 @@ complete_df <- dplyr::left_join(
   ) %>%
   mutate(gene_mut_collapsed = paste(genes, gene_mut, sep = ":"))
 
-# TODO: let the read coverage filter be set dynamically over the setting file
-complete_cov_filtered.df <- complete_df %>% filter(!(as.numeric(cov) < 100))
+# TODO: let the read depth filter be set dynamically over the setting file
+complete_dep_filtered.df <- complete_df %>% filter(!(as.numeric(dep) < 100))
 
 # filter for mutations which are signature mutations
-match.df <- complete_cov_filtered.df %>%
+match.df <- complete_dep_filtered.df %>%
   filter(!is.na(variant))
 
 # filter for everything that is not a signature mutation
-nomatch.df <- complete_cov_filtered.df %>%
+nomatch.df <- complete_dep_filtered.df %>%
   filter(is.na(variant))
 
 cat("Writing signature mutation file to ", sigmut_output_file, "...\n")
