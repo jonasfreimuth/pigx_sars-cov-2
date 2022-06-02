@@ -424,17 +424,6 @@ if (!execute_deconvolution) {
     }
   }
 
-  ## # TODO: This chunk hast to go into a seperate rule
-  ## # 2. check if file exists already
-  ## if (file.exists (variants_with_meta_file)) {
-  ##   previous_df <- read.csv (variants_with_meta_file,
-  ##                              header = TRUE, colClasses = "character", check.names = FALSE)
-  ##   # convert numeric values to character
-  ##   output_variant_plot <- as.data.frame(lapply(output_variant_plot, as.character), check.names = FALSE)
-  ##   # merge with adding cols and rows
-  ##   output_variant_plot <- full_join(previous_df, output_variant_plot, by = colnames(previous_df), copy = TRUE)
-  ## }
-
   # 3. write to output file
   write.csv(output_variant_plot, variants_with_meta_file,
     na = "NA", row.names = FALSE, quote = FALSE
