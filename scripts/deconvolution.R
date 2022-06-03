@@ -232,18 +232,22 @@ if (execute_deconvolution) {
     }
   }
 
+  # concat dupe groups to form a new composite name for the now unique col
+  dupe_group_names <- lapply(dupe_group_list, paste, collapse = var_sep) %>%
+    unlist()
+
+  # juggle names to get a named vector with names and values flipped
+  # needed by dplyr::rename()
+  old_names <- names(dupe_group_names)
+  new_names <- dupe_group_names
+
+  dupe_group_names <- old_names %>%
+    set_names(new_names)
+
   # generate deduped signature matrix
   # is a col was duplicated this contains only the first col of each dupe group
-  msig_deduped_df <- msig_simple_df[, !is_dupe]
-
-  # change name of first col of each dupe group (which is sti)
-  for (dupe_group_vec in dupe_group_list) {
-    dupe_group_name <- paste(dupe_group_vec, collapse = var_sep)
-
-    replace_ind <- which(colnames(msig_deduped_df) == dupe_group_vec[1])
-
-    colnames(msig_deduped_df)[replace_ind] <- dupe_group_name
-  }
+  msig_deduped_df <- msig_simple_df[, !is_dupe] %>%
+    rename(!! dupe_group_names)
 
   ## ----calculate_sigmat_weigths, include = FALSE------------------------------
   deconv_lineages <- colnames(msig_deduped_df)
