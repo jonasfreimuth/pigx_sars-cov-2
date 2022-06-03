@@ -50,6 +50,10 @@ cat("\n\n")
 ## function loading
 source(params$deconvolution_functions)
 
+# set script wide separator used for variants that contain the same signature
+# muations
+var_sep <- ","
+
 ## ----printInputSettings, echo = FALSE-----------------------------------------
 sample_name         <- params$sample_name
 sample_sheet        <- data.table::fread(params$sample_sheet)
@@ -194,56 +198,50 @@ if (execute_deconvolution) {
   # for the deconvolution to work we need the "wild type" frequencies too.
   # The matrix from above got mirrored, wild type mutations are simulated the
   # following: e.g. T210I (mutation) -> T210T ("wild type")
-  msig_simple <- create_sig_matrix(mutations_vec, mutation_sheet) %>%
+  msig_simple <- create_sig_matrix(mutations_vec, mutation_sheet)
 
-    # When multiple columns look like the same, the deconvolution will not work,
-    # because the function can't distinguish between those columns. The
-    # workaround for now is to identify those equal columns and merge them into
-    # one, returning also a vector with the information about which of the
-    # columns were merged.
-    cbind(muts = mutations_vec, .)
+  # deduplicate matrix
 
+  variant_names <- colnames(msig_simple)
 
-  msig_transposed <- dedupe_df(msig_simple)
-  msig_stable_transposed <- msig_transposed[[1]]
-  msig_dedupe_transposed <- msig_transposed[[2]]
+  is_dupe <- duplicated(msig_simple, MARGIN = 2)
+  dupe_variants <- variant_names[is_dupe]
 
-  dropped_variants <- c()
+  # find out of which variant a dupe variant is a dupe of, generate groups
+  # of variants which are duplicates of each other
+  dupe_group_list <- list()
 
-  # for every variant update the rownames with the group they are in
-  # FIXME: Shorten this and similar constructs
-  for (variant in rownames(
-    msig_stable_transposed[- (rownames(msig_stable_transposed) %in% "muts"), ]
-    )
-  ) {
-    grouping_res <- dedupe_variants(
-      variant,
-      msig_stable_transposed,
-      msig_dedupe_transposed
-    )
+  for (dupe_var in dupe_variants) {
+    if (!dupe_var %in% unique(unlist(dupe_group_list))) {
+      dupe_var_col <- msig_simple[, which(variant_names == dupe_var)]
 
-    msig_dedupe_transposed <- grouping_res[[1]]
-    dropped_variants <- c(dropped_variants, grouping_res[[2]])
+      dupe_group_logi <- apply(
+        msig_simple,
+        2,
+        identical, dupe_var_col
+      )
+
+      dupe_group_vec <- variant_names[dupe_group_logi]
+
+      dupe_group_list <- c(dupe_group_list, list(dupe_group_vec))
+    }
   }
 
-  # transpose the data frame back to column format for additional processing
-  if (length(msig_dedupe_transposed) >= 1) {
-    # the 1 get's rid of the additional first row which is an transposing
-    # artifact
-    msig_simple_unique <- as.data.frame(t(msig_dedupe_transposed[, -1])) %>%
-      mutate(across(!c("muts"), as.numeric))
+  # generate deduped signature matrix
+  # is a col was duplicated this contains only the first col of each dupe group
+  msig_dedupe <- msig_simple[, !is_dupe]
+
+  # change name of first col of each dupe group (which is sti)
+  for (dupe_group_vec in dupe_group_list) {
+    dupe_group_name <- paste(dupe_group_vec, collapse = var_sep)
+
+    replace_ind <- which(colnames(msig_dedupe) == dupe_group_vec[1])
+
+    colnames(msig_dedupe)[replace_ind] <- dupe_group_name
   }
-
-  # clean the vector to know which variants has to be add with value 0 after
-  # deconvolution
-  dropped_variants <- unique(dropped_variants)
-  dropped_variants <- dropped_variants[!is.na(dropped_variants)]
-
 
   ## ----calculate_sigmat_weigths, include = FALSE------------------------------
-  deconv_lineages <- colnames(
-    msig_simple_unique[, -which(names(msig_simple_unique) %in% c("muts", "WT"))]
-  )
+  deconv_lineages <- colnames(msig_dedupe)
 
   # create list of proportion values that will be used as weigths
   sigmut_proportion_weights <- list()
@@ -252,13 +250,13 @@ if (execute_deconvolution) {
       # !! 17/02/2022 It's not yet tested how robust this behaves when one would
       # mindlessly clutter the mutationsheet
       # with lineages that are very unlikely to detect or not detected
-      value <- nrow(msig_simple_unique) / nrow(sigmuts_deduped)
+      value <- nrow(msig_dedupe) / nrow(sigmuts_deduped)
     } else if (grepl(",", lineage)) {
       group <- unlist(str_split(lineage, ","))
       avrg <- sum(sigmut_df$variant %in% group) / length(group)
-      value <- sum(msig_simple_unique[lineage]) / avrg
+      value <- sum(msig_dedupe[lineage]) / avrg
     } else {
-      value <- sum(msig_simple_unique[lineage]) /
+      value <- sum(msig_dedupe[lineage]) /
         sum(sigmut_df$variant == lineage)
     }
     sigmut_proportion_weights[lineage] <- value
@@ -268,13 +266,12 @@ if (execute_deconvolution) {
 
   # applying weights on signature matrix
   # FIXME: there should be a way to do this vectorized
-  msig_simple_unique_weighted <- msig_simple_unique %>%
-      dplyr::select(- matches("muts"))
+  msig_dedupe_weighted <- msig_dedupe
 
   for (lineage in deconv_lineages) {
-    weight <- msig_simple_unique_weighted[lineage] /
+    weight <- msig_dedupe_weighted[lineage] /
       as.numeric(sigmut_proportion_weights[lineage])
-    msig_simple_unique_weighted[lineage] <- as.numeric(
+    msig_dedupe_weighted[lineage] <- as.numeric(
       ifelse(is.na(weight), 0, unlist(weight))
       )
   }
@@ -290,7 +287,7 @@ if (execute_deconvolution) {
 
   msig_stable_all <- simulate_others(
     mutations_vec, bulk_freq_vec,
-    msig_simple_unique_weighted,
+    msig_dedupe_weighted,
     match_df$dep,
     others_weight
   )
@@ -325,7 +322,7 @@ if (execute_deconvolution) {
   # case 1: add dropped variants again with value 0 in case all of the other
   # variants add up to 1
   if (round(sum(df$abundance), 1) == 1) {
-    for (variant in dropped_variants) {
+    for (variant in dupe_variants) {
       df <- rbind(df, c(variant, 0))
     }
   }
