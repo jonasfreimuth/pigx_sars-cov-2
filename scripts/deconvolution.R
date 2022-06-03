@@ -300,7 +300,6 @@ if (execute_deconvolution) {
   # Error in x * wts: non-numeric argument to binary operator
   # also see: https://stackoverflow.com/questions/37707060/converting-data-frame-column-from-character-to-numeric/37707117
   sig <- msig_stable_all[[1]] %>%
-    dplyr::select(- matches("muts")) %>%
     mutate(across(everything(), as.numeric)) %>%
     as.matrix()
 
@@ -313,7 +312,7 @@ if (execute_deconvolution) {
   ## ----plot, echo = FALSE-----------------------------------------------------
   # work in progress...only to show how it theoretically can look like in the
   # report
-  variants <- colnames(msig_stable_all[[1]][, -1])
+  variants <- colnames(msig_stable_all[[1]])
   df <- data.frame(rbind(variant_abundance))
 
   colnames(df) <- variants

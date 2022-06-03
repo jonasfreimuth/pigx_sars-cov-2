@@ -233,20 +233,12 @@ simulate_others <- function(mutations_vector,
   #'
   #' for each mutation, generate a dummy mutation that results in no change
 
-  # 1. make "Others mutations", i.e. dummy mutations
-  # --> T210I (mutation) -> T210T ("wild type")
-  dummy_mut_vec <- stringr::str_replace(
-    mutations_vector,
-    "[[:alpha:]]+$",
-    stringr::str_extract(mutations_vector, "(?<=:)[[:alpha:]]+")
-    )
-
-  # 2. generate frequency values for the dummy mutations. As they represent
+  # generate frequency values for the dummy mutations. As they represent
   # all the variants without the respective mutation, they are the remainder
   # to one of the original mutations frequencies
   inv_freq_vec <- 1 - bulk_freq_vektor
 
-  # 3. make matrix with Others mutations and inverse the values and wild type
+  # make matrix with Others mutations and inverse the values and wild type
   # freqs
   msig_inverse <- simple_sigmat_dataframe %>%
     mutate(across(everything(), ~ as.numeric(!as.logical(.x)))) %>%
@@ -257,11 +249,7 @@ simulate_others <- function(mutations_vector,
 
       return(x)
       }
-    )) %>%
-    mutate(muts = dummy_mut_vec)
-
-  # fixme: not sure if this really is a nice way to concat those things...
-  muts_all_df <- data.frame(muts = c(dummy_mut_vec, mutations_vector))
+    ))
 
   bulk_all <- c(inv_freq_vec, bulk_freq_vektor)
 
@@ -270,11 +258,7 @@ simulate_others <- function(mutations_vector,
     simple_sigmat_dataframe
   )
 
-  # 5. concat the data frames
-  # without bulk freq for building the signature matrix
-  msig_stable <- dplyr::bind_cols(muts_all_df, msig_all)
-
-  return(list(msig_stable, bulk_all))
+  return(list(msig_all, bulk_all))
 }
 
 # When multiple columns look like the same, the deconvolution will not work,
