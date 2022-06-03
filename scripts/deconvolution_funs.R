@@ -222,10 +222,11 @@ create_sig_matrix <- function(mutations_vector, mutation_sheet_file) {
   return(sig_mat)
 }
 
-simulate_others <- function(
-  mutations_vector, bulk_freq_vektor,
-  simple_sigmat_dataframe, coverage_vektor, others_weight
-  ) {
+simulate_others <- function(mutations_vector,
+                            bulk_freq_vektor,
+                            simple_sigmat_dataframe,
+                            coverage_vektor,
+                            others_weight) {
   #' for the deconvolution to work we need the "wild type" frequencies too. The
   #' matrix from above got mirrored, wild type mutations are simulated the
   #' following: e.g. T210I (mutation) -> T210T ("wild type")
@@ -244,12 +245,12 @@ simulate_others <- function(
     1 - x
   })
 
-# 3. make matrix with Others mutations and inverse the values and wild type
-# freqs
-msig_inverse <- bind_cols(
-  muts_others_df,
-  as.data.frame(+(!simple_sigmat_dataframe))
-)
+  # 3. make matrix with Others mutations and inverse the values and wild type
+  # freqs
+  msig_inverse <- bind_cols(
+    muts_others_df,
+    as.data.frame(+ (!simple_sigmat_dataframe))
+  )
 
   # 4. apply Others weight
   # fixme: it could be this can be implemented in the step above already
