@@ -155,7 +155,7 @@ complete_df <- dplyr::left_join(
   mutate(gene_mut_collapsed = paste(genes, gene_mut, sep = ":"))
 
 complete_dep_filtered_df <- complete_df %>%
- filter(as.numeric(dep) > params$mutation_depth_threshold)
+ filter(as.numeric(dep) > as.numeric(params$mutation_depth_threshold))
 
 # filter for mutations which are signature mutations
 match_df <- complete_dep_filtered_df %>%
