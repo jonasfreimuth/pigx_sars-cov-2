@@ -207,13 +207,16 @@ if (execute_deconvolution) {
   is_dupe <- duplicated(msig_simple, MARGIN = 2)
   dupe_variants <- variant_names[is_dupe]
 
+  # coerce back to dataframe for easier processing
+  msig_simple_df <- as.data.frame(msig_simple)
+
   # find out of which variant a dupe variant is a dupe of, generate groups
   # of variants which are duplicates of each other
   dupe_group_list <- list()
 
   for (dupe_var in dupe_variants) {
     if (!dupe_var %in% unique(unlist(dupe_group_list))) {
-      dupe_var_col <- msig_simple[, which(variant_names == dupe_var)]
+      dupe_var_col <- msig_simple_df[[dupe_var]]
 
       dupe_group_logi <- apply(
         msig_simple,
@@ -229,19 +232,19 @@ if (execute_deconvolution) {
 
   # generate deduped signature matrix
   # is a col was duplicated this contains only the first col of each dupe group
-  msig_dedupe <- msig_simple[, !is_dupe]
+  msig_deduped_df <- msig_simple_df[, !is_dupe]
 
   # change name of first col of each dupe group (which is sti)
   for (dupe_group_vec in dupe_group_list) {
     dupe_group_name <- paste(dupe_group_vec, collapse = var_sep)
 
-    replace_ind <- which(colnames(msig_dedupe) == dupe_group_vec[1])
+    replace_ind <- which(colnames(msig_deduped_df) == dupe_group_vec[1])
 
-    colnames(msig_dedupe)[replace_ind] <- dupe_group_name
+    colnames(msig_deduped_df)[replace_ind] <- dupe_group_name
   }
 
   ## ----calculate_sigmat_weigths, include = FALSE------------------------------
-  deconv_lineages <- colnames(msig_dedupe)
+  deconv_lineages <- colnames(msig_deduped_df)
 
   # create list of proportion values that will be used as weigths
   sigmut_proportion_weights <- list()
@@ -250,13 +253,13 @@ if (execute_deconvolution) {
       # !! 17/02/2022 It's not yet tested how robust this behaves when one would
       # mindlessly clutter the mutationsheet
       # with lineages that are very unlikely to detect or not detected
-      value <- nrow(msig_dedupe) / nrow(sigmuts_deduped)
+      value <- nrow(msig_deduped_df) / nrow(sigmuts_deduped)
     } else if (grepl(var_sep, lineage)) {
       group <- unlist(str_split(lineage, var_sep))
       avrg <- sum(sigmut_df$variant %in% group) / length(group)
-      value <- sum(msig_dedupe[lineage]) / avrg
+      value <- sum(msig_deduped_df[lineage]) / avrg
     } else {
-      value <- sum(msig_dedupe[lineage]) /
+      value <- sum(msig_deduped_df[lineage]) /
         sum(sigmut_df$variant == lineage)
     }
     sigmut_proportion_weights[lineage] <- value
@@ -266,12 +269,12 @@ if (execute_deconvolution) {
 
   # applying weights on signature matrix
   # FIXME: there should be a way to do this vectorized
-  msig_dedupe_weighted <- msig_dedupe
+  msig_deduped_df_weighted <- msig_dedupe
 
   for (lineage in deconv_lineages) {
-    weight <- msig_dedupe_weighted[lineage] /
+    weight <- msig_deduped_df_weighted[lineage] /
       as.numeric(sigmut_proportion_weights[lineage])
-    msig_dedupe_weighted[lineage] <- as.numeric(
+    msig_deduped_df_weighted[lineage] <- as.numeric(
       ifelse(is.na(weight), 0, unlist(weight))
       )
   }
@@ -287,7 +290,7 @@ if (execute_deconvolution) {
 
   msig_stable_all <- simulate_others(
     mutations_vec, bulk_freq_vec,
-    msig_dedupe_weighted,
+    msig_deduped_df_weighted,
     match_df$dep,
     others_weight
   )
