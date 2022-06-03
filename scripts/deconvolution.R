@@ -287,11 +287,10 @@ if (execute_deconvolution) {
   # construct additional WT mutations that are not weighted
   others_weight <- as.numeric(sigmut_proportion_weights["Others"])
 
-msig_stable_all <- simulate_others(
+  msig_stable_all <- simulate_others(
     mutations_vec, bulk_freq_vec,
-    msig_simple_unique_weighted[
-      , -which(names(msig_simple_unique_weighted) == "muts")
-      ],
+    msig_simple_unique_weighted %>%
+      dplyr::select(- matches("muts")),
     match_df$dep,
     others_weight
   )
