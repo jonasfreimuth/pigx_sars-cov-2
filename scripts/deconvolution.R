@@ -403,9 +403,7 @@ if (!execute_deconvolution) {
   )
 } else {
   # get all possible variants
-  all_variants <- colnames(
-    msig_simple[, -which(names(msig_simple) %in% "muts")]
-    )
+  all_variants <- colnames(msig_simple)
   # add columns for all possible variants to the dataframe
   for (variant in all_variants) {
     output_variant_plot[, variant] <- numeric()
