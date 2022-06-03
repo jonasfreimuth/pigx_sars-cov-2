@@ -251,8 +251,8 @@ if (execute_deconvolution) {
       # mindlessly clutter the mutationsheet
       # with lineages that are very unlikely to detect or not detected
       value <- nrow(msig_dedupe) / nrow(sigmuts_deduped)
-    } else if (grepl(",", lineage)) {
-      group <- unlist(str_split(lineage, ","))
+    } else if (grepl(var_sep, lineage)) {
+      group <- unlist(str_split(lineage, var_sep))
       avrg <- sum(sigmut_df$variant %in% group) / length(group)
       value <- sum(msig_dedupe[lineage]) / avrg
     } else {
@@ -331,19 +331,19 @@ if (execute_deconvolution) {
   # given the value 0 OR
   # case 3: in case multiple vars can really not be distinguished from each
   # other they will be distributed normaly
-  while (any(str_detect(df$name, ","))) {
-    grouped_rows <- which(str_detect(df$name, ","))
+  while (any(str_detect(df$name, var_sep))) {
+    grouped_rows <- which(str_detect(df$name, var_sep))
     # fixme: this loop might be unneccessary, since only the first row should
     # been picked, everything else will be handled by the while loop
     for (row in grouped_rows) {
       if (df[row, "value"] == 0) {
-        grouped_variants <- unlist(str_split(df[row, "variant"], ","))
+        grouped_variants <- unlist(str_split(df[row, "variant"], var_sep))
         for (variant in grouped_variants) {
           # add new rows, one for each variant
           df <- rbind(df, c(variant, 0))
         }
       } else if (df[row, "abundance"] != 0) {
-        grouped_variants <- unlist(str_split(df[row, "variant"], ","))
+        grouped_variants <- unlist(str_split(df[row, "variant"], var_sep))
         # normal distribution, devide deconv value by number of grouped variants
         distributed_freq_value <-
           as.numeric(as.numeric(df[row, "abundance"]) /
@@ -449,7 +449,7 @@ if (execute_deconvolution) {
     group_by(across(c(-freq, -gene_mut, -gene_mut_collapsed, AA_mut))) %>%
     summarise(
       freq = sum(as.numeric(freq)),
-      gene_mut = paste(gene_mut, collapse = ",")
+      gene_mut = paste(gene_mut, collapse = var_sep)
     ) %>%
     rowwise() %>%
     mutate(AA_mut = replace(AA_mut, is.na(AA_mut), "\\:\\")) %>%
