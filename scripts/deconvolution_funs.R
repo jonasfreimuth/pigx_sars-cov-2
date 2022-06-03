@@ -185,35 +185,39 @@ get_protein_mut <- function(vepfile) {
 }
 
 
-create_sig_matrix <- function(mutations_vector, mutation_sheet) {
+create_sig_matrix <- function(mutations_vector, mutation_sheet_file) {
   #' for making the signature matrix based on the signature mutations found in
   #' the sample (given as input as a vector)for it self
   #' returns simple signature matrix as data.frame without frequency values
 
   # read in provided mutation sheet
-  mutations_df <- read.csv(mutation_sheet)
-  if ("source" %in% colnames(mutations_df)) {
-    mutations_df <- mutations_df[, -(which(names(mutations_df) %in% "source"))]
-  }
-  # create an empty data frame add a column for the Wildtype
-  # "Others" means that the particular mutation is not found and the mutation
-  # site could be mutated otherwise or not at all
-  msig <- setNames(data.frame(matrix(ncol = ncol(mutations_df) + 1, nrow = 0)),
-    c("Others", colnames(mutations_df)))
+  mutations_df <- read.csv(mutation_sheet_file) %>%
 
-  msig <- bind_rows(tibble(muts = mutations_vector), msig)
+    # remove source col if there. TODO What problems would this col cause?
+    dplyr::select(-matches("source"))
 
   # making a matrix with the signature mutations found in the sample
   # make binary matrix matching the mutations to the mutation-list per variant
   # to see how many characterising mutations where found by variant
 
-  for (variant in names(mutations_df)) {
-    msig[[variant]] <- msig$muts %in% mutations_df[[variant]]
-  }
-  msig[is.na(msig)] <- 0
+  sig_mat <- lapply(colnames(mutations_df), function(variant) {
+    return(as.numeric(mutations_vector %in% mutations_df[[variant]]))
+  }) %>%
 
-  # use the *1 to turn true/false to 0/1
-  return(msig[, -match("muts", names(msig))] * 1)
+    dplyr::bind_cols() %>%
+
+    magrittr::set_names(names(mutations_df)) %>%
+
+    # add "Others" col of all "0"s to indicate possible other variants not
+    # possessing any of the mutations
+    # TODO ensure this is how this column is supposed to work
+    mutate(Others = rep(0, length(mutations_vector))) %>%
+
+    # coerce to matrix
+    as.matrix()
+
+
+  return(sig_mat)
 }
 
 simulate_others <- function(
