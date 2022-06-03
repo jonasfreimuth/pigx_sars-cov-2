@@ -230,6 +230,8 @@ simulate_others <- function(mutations_vector,
   #' for the deconvolution to work we need the "wild type" frequencies too. The
   #' matrix from above got mirrored, wild type mutations are simulated the
   #' following: e.g. T210I (mutation) -> T210T ("wild type")
+  #'
+  #' for each mutation, generate a dummy mutation that results in no change
 
   # 1. make "Others mutations"
   muts_others <- lapply(mutations_vector, function(x) {
