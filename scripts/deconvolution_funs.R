@@ -228,41 +228,42 @@ simulate_others <- function(mutations_vector,
                             coverage_vektor,
                             others_weight) {
   #' for the deconvolution to work we need the "wild type" frequencies too. The
-  #' matrix from above got mirrored, wild type mutations are simulated the
-  #' following: e.g. T210I (mutation) -> T210T ("wild type")
+  #' matrix from above got (elementwise) inverted, wild type mutations are
+  #' simulated the following: e.g. T210I (mutation) -> T210T ("wild type")
   #'
   #' for each mutation, generate a dummy mutation that results in no change
 
-  # 1. make "Others mutations"
-  muts_others <- lapply(mutations_vector, function(x) {
-    str_replace(
-      x, regex(".$"),
-      str_sub(str_split(x, ":")[[1]][2], 1, 1)
+  # 1. make "Others mutations", i.e. dummy mutations
+  # --> T210I (mutation) -> T210T ("wild type")
+  dummy_mut_vec <- stringr::str_replace(
+    mutations_vector,
+    "[[:alpha:]]+$",
+    stringr::str_extract(mutations_vector, "(?<=:)[[:alpha:]]+")
     )
-  })
-  muts_others_df <- data.frame(muts = unlist(muts_others))
-  # 2. make frequency values, subtract the observed freqs for the real mutations
-  # from 1
-  bulk_others <- lapply(bulk_freq_vektor, function(x) {
-    1 - x
-  })
+
+  # 2. generate frequency values for the dummy mutations. As they represent
+  # all the variants without the respective mutation, they are the remainder
+  # to one of the original mutations frequencies
+  inv_freq_vec <- 1 - bulk_freq_vektor
 
   # 3. make matrix with Others mutations and inverse the values and wild type
   # freqs
-  msig_inverse <- bind_cols(
-    muts_others_df,
-    as.data.frame(+ (!simple_sigmat_dataframe))
-  )
+  msig_inverse <- simple_sigmat_dataframe %>%
+    mutate(across(everything(), ~ as.numeric(!as.logical(.x)))) %>%
 
-  # 4. apply Others weight
-  # fixme: it could be this can be implemented in the step above already
-  msig_inverse[msig_inverse == 1] <- 1 / others_weight
+    # apply weights right away
+    mutate(across(everything(), function(x) {
+      x[x == 1] <- 1 / others_weight
+
+      return(x)
+      }
+    )) %>%
+    mutate(muts = dummy_mut_vec)
 
   # fixme: not sure if this really is a nice way to concat those things...
-  muts_all <- c(muts_others, mutations_vector)
-  muts_all_df <- data.frame(muts = unlist(muts_all))
+  muts_all_df <- data.frame(muts = c(dummy_mut_vec, mutations_vector))
 
-  bulk_all <- c(bulk_others, bulk_freq_vektor)
+  bulk_all <- c(inv_freq_vec, bulk_freq_vektor)
 
   msig_all <- rbind(
     msig_inverse[, -which(names(msig_inverse) %in% "muts")],
