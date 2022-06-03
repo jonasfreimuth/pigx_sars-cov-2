@@ -270,7 +270,7 @@ msig_inverse <- bind_cols(
     simple_sigmat_dataframe
   )
 
-  # 4. concat the data frames
+  # 5. concat the data frames
   # without bulk freq for building the signature matrix
   msig_stable <- bind_cols(muts_all_df, msig_all)
 
