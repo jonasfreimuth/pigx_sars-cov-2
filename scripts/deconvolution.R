@@ -275,7 +275,7 @@ if (execute_deconvolution) {
 
   # applying weights on signature matrix
   # FIXME: there should be a way to do this vectorized
-  msig_deduped_df_weighted <- msig_dedupe
+  msig_deduped_df_weighted <- msig_deduped_df
 
   for (lineage in deconv_lineages) {
     weight <- msig_deduped_df_weighted[lineage] /
