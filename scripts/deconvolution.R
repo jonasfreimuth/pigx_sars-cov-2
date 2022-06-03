@@ -154,7 +154,6 @@ complete_df <- dplyr::left_join(
   ) %>%
   mutate(gene_mut_collapsed = paste(genes, gene_mut, sep = ":"))
 
-# TODO: let the read depth filter be set dynamically over the setting file
 complete_dep_filtered_df <- complete_df %>%
  filter(as.numeric(dep) > params$mutation_depth_threshold)
 
