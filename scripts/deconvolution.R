@@ -221,7 +221,9 @@ if (execute_deconvolution) {
       dupe_group_logi <- apply(
         msig_simple,
         2,
-        identical, dupe_var_col
+        function(col, dupe_col) {
+          all(col == dupe_col)
+        }, dupe_var_col
       )
 
       dupe_group_vec <- variant_names[dupe_group_logi]
