@@ -292,7 +292,7 @@ msig_stable_all <- simulate_others(
     msig_simple_unique_weighted[
       , -which(names(msig_simple_unique_weighted) == "muts")
       ],
-    match_df$cov,
+    match_df$dep,
     others_weight
   )
 
