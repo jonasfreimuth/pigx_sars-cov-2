@@ -261,68 +261,6 @@ simulate_others <- function(mutations_vector,
   return(list(msig_all, bulk_all))
 }
 
-# When multiple columns look like the same, the deconvolution will not work,
-# because the function can't distinguish between those columns. The workaround
-# for now is to identify those equal columns and merge them into one, returning
-# also a vector with the information about which of the columns were merged.
-# deduplicate dataframe
-dedupe_df <- function(msig_stable) {
-  # transpose and add mutations as first column
-  msig_stable_transposed <- as.data.frame(cbind(
-    variants = colnames(msig_stable),
-    t(msig_stable)
-  ))
-
-  # mark duplicated columns, forward and backwards to get ALL the duplicates,
-  # otherwise the first one would missing
-  dupes_variants <- duplicated(
-    msig_stable_transposed[
-      , -which(names(msig_stable_transposed) %in% "variants")
-      ],
-    fromLast = TRUE
-  )
-
-  msig_dedupe_transposed <- msig_stable_transposed[!dupes_variants, ]
-
-  return(list(msig_stable_transposed, msig_dedupe_transposed))
-}
-
-dedupe_variants <- function(variant, variants_df, depup_variants_df) {
-  # get variant group per mutation pattern
-  duped_variants <- c()
-  row_number_variant <- which(grepl(variant, variants_df$variants))
-  for (row in 1:nrow(variants_df)) {
-    # TODO: what are those magic numbers?
-    if (all(variants_df[row_number_variant, -1] == variants_df[row, -1])) {
-      duped_variants <- c(duped_variants, variants_df[row, "variants"])
-    }
-  }
-  group_name_variants <- paste(duped_variants, collapse = ",")
-  for (row in depup_variants_df$variants) {
-    if (grepl(row, group_name_variants)) {
-
-      # if variants are getting pooled with Others they are just Others and
-      # nothing else
-      if (str_detect(group_name_variants, "Others")) {
-        rownames(depup_variants_df)[
-          rownames(depup_variants_df) == row
-          ] <- "Others"
-        variants_to_drop <- duped_variants[!grepl("Others", duped_variants)]
-      } else {
-        rownames(depup_variants_df)[
-          rownames(depup_variants_df) == row
-          ] <- group_name_variants
-        variants_to_drop <- NA
-        # TODO you can stop after this ( I think)
-      }
-    }
-  }
-  # clean the vector to know which variants has to be add with value 0 after
-  # deconvolution
-  variants_to_drop <- unique(variants_to_drop)[!is.na(variants_to_drop)]
-  return(list(depup_variants_df, variants_to_drop))
-}
-
 deconv <- function(bulk, sig) {
   #' This function performs the deconvolution using a signature matrix for the
   #' mutations found in the sample and bulk frequency values derived by the SNV
