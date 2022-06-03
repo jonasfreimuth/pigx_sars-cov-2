@@ -272,7 +272,7 @@ msig_inverse <- bind_cols(
 
   # 5. concat the data frames
   # without bulk freq for building the signature matrix
-  msig_stable <- bind_cols(muts_all_df, msig_all)
+  msig_stable <- dplyr::bind_cols(muts_all_df, msig_all)
 
   # with bulk freq for export and overview
   msig_stable_complete <- bind_cols(
