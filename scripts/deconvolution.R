@@ -228,7 +228,7 @@ if (execute_deconvolution) {
 
       dupe_group_vec <- variant_names[dupe_group_logi]
 
-      dupe_group_list <- c(dupe_group_list, list(dupe_group_vec))
+      dupe_group_list[[dupe_group_vec[1]]] <- dupe_group_vec
     }
   }
 
