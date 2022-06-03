@@ -260,10 +260,6 @@ msig_inverse <- bind_cols(
   muts_all_df <- data.frame(muts = unlist(muts_all))
 
   bulk_all <- c(bulk_others, bulk_freq_vektor)
-  bulk_all_df <- data.frame(freq = unlist(bulk_all))
-
-  coverage_all <- c(coverage_vektor, coverage_vektor)
-  coverage_all_df <- data.frame(cov = unlist(coverage_all))
 
   msig_all <- rbind(
     msig_inverse[, -which(names(msig_inverse) %in% "muts")],
@@ -274,13 +270,7 @@ msig_inverse <- bind_cols(
   # without bulk freq for building the signature matrix
   msig_stable <- dplyr::bind_cols(muts_all_df, msig_all)
 
-  # with bulk freq for export and overview
-  msig_stable_complete <- bind_cols(
-    muts_all_df, msig_all, bulk_all_df,
-    coverage_all_df
-  )
-
-  return(list(msig_stable, bulk_all, msig_stable_complete))
+  return(list(msig_stable, bulk_all))
 }
 
 # When multiple columns look like the same, the deconvolution will not work,
