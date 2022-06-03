@@ -268,7 +268,8 @@ if (execute_deconvolution) {
 
   # applying weights on signature matrix
   # FIXME: there should be a way to do this vectorized
-  msig_simple_unique_weighted <- msig_simple_unique
+  msig_simple_unique_weighted <- msig_simple_unique %>%
+      dplyr::select(- matches("muts"))
 
   for (lineage in deconv_lineages) {
     weight <- msig_simple_unique_weighted[lineage] /
@@ -289,8 +290,7 @@ if (execute_deconvolution) {
 
   msig_stable_all <- simulate_others(
     mutations_vec, bulk_freq_vec,
-    msig_simple_unique_weighted %>%
-      dplyr::select(- matches("muts")),
+    msig_simple_unique_weighted,
     match_df$dep,
     others_weight
   )
