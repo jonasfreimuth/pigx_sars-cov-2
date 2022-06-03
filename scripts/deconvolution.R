@@ -125,8 +125,8 @@ sigmut_df <- read.csv(mutation_sheet, header = TRUE) %>%
 vep_output_df <- read.csv(params$vep_file, sep = ",", header = TRUE) %>%
   dplyr::na_if("-")
 
-# group variants with the same muation
-# TODO Why are variants with the same mutation grouped?
+# group variants with the same muation and concat their names to preserve the
+# information
 sigmuts_deduped <- sigmut_df %>%
   group_by(mutation) %>%
   summarise(variant = paste(variant, collapse = var_sep))
