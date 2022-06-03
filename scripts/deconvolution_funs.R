@@ -214,7 +214,9 @@ create_sig_matrix <- function(mutations_vector, mutation_sheet_file) {
     mutate(Others = rep(0, length(mutations_vector))) %>%
 
     # coerce to matrix
-    as.matrix()
+    as.matrix() %>%
+
+    magrittr::set_rownames(mutations_vector)
 
 
   return(sig_mat)
