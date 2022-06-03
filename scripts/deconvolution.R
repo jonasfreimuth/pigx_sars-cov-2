@@ -129,7 +129,7 @@ vep_output_df <- read.csv(params$vep_file, sep = ",", header = TRUE) %>%
 # TODO Why are variants with the same mutation grouped?
 sigmuts_deduped <- sigmut_df %>%
   group_by(mutation) %>%
-  summarise(variant = paste(variant, collapse = ","))
+  summarise(variant = paste(variant, collapse = var_sep))
 
 # remove mutation type info / extract info on base changes
 sigmuts_deduped_no_gene <- sigmuts_deduped %>%
