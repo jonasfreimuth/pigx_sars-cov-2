@@ -244,12 +244,8 @@ simulate_others <- function(mutations_vector,
     mutate(across(everything(), ~ as.numeric(!as.logical(.x)))) %>%
 
     # apply weights right away
-    mutate(across(everything(), function(x) {
-      x[x == 1] <- 1 / others_weight
+    mutate(across(everything(), ~ .x / others_weight))
 
-      return(x)
-      }
-    ))
 
   bulk_all <- c(inv_freq_vec, bulk_freq_vector)
 
