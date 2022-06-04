@@ -339,9 +339,10 @@ if (execute_deconvolution) {
 
   # case 1: add dropped variants again with value 0 in case all of the other
   # variants add up to 1
-  if (round(sum(df$abundance), 1) == 1) {
+  # TODO make this all.equal for greater accuracy
+  if (round(sum(variant_abundance_df$abundance), 1) == 1) {
     for (variant in dupe_variants) {
-      df <- rbind(df, c(variant, 0))
+      variant_abundance_df <- rbind(variant_abundance_df, c(variant, 0))
     }
   }
 
@@ -349,38 +350,47 @@ if (execute_deconvolution) {
   # given the value 0 OR
   # case 3: in case multiple vars can really not be distinguished from each
   # other they will be distributed normaly
-  while (any(str_detect(df$name, var_sep))) {
-    grouped_rows <- which(str_detect(df$name, var_sep))
+  while (any(str_detect(variant_abundance_df$name, var_sep))) {
+    grouped_rows <- which(str_detect(variant_abundance_df$name, var_sep))
     # fixme: this loop might be unneccessary, since only the first row should
     # been picked, everything else will be handled by the while loop
     for (row in grouped_rows) {
-      if (df[row, "value"] == 0) {
-        grouped_variants <- unlist(str_split(df[row, "variant"], var_sep))
+      if (variant_abundance_df[row, "value"] == 0) {
+        grouped_variants <- unlist(
+          str_split(variant_abundance_df[row, "variant"], var_sep)
+        )
         for (variant in grouped_variants) {
           # add new rows, one for each variant
-          df <- rbind(df, c(variant, 0))
+          variant_abundance_df <- rbind(variant_abundance_df, c(variant, 0))
         }
-      } else if (df[row, "abundance"] != 0) {
-        grouped_variants <- unlist(str_split(df[row, "variant"], var_sep))
+      } else if (variant_abundance_df[row, "abundance"] != 0) {
+        grouped_variants <- unlist(
+          str_split(variant_abundance_df[row, "variant"], var_sep)
+        )
         # normal distribution, devide deconv value by number of grouped variants
         distributed_freq_value <-
-          as.numeric(as.numeric(df[row, "abundance"]) /
+          as.numeric(as.numeric(variant_abundance_df[row, "abundance"]) /
             length(grouped_variants))
         for (variant in grouped_variants) {
           # add new rows, one for each variant
-          df <- rbind(df, c(variant, distributed_freq_value))
+          variant_abundance_df <- rbind(
+            variant_abundance_df,
+              c(variant, distributed_freq_value)
+            )
         }
       }
       # drop grouped row
-      df <- df[-row, ]
+      variant_abundance_df <- variant_abundance_df[-row, ]
     }
   }
 
-  df <- transform(df, abundance = as.numeric(abundance))
+  variant_abundance_df <- transform(
+    variant_abundance_df, abundance = as.numeric(abundance)
+  )
 
 
   cat("Writing variant abundance file to ", variants_file, "...\n")
-  write.csv(df, variants_file)
+  write.csv(variant_abundance_df, variants_file)
 
   # plot comes here in report
 } else {
@@ -430,12 +440,14 @@ if (!execute_deconvolution) {
   # get rownumber for current sample
   sample_row <- which(grepl(sample_name, output_variant_plot$samplename))
 
-  # write mutation frequency values to df
+  # write mutation frequency values to variant_abundance_df
   for (i in all_variants) {
-    if (i %in% df$variant) {
+    if (i %in% variant_abundance_df$variant) {
       # check if variant already has a column
       if (i %in% colnames(output_variant_plot)) {
-        output_variant_plot[sample_row, ][i] <- df$abundance[df$variant == i]
+        output_variant_plot[sample_row, ][i] <- variant_abundance_df$abundance[
+          variant_abundance_df$variant == i
+        ]
         output_variant_plot <- output_variant_plot %>%
           mutate(others = 1 - rowSums(
             across(all_of(all_variants)), na.rm = TRUE
@@ -503,7 +515,7 @@ if (execute_deconvolution) {
 
   output_mutation_frame <- bind_rows(output_mutation_frame, meta_data)
 
-  # write mutation frequency values to df
+  # write mutation frequency values to variant_abundance_df
   for (i in all_mutations) {
     i_nt <- str_split(i, "::")[[1]][2]
     if (i_nt %in% complete_df$gene_mut) { # split gene name to match with AA mut
