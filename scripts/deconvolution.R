@@ -339,8 +339,7 @@ if (execute_deconvolution) {
 
   # case 1: add dropped variants again with value 0 in case all of the other
   # variants add up to 1
-  # TODO make this all.equal for greater accuracy
-  if (round(sum(variant_abundance_df$abundance), 1) == 1) {
+  if (all.equal(sum(variant_abundance_df$abundance), 1)) {
     for (variant in dupe_variants) {
       variant_abundance_df <- rbind(variant_abundance_df, c(variant, 0))
     }
