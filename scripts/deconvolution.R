@@ -259,12 +259,21 @@ if (execute_deconvolution) {
       # !! 17/02/2022 It's not yet tested how robust this behaves when one would
       # mindlessly clutter the mutationsheet
       # with lineages that are very unlikely to detect or not detected
+
+      # # all detected mutations / # all known mutations
+      # TODO Find out why
       value <- nrow(msig_deduped_df) / nrow(sigmuts_deduped)
     } else if (grepl(var_sep, lineage)) {
+      # as we can not weight the variants separately by their # detected sig
+      # muts / # known sig muts (for this group), we use # detected sigmuts
+      # (that is still accurate) / group average # known signature mutations
       group <- unlist(str_split(lineage, var_sep))
       avrg <- sum(sigmut_df$variant %in% group) / length(group)
       value <- sum(msig_deduped_df[lineage]) / avrg
     } else {
+      # # lineage signature mutations detected in sample /
+      # # known lineage signature mutations (provided in the mutation
+      # sheet)
       value <- sum(msig_deduped_df[lineage]) /
         sum(sigmut_df$variant == lineage)
     }
