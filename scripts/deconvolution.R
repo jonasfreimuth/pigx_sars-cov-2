@@ -348,7 +348,7 @@ if (execute_deconvolution) {
 
   # plot comes here in report
 } else {
-  cat("Writing dummy mutation file to ", mutation_output_file, "...\n")
+  cat("Writing dummy variants file to ", variants_file, "...\n")
 
   # write dummy variants file
   writeLines(
