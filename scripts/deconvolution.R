@@ -328,68 +328,20 @@ if (execute_deconvolution) {
 
 
   ## ----plot, echo = FALSE-----------------------------------------------------
-  # work in progress...only to show how it theoretically can look like in the
-  # report
   variant_abundance_df <- data.frame(
     variants = deconv_lineages,
     abundance = variant_abundance
-  )
+  ) %>%
+    separate_rows(variants, sep = var_sep)
 
-  # Handling of ambiguous cases and grouped variants
+  # go trough all groups and assign each group member the group abundance
+  # divided by the number of group members
+  for (group in dupe_group_list) {
+    group_ind <- variant_abundance_df$variants %in% group
+    group_abundance <- variant_abundance_df$abundance[group_ind][1]
 
-  # case 1: add dropped variants again with value 0 in case all of the other
-  # variants add up to 1
-  if (all.equal(sum(variant_abundance_df$abundance), 1)) {
-    variant_abundance_df <- variant_abundance_df %>%
-      bind_rows(data.frame(
-        variants = dupe_variants,
-        abundance = rep(0, length(dupe_variants))
-        ))
+    variant_abundance_df$abundance[group_ind] <- group_abundance / length(group)
   }
-
-  # case 2: in case "others" == 0, both variants can be split up again and being
-  # given the value 0 OR
-  # case 3: in case multiple vars can really not be distinguished from each
-  # other they will be distributed normaly
-
-  while (any(str_detect(variant_abundance_df$variant, var_sep))) {
-    grouped_rows <- which(str_detect(variant_abundance_df$variant, var_sep))
-    # fixme: this loop might be unneccessary, since only the first row should
-    # been picked, everything else will be handled by the while loop
-    for (row in grouped_rows) {
-      if (variant_abundance_df[row, "abundance"] == 0) {
-        grouped_variants <- unlist(
-          str_split(variant_abundance_df[row, "variant"], var_sep)
-        )
-        for (variant in grouped_variants) {
-          # add new rows, one for each variant
-          variant_abundance_df <- rbind(variant_abundance_df, c(variant, 0))
-        }
-      } else if (variant_abundance_df[row, "abundance"] != 0) {
-        grouped_variants <- unlist(
-          str_split(variant_abundance_df[row, "variant"], var_sep)
-        )
-        # normal distribution, devide deconv value by number of grouped variants
-        distributed_freq_value <-
-          as.numeric(as.numeric(variant_abundance_df[row, "abundance"]) /
-            length(grouped_variants))
-        for (variant in grouped_variants) {
-          # add new rows, one for each variant
-          variant_abundance_df <- rbind(
-            variant_abundance_df,
-              c(variant, distributed_freq_value)
-            )
-        }
-      }
-      # drop grouped row
-      variant_abundance_df <- variant_abundance_df[-row, ]
-    }
-  }
-
-  variant_abundance_df <- transform(
-    variant_abundance_df, abundance = as.numeric(abundance)
-  )
-
 
   cat("Writing variant abundance file to ", variants_file, "...\n")
   write.csv(variant_abundance_df, variants_file)
