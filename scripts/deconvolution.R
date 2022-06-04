@@ -280,19 +280,12 @@ if (execute_deconvolution) {
     sigmut_proportion_weights[lineage] <- value
   }
 
-  sigmut_proportion_weights <- as_tibble(sigmut_proportion_weights)
-
-  # applying weights on signature matrix
-  # FIXME: there should be a way to do this vectorized
-  msig_deduped_df_weighted <- msig_deduped_df
-
-  for (lineage in deconv_lineages) {
-    weight <- msig_deduped_df_weighted[lineage] /
-      as.numeric(sigmut_proportion_weights[lineage])
-    msig_deduped_df_weighted[lineage] <- as.numeric(
-      ifelse(is.na(weight), 0, unlist(weight))
-      )
-  }
+  # apply weights to signature matrix
+  msig_deduped_df_weighted <- msig_deduped_df %>%
+    mutate(across(
+      everything(), ~ .x / sigmut_proportion_weights[[cur_column()]]
+    )) %>%
+    replace(is.na(.), 0)
 
 
   ## ----simulating_WT_mutations, include = FALSE-------------------------------
