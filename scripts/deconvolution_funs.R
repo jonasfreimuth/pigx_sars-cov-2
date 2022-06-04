@@ -222,37 +222,6 @@ create_sig_matrix <- function(mutations_vector, mutation_sheet_file) {
   return(sig_mat)
 }
 
-simulate_others <- function(mutations_vector,
-                            bulk_freq_vector,
-                            msig_deduped_df_weighted,
-                            coverage_vector,
-                            others_weight) {
-  #' for the deconvolution to work we need the "wild type" frequencies too. The
-  #' matrix from above got (elementwise) inverted, wild type mutations are
-  #' simulated the following: e.g. T210I (mutation) -> T210T ("wild type")
-  #'
-  #' for each mutation, generate a dummy mutation that results in no change
-
-  # generate frequency values for the dummy mutations. As they represent
-  # all the variants without the respective mutation, they are the remainder
-  # to one of the original mutations frequencies
-  inv_freq_vec <- 1 - bulk_freq_vector
-
-  # make matrix with Others mutations and inverse the values and wild type
-  # freqs
-  msig_inverse <- msig_deduped_df_weighted %>%
-    mutate(across(everything(), ~ as.numeric(!as.logical(.x)))) %>%
-
-    # apply weights right away
-    mutate(across(everything(), ~ .x / others_weight))
-
-
-  bulk_all <- c(inv_freq_vec, bulk_freq_vector)
-  msig_all <- rbind(msig_inverse, msig_deduped_df_weighted)
-
-  return(list(msig_all, bulk_all))
-}
-
 deconv <- function(bulk, sig) {
   #' This function performs the deconvolution using a signature matrix for the
   #' mutations found in the sample and bulk frequency values derived by the SNV
