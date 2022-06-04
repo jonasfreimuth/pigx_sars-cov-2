@@ -348,9 +348,13 @@ if (execute_deconvolution) {
 
   # plot comes here in report
 } else {
+  cat("Writing dummy mutation file to ", mutation_output_file, "...\n")
+
   # write dummy variants file
-  # TODO: do this as a proper emty table with the correct col names
-  file.create(variants_file)
+  writeLines(
+    "Deconvolution not run, this is a dummy file.",
+    variants_file
+  )
 }
 
 # TODO: check if the else of the above if is handled correctly
