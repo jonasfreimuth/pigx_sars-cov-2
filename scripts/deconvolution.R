@@ -340,9 +340,11 @@ if (execute_deconvolution) {
   # case 1: add dropped variants again with value 0 in case all of the other
   # variants add up to 1
   if (all.equal(sum(variant_abundance_df$abundance), 1)) {
-    for (variant in dupe_variants) {
-      variant_abundance_df <- rbind(variant_abundance_df, c(variant, 0))
-    }
+    variant_abundance_df <- variant_abundance_df %>%
+      bind_rows(data.frame(
+        variants = dupe_variants,
+        abundance = rep(0, length(dupe_variants))
+        ))
   }
 
   # case 2: in case "others" == 0, both variants can be split up again and being
