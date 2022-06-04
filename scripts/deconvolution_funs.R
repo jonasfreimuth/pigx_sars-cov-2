@@ -248,11 +248,7 @@ simulate_others <- function(mutations_vector,
 
 
   bulk_all <- c(inv_freq_vec, bulk_freq_vector)
-
-  msig_all <- rbind(
-    msig_inverse[, -which(names(msig_inverse) %in% "muts")],
-    simple_sigmat_dataframe
-  )
+  msig_all <- rbind(msig_inverse, simple_sigmat_dataframe)
 
   return(list(msig_all, bulk_all))
 }
