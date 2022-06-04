@@ -240,8 +240,8 @@ deconv <- function(bulk, sig) {
   # normalize so coefficients add to 1
   rlm_coefficients <- rlm_coefficients / sum_of_cof
 
-  as.vector(rlm_coefficients)
-}
+  return(rlm_coefficients)
+  }
 
 deconv_debug <- function(bulk, sig) {
   #' This function performs the deconvolution using a signature matrix for the
