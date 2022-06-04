@@ -364,54 +364,27 @@ if (execute_deconvolution) {
 # for the plots in index.rmd those outputs are not offically declared as outputs
 # which can lead to issues - that part should be handled by a seperate
 # file (and maybe rule)
-output_variant_plot <- data.frame(
-  samplename = character(),
-  dates = character(),
-  location_name = character(),
-  coordinates_lat = character(),
-  coordinates_long = character()
-)
-
 if (execute_deconvolution) {
-  # get all possible variants
-  all_variants <- colnames(msig_simple)
-  # add columns for all possible variants to the dataframe
-  for (variant in all_variants) {
-    output_variant_plot[, variant] <- numeric()
-  }
-  meta_data <- c(
+  output_variant_plot <- variant_abundance_df %>%
+
+    pivot_wider(names_from = variants, values_from = abundance) %>%
+
+    mutate(
     samplename = sample_name,
     dates = date,
     location_name = location_name,
     coordinates_lat = coordinates_lat,
-    coordinates_long = coordinates_long
+    coordinates_long = coordinates_long,
+    others = 1 - rowSums(
+      across(all_of(variant_abundance_df$variants)), na.rm = TRUE
+    )
   )
 
-  output_variant_plot <- bind_rows(output_variant_plot, meta_data)
-
-  # get rownumber for current sample
-  sample_row <- which(grepl(sample_name, output_variant_plot$samplename))
-
-  # write mutation frequency values to variant_abundance_df
-  for (i in all_variants) {
-    if (i %in% variant_abundance_df$variant) {
-      # check if variant already has a column
-      if (i %in% colnames(output_variant_plot)) {
-        output_variant_plot[sample_row, ][i] <- variant_abundance_df$abundance[
-          variant_abundance_df$variant == i
-        ]
-        output_variant_plot <- output_variant_plot %>%
-          mutate(others = 1 - rowSums(
-            across(all_of(all_variants)), na.rm = TRUE
-            ))
-      }
-    }
-  }
-
-  # 3. write to output file
-  write.csv(output_variant_plot, variants_with_meta_file,
-    na = "NA", row.names = FALSE, quote = FALSE
+  write.csv(
+    output_variant_plot,
+    variants_with_meta_file
   )
+
 } else {
   cat(
     "Writing dummy variants file with metadata to ",
