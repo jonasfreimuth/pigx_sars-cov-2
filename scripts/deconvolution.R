@@ -371,14 +371,8 @@ output_variant_plot <- data.frame(
   coordinates_lat = character(),
   coordinates_long = character()
 )
-if (!execute_deconvolution) {
-  # if no signatur mutation found write empty output file
-  # TODO: sombody should check whether this empty file with header is enough,
-  # or a more sensible default is required
-  write.csv(output_variant_plot, variants_with_meta_file,
-    na = "NA", row.names = FALSE, quote = FALSE
-  )
-} else {
+
+if (execute_deconvolution) {
   # get all possible variants
   all_variants <- colnames(msig_simple)
   # add columns for all possible variants to the dataframe
@@ -415,6 +409,13 @@ if (!execute_deconvolution) {
   }
 
   # 3. write to output file
+  write.csv(output_variant_plot, variants_with_meta_file,
+    na = "NA", row.names = FALSE, quote = FALSE
+  )
+} else {
+  # if no signatur mutation found write empty output file
+  # TODO: sombody should check whether this empty file with header is enough,
+  # or a more sensible default is required
   write.csv(output_variant_plot, variants_with_meta_file,
     na = "NA", row.names = FALSE, quote = FALSE
   )
