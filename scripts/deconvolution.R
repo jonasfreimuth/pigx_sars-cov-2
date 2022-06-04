@@ -351,12 +351,13 @@ if (execute_deconvolution) {
   # given the value 0 OR
   # case 3: in case multiple vars can really not be distinguished from each
   # other they will be distributed normaly
-  while (any(str_detect(variant_abundance_df$name, var_sep))) {
-    grouped_rows <- which(str_detect(variant_abundance_df$name, var_sep))
+
+  while (any(str_detect(variant_abundance_df$variant, var_sep))) {
+    grouped_rows <- which(str_detect(variant_abundance_df$variant, var_sep))
     # fixme: this loop might be unneccessary, since only the first row should
     # been picked, everything else will be handled by the while loop
     for (row in grouped_rows) {
-      if (variant_abundance_df[row, "value"] == 0) {
+      if (variant_abundance_df[row, "abundance"] == 0) {
         grouped_variants <- unlist(
           str_split(variant_abundance_df[row, "variant"], var_sep)
         )
