@@ -330,13 +330,10 @@ if (execute_deconvolution) {
   ## ----plot, echo = FALSE-----------------------------------------------------
   # work in progress...only to show how it theoretically can look like in the
   # report
-  variants <- colnames(msig_all)
-  df <- data.frame(rbind(variant_abundance))
-
-  colnames(df) <- variants
-  df <- df %>%
-    tidyr::pivot_longer(everything()) %>%
-    dplyr::select(variant = name, abundance = value)
+  variant_abundance_df <- data.frame(
+    variants = deconv_lineages,
+    abundance = variant_abundance
+  )
 
   # Handling of ambiguous cases and grouped variants
 
