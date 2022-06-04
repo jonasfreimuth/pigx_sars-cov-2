@@ -290,37 +290,47 @@ if (execute_deconvolution) {
 
   ## ----simulating_WT_mutations, include = FALSE-------------------------------
   # construct additional WT mutations that are not weighted
+  # for the deconvolution to work we need the "wild type" frequencies too. The
+  # matrix from above got (elementwise) inverted, wild type mutations are
+  # simulated the following: e.g. T210I (mutation) -> T210T ("wild type")
+  #
+  # for each mutation, generate a dummy mutation that results in no change
 
   # get bulk frequency values, will be input for the deconvolution function
   bulk_freq_vec <- as.numeric(match_df$freq)
-  # construct additional WT mutations that are not weighted
-  others_weight <- as.numeric(sigmut_proportion_weights["Others"])
 
-  msig_stable_all <- simulate_others(
-    mutations_vec, bulk_freq_vec,
-    msig_deduped_df_weighted,
-    match_df$dep,
-    others_weight
-  )
+  # generate frequency values for the dummy mutations. As they represent
+  # all the variants without the respective mutation, they are the remainder
+  # to one of the original mutations frequencies
+  others_freq_vec <- 1 - bulk_freq_vec
 
-  ## ----deconvolution, include = FALSE-----------------------------------------
-  # this hack is necessary because otherwise the deconvolution will throw:
-  # Error in x * wts: non-numeric argument to binary operator
-  # also see: https://stackoverflow.com/questions/37707060/converting-data-frame-column-from-character-to-numeric/37707117
-  sig <- msig_stable_all[[1]] %>%
-    mutate(across(everything(), as.numeric)) %>%
+  # generate vector with all mutation frequencies: dummy and real
+  bulk_all <- c(others_freq_vec, bulk_freq_vec)
+
+  # make matrix with Others mutations and inverse the values and wild type
+  # freqs
+  msig_inverse <- msig_deduped_df_weighted %>%
+    mutate(across(everything(), ~ as.numeric(!as.logical(.x)))) %>%
+
+    # apply weights right away
+    mutate(across(
+      everything(),
+      ~ .x / as.numeric(sigmut_proportion_weights["Others"])
+    ))
+
+
+  # generate combined signature matrix for variants, dummy and real
+  msig_all <- rbind(msig_inverse, msig_deduped_df_weighted) %>%
     as.matrix()
 
-  bulk_all <- as.numeric(msig_stable_all[[2]])
-
   # central deconvolution step
-  variant_abundance <- deconv(bulk_all, sig)
+  variant_abundance <- deconv(bulk_all, msig_all)
 
 
   ## ----plot, echo = FALSE-----------------------------------------------------
   # work in progress...only to show how it theoretically can look like in the
   # report
-  variants <- colnames(msig_stable_all[[1]])
+  variants <- colnames(msig_all)
   df <- data.frame(rbind(variant_abundance))
 
   colnames(df) <- variants
