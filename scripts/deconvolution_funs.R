@@ -224,7 +224,7 @@ create_sig_matrix <- function(mutations_vector, mutation_sheet_file) {
 
 simulate_others <- function(mutations_vector,
                             bulk_freq_vector,
-                            simple_sigmat_dataframe,
+                            msig_deduped_df_weighted,
                             coverage_vector,
                             others_weight) {
   #' for the deconvolution to work we need the "wild type" frequencies too. The
@@ -240,7 +240,7 @@ simulate_others <- function(mutations_vector,
 
   # make matrix with Others mutations and inverse the values and wild type
   # freqs
-  msig_inverse <- simple_sigmat_dataframe %>%
+  msig_inverse <- msig_deduped_df_weighted %>%
     mutate(across(everything(), ~ as.numeric(!as.logical(.x)))) %>%
 
     # apply weights right away
@@ -248,7 +248,7 @@ simulate_others <- function(mutations_vector,
 
 
   bulk_all <- c(inv_freq_vec, bulk_freq_vector)
-  msig_all <- rbind(msig_inverse, simple_sigmat_dataframe)
+  msig_all <- rbind(msig_inverse, msig_deduped_df_weighted)
 
   return(list(msig_all, bulk_all))
 }
