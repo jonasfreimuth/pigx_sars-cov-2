@@ -256,7 +256,7 @@ if (execute_deconvolution) {
   # create list of proportion values that will be used as weigths
   sigmut_proportion_weights <- list()
   for (lineage in deconv_lineages) {
-    if (lineage == "Others") {
+    if (str_detect(lineage, "Others")) {
       # !! 17/02/2022 It's not yet tested how robust this behaves when one would
       # mindlessly clutter the mutationsheet
       # with lineages that are very unlikely to detect or not detected
@@ -305,6 +305,19 @@ if (execute_deconvolution) {
   # to one of the original mutations frequencies
   others_freq_vec <- 1 - bulk_freq_vec
 
+  others_select_vec <- str_detect(names(sigmut_proportion_weights), "Others")
+
+  if (sum(others_select_vec) > 1) {
+    stop(
+      paste(
+        "More than one entry matching \"Others\" in weights list. This is not",
+        "allowed."
+      )
+    )
+  }
+
+  others_prop_wt <- sigmut_proportion_weights[others_select_vec]
+
   # generate vector with all mutation frequencies: dummy and real
   bulk_all <- c(others_freq_vec, bulk_freq_vec)
 
@@ -316,7 +329,7 @@ if (execute_deconvolution) {
     # apply weights right away
     mutate(across(
       everything(),
-      ~ .x / as.numeric(sigmut_proportion_weights["Others"])
+      ~ .x / as.numeric(others_prop_wt)
     ))
 
 
