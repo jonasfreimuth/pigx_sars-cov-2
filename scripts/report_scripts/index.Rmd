@@ -94,13 +94,13 @@ library(viridis)
 ```
 
 ```{r load_data}
-mutations_sig_unfiltered <- fread(params$unfiltered_mutation_sig_file)
+mutations_sig_unfiltered <- read.csv(params$unfiltered_mutation_sig_file)
 
-df_var <- fread(params$variants_csv,
+df_var <- read.csv(params$variants_csv,
   header = TRUE,
   check.names = FALSE
 )
-df_mut <- fread(params$mutations_csv,
+df_mut <- read.csv(params$mutations_csv,
   header = TRUE,
   check.names = FALSE
 )
@@ -175,7 +175,7 @@ approved_mut_plot <- df_mut %>%
   filter(samplename %in% good_samples.df$samplename)
 
 # pool the samples per day, discard locations
-weights <- fread(params$overviewQC, header = TRUE, check.names = FALSE) %>%
+weights <- read.csv(params$overviewQC, header = TRUE, check.names = FALSE) %>%
   dplyr::select(c(samplename, total_reads))
 
 # check if filtered dataframe has actual values and get vars for conditional
@@ -800,7 +800,7 @@ Frequencies per mutation per sample
 `r create_html_download_link(df_mut_download, filename = "mutation_frequencies.csv")`
 
 ```{r mutation_counts}
-count_frame <- fread(params$mut_count_file)
+count_frame <- read.csv(params$mut_count_file)
 
 # show and make downloadable
 count_frame_download <- count_frame %>%
