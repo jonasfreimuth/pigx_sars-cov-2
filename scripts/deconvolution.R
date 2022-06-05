@@ -438,15 +438,6 @@ if (execute_deconvolution) {
       coordinates_long = coordinates_long
     )
 
-  # convert numeric values to character
-  # TODO Why in gods name would you do that?
-  output_mutation_frame <- as.data.frame(lapply(
-    output_mutation_frame,
-    as.character
-  ),
-  check.names = FALSE
-  )
-
   # 3. write to output file
   cat("Writing mutation file to ", mutation_output_file, "...\n")
   write.csv(output_mutation_frame, mutation_output_file,
