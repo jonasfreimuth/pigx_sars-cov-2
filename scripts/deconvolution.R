@@ -154,7 +154,7 @@ lofreq_info <- parse_snv_csv(params$snv_file)
 complete_df <- dplyr::left_join(
   lofreq_info,
   variant_protein_mut,
-  by = c("gene_mut" = "mut_nucs"), copy = TRUE
+  by = c("gene_mut" = "mut_str"), copy = TRUE
 ) %>%
   mutate(gene_mut_collapsed = paste(gene_name, gene_mut, sep = ":"))
 
@@ -412,13 +412,12 @@ if (execute_deconvolution) {
   # (process see line 1872 of documentation)
   # TODO These muations here are not filtered for coverage. Is this intended?
   output_mutation_frame <- complete_df %>%
-    group_by(across(c(-freq, -gene_mut, -gene_mut_collapsed, AA_mut))) %>%
+    group_by(aa_str) %>%
     summarise(
       freq = sum(as.numeric(freq)),
       gene_mut = paste(gene_mut, collapse = var_sep)
     ) %>%
-    rowwise() %>%
-    mutate(AA_mut = replace(AA_mut, is.na(AA_mut), "\\:\\")) %>%
+    mutate(aa_str = replace(aa_str, is.na(aa_str), "\\:\\")) %>%
     # 211006 this exclusion is necessary because this mutation has a wrong entry
     # in VEP which gives two AA_muts instead of probably 1 deletion
     filter(!(gene_mut %in% "G13477A")) %>%
@@ -426,9 +425,8 @@ if (execute_deconvolution) {
 
     # report the gene, translated_AA_mut and NT mut accordingly
     # easier to spot translation inconsitentcies that way
+    mutate(nuc_aa_mut = paste(aa_mut, gene_mut, sep = "::")) %>%
     dplyr::select(nuc_aa_mut, freq) %>%
-    drop_na() %>%
-    mutate(nuc_aa_mut = paste(AA_mut, gene_mut, sep = "::")) %>%
     pivot_wider(names_from = nuc_aa_mut, values_from = freq) %>%
 
     mutate(
