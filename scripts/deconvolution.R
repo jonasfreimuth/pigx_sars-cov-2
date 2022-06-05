@@ -410,6 +410,7 @@ if (execute_deconvolution) {
   # one aa mutation can have different codon mutations reported with
   # different freqs- for the summary table they have to be summed up
   # (process see line 1872 of documentation)
+  # TODO These muations here are not filtered for coverage. Is this intended?
   output_mutation_frame <- complete_df %>%
     group_by(across(c(-freq, -gene_mut, -gene_mut_collapsed, AA_mut))) %>%
     summarise(
