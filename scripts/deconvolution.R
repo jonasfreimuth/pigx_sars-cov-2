@@ -410,7 +410,7 @@ if (execute_deconvolution) {
   # one aa mutation can have different codon mutations reported with
   # different freqs- for the summary table they have to be summed up
   # (process see line 1872 of documentation)
-  complete_df <- complete_df %>%
+  output_mutation_frame <- complete_df %>%
     group_by(across(c(-freq, -gene_mut, -gene_mut_collapsed, AA_mut))) %>%
     summarise(
       freq = sum(as.numeric(freq)),
@@ -421,54 +421,25 @@ if (execute_deconvolution) {
     # 211006 this exclusion is necessary because this mutation has a wrong entry
     # in VEP which gives two AA_muts instead of probably 1 deletion
     filter(!(gene_mut %in% "G13477A")) %>%
-    ungroup()
+    ungroup() %>%
 
-  # report the gene, translated_AA_mut and NT mut accordingly
-  # easier to spot translation inconsitentcies that way
-  all_mutations <- paste(complete_df$AA_mut[!is.na(complete_df$AA_mut)],
-    complete_df$gene_mut,
-    sep = "::"
-  )
+    # report the gene, translated_AA_mut and NT mut accordingly
+    # easier to spot translation inconsitentcies that way
+    dplyr::select(nuc_aa_mut, freq) %>%
+    drop_na() %>%
+    mutate(nuc_aa_mut = paste(AA_mut, gene_mut, sep = "::")) %>%
+    pivot_wider(names_from = nuc_aa_mut, values_from = freq) %>%
 
-  # 1. write dataframe with this information here
-  output_mutation_frame <- data.frame(
-    samplename = character(),
-    dates = character(),
-    location_name = character(),
-    coordinates_lat = character(),
-    coordinates_long = character()
-  )
-  # add columns for all possible mutations to the dataframe
-  for (mutation in all_mutations) {
-    output_mutation_frame[, mutation] <- numeric()
-  }
-  meta_data <- c(
-    samplename = sample_name,
-    dates = date,
-    location_name = location_name,
-    coordinates_lat = coordinates_lat,
-    coordinates_long = coordinates_long
-  )
-
-  output_mutation_frame <- bind_rows(output_mutation_frame, meta_data)
-
-  # write mutation frequency values to variant_abundance_df
-  for (mut in all_mutations) {
-    # split gene name to match with AA mut
-    mut_nt <- str_split(mut, "::")[[1]][2]
-    if (mut_nt %in% complete_df$gene_mut &&
-        mut %in% colnames(output_mutation_frame)) {
-      # check if variant already has a column
-      output_mutation_frame[, mut] <- complete_df$freq[which(
-        complete_df$gene_mut == mut_nt
-      )]
-    }
-  }
-
-  output_mutation_frame <- output_mutation_frame %>%
-    dplyr::select(-contains("NA", ignore.case = FALSE))
+    mutate(
+      samplename = sample_name,
+      dates = date,
+      location_name = location_name,
+      coordinates_lat = coordinates_lat,
+      coordinates_long = coordinates_long
+    )
 
   # convert numeric values to character
+  # TODO Why in gods name would you do that?
   output_mutation_frame <- as.data.frame(lapply(
     output_mutation_frame,
     as.character
@@ -481,6 +452,7 @@ if (execute_deconvolution) {
   write.csv(output_mutation_frame, mutation_output_file,
     row.names = FALSE, quote = FALSE
   )
+
 } else {
 
   cat("Writing dummy mutation file to ", mutation_output_file, "...\n")
