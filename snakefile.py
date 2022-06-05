@@ -719,7 +719,7 @@ rule run_mutation_regression:
             {MUTATION_COVERAGE_THRESHOLD} \
             {input.overviewQC} \
             {output.mut_count_outfile} \
-            {output.unfilt_mutation_sig_outfile}
+            {output.unfilt_mutation_sig_outfile} \
             > {log} 2>&1
         """
 
