@@ -9,7 +9,7 @@ get_files <- function ( mutations_dir){
 
 create_summary <- function ( files, output_file ){
 
-  cat( paste("Summarizing", length(files), "mutation files.") )
+  cat( paste("Summarizing", length(files), "mutation files.\n") )
 
   # read files into list
   mutations_list <- lapply(X = files,

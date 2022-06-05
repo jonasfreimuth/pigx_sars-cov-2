@@ -10,7 +10,7 @@ get_files <- function ( variants_dir){
 
 create_summary <- function ( files ){
 
-  cat(paste("Summarizing", length(files), "variant files."))
+  cat(paste("Summarizing", length(files), "variant files.\n"))
 
   # read files into list
   variants_list <- lapply(X = files,
