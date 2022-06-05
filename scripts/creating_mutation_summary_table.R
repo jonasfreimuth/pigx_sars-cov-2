@@ -42,7 +42,6 @@ create_summary <- function(files, output_file) {
 }
 
 args <- commandArgs(trailingOnly = TRUE)
-# args <- c("/home/jfreige/proj/pigx_sars-cov-2/tests/output/mutations", "/home/jfreige/proj/pigx_sars-cov-2/tests/output/variants/data_mutation_plot.csv")
 mutations_dir <- args[1]
 output_file <- args[2]
 
