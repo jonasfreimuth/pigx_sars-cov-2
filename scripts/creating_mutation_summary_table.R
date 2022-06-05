@@ -1,3 +1,4 @@
+library("data.table")
 
 get_files <- function(mutations_dir) {
   files <- list.files(
@@ -15,7 +16,7 @@ create_summary <- function(files, output_file) {
   # read files into list
   mutations_list <- lapply(
     X = files,
-    FUN = read.csv,
+    FUN = fread,
     header = TRUE,
     colClasses = "character",
     check.names = FALSE

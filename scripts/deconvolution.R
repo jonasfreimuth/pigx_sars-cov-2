@@ -9,6 +9,7 @@ library(qpcR)
 library(stringr)
 library(magrittr)
 library(base64url)
+library(data.table)
 
 ## command line arguments
 args <- commandArgs(trailingOnly = TRUE)
@@ -112,7 +113,7 @@ variants_with_meta_file <- file.path(
 
 ## ----process_signature_mutations, include = FALSE-----------------------------
 # Read signature data
-sigmut_df <- read.csv(mutation_sheet, header = TRUE) %>%
+sigmut_df <- fread(mutation_sheet, header = TRUE) %>%
 
   # preprocess signature data
   # TODO Is the first select necessary? The sample sheet seems to have no
@@ -122,7 +123,7 @@ sigmut_df <- read.csv(mutation_sheet, header = TRUE) %>%
   tidyr::pivot_longer(everything(), values_drop_na = TRUE) %>%
   dplyr::select(variant = name, mutation = value)
 
-vep_output_df <- read.csv(params$vep_file, sep = ",", header = TRUE) %>%
+vep_output_df <- fread(params$vep_file, sep = ",", header = TRUE) %>%
   dplyr::na_if("-")
 
 # group variants with the same muation and concat their names to preserve the
@@ -170,13 +171,13 @@ nomatch_df <- complete_dep_filtered_df %>%
   filter(is.na(variant))
 
 cat("Writing signature mutation file to ", sigmut_output_file, "...\n")
-write.csv(
+fwrite(
   match_df,
   sigmut_output_file
 )
 
 cat("Writing non signature mutation file to ", non_sigmut_output_file, "...\n")
-write.csv(
+fwrite(
   nomatch_df,
   non_sigmut_output_file
 )
@@ -344,7 +345,7 @@ if (execute_deconvolution) {
   }
 
   cat("Writing variant abundance file to ", variants_file, "...\n")
-  write.csv(variant_abundance_df, variants_file)
+  fwrite(variant_abundance_df, variants_file)
 
   # plot comes here in report
 } else {
@@ -380,7 +381,7 @@ if (execute_deconvolution) {
     )
   )
 
-  write.csv(
+  fwrite(
     output_variant_plot,
     variants_with_meta_file
   )
@@ -443,7 +444,7 @@ if (execute_deconvolution) {
 
   # 3. write to output file
   cat("Writing mutation file to ", mutation_output_file, "...\n")
-  write.csv(output_mutation_frame, mutation_output_file,
+  fwrite(output_mutation_frame, mutation_output_file,
     row.names = FALSE, quote = FALSE
   )
 
