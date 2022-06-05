@@ -69,8 +69,8 @@ SignatureTable <- data.frame(
   "protein_mutation" = match.df$AA_mut,
   "variant" = match.df$variant, # TODO: more nice writing of it e.g B1.1.7
   "frequency" = match.df$freq, # TODO: more clear name stating which frequency
-  "coverage" = match.df$cov
-) # TODO: more clear title stating which coverage
+  "depth" = match.df$dep
+) # TODO: more clear title stating which depth
 
 DT::datatable(SignatureTable,
   extensions = c("FixedColumns", "Scroller"),
@@ -99,8 +99,8 @@ NoSignatureTable <- data.frame(
   "gene" = nomatch.df$genes,
   "protein_mutation" = nomatch.df$AA_mut,
   "frequency" = nomatch.df$freq, # TODO more clear name stating which frequency
-  "coverage" = nomatch.df$cov
-) # TODO more clear title stating which coverage
+  "depth" = nomatch.df$depth
+) # TODO more clear title stating which depth
 
 DT::datatable(NoSignatureTable,
   extensions = c("FixedColumns", "Scroller"),
