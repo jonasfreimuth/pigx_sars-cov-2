@@ -453,22 +453,17 @@ if (execute_deconvolution) {
   output_mutation_frame <- bind_rows(output_mutation_frame, meta_data)
 
   # write mutation frequency values to variant_abundance_df
-  for (i in all_mutations) {
-    i_nt <- str_split(i, "::")[[1]][2]
-    if (i_nt %in% complete_df$gene_mut) { # split gene name to match with AA mut
+  for (mut in all_mutations) {
+    # split gene name to match with AA mut
+    mut_nt <- str_split(mut, "::")[[1]][2]
+    if (mut_nt %in% complete_df$gene_mut &&
+        mut %in% colnames(output_mutation_frame)) {
       # check if variant already has a column
-      if (i %in% colnames(output_mutation_frame)) {
-        output_mutation_frame[, i] <- complete_df$freq[which(
-          complete_df$gene_mut == i_nt
-        )]
-      }
+      output_mutation_frame[, mut] <- complete_df$freq[which(
+        complete_df$gene_mut == mut_nt
+      )]
     }
   }
-
-
-  colnames(output_mutation_frame) <- as.character(colnames(
-    output_mutation_frame
-  ))
 
   output_mutation_frame <- output_mutation_frame %>%
     dplyr::select(-contains("NA", ignore.case = FALSE))
