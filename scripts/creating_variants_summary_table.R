@@ -20,8 +20,7 @@ create_summary <- function(files) {
     FUN = fread,
     header = TRUE,
     colClasses = "character",
-    check.names = FALSE,
-    row.names = NULL
+    check.names = FALSE
   )
 
   # remove empty files from list
