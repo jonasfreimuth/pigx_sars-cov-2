@@ -329,15 +329,15 @@ if (execute_deconvolution) {
 
   ## ----plot, echo = FALSE-----------------------------------------------------
   variant_abundance_df <- data.frame(
-    variants = deconv_lineages,
+    variant = deconv_lineages,
     abundance = variant_abundance
   ) %>%
-    separate_rows(variants, sep = var_sep)
+    separate_rows(variant, sep = var_sep)
 
   # go trough all groups and assign each group member the group abundance
   # divided by the number of group members
   for (group in dupe_group_list) {
-    group_ind <- variant_abundance_df$variants %in% group
+    group_ind <- variant_abundance_df$variant %in% group
     group_abundance <- variant_abundance_df$abundance[group_ind][1]
 
     variant_abundance_df$abundance[group_ind] <- group_abundance / length(group)
@@ -367,7 +367,7 @@ if (execute_deconvolution) {
 if (execute_deconvolution) {
   output_variant_plot <- variant_abundance_df %>%
 
-    pivot_wider(names_from = variants, values_from = abundance) %>%
+    pivot_wider(names_from = variant, values_from = abundance) %>%
 
     mutate(
     samplename = sample_name,
@@ -376,7 +376,7 @@ if (execute_deconvolution) {
     coordinates_lat = coordinates_lat,
     coordinates_long = coordinates_long,
     others = 1 - rowSums(
-      across(all_of(variant_abundance_df$variants)), na.rm = TRUE
+      across(all_of(variant_abundance_df$variant)), na.rm = TRUE
     )
   )
 
