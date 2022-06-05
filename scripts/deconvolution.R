@@ -425,8 +425,12 @@ if (execute_deconvolution) {
 
     # report the gene, translated_AA_mut and NT mut accordingly
     # easier to spot translation inconsitentcies that way
-    mutate(nuc_aa_mut = paste(aa_mut, gene_mut, sep = "::")) %>%
+    mutate(nuc_aa_mut = paste(aa_str, gene_mut, sep = "::")) %>%
     dplyr::select(nuc_aa_mut, freq) %>%
+
+    # Filter aa muts that contain NA
+    # TODO Why do some contain NA?
+    filter(!str_detect(nuc_aa_mut, "NA")) %>%
     pivot_wider(names_from = nuc_aa_mut, values_from = freq) %>%
 
     mutate(
