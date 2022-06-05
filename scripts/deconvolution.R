@@ -142,7 +142,7 @@ variant_protein_mut <- get_protein_mut(params$vep_file)
 # variant characterizing is done by NT mutations
 variant_protein_mut <- dplyr::left_join(variant_protein_mut,
   sigmuts_deduped_no_gene,
-  by = c("gene_mut" = "mutation")
+  by = c("mut_str" = "mutation")
 )
 
 
@@ -154,9 +154,9 @@ lofreq_info <- parse_snv_csv(params$snv_file)
 complete_df <- dplyr::left_join(
   lofreq_info,
   variant_protein_mut,
-  by = "gene_mut", copy = TRUE
-  ) %>%
-  mutate(gene_mut_collapsed = paste(genes, gene_mut, sep = ":"))
+  by = c("gene_mut" = "mut_nucs"), copy = TRUE
+) %>%
+  mutate(gene_mut_collapsed = paste(gene_name, gene_mut, sep = ":"))
 
 complete_dep_filtered_df <- complete_df %>%
  filter(as.numeric(dep) > as.numeric(params$mutation_depth_threshold))
