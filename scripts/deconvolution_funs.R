@@ -124,15 +124,15 @@ get_protein_mut <- function(vepfile) {
 
     # get general info on mutation and its position
     mutate(
-      mut_nucs   = str_extract(Uploaded_variation, "[A-Z]/[A-Z]$"),
+      mut_nucs   = str_extract(Uploaded_variation, "[A-Z*]/[A-Z*]$"),
       mut_chrom  = str_extract(Location, "^[^:]+"),
       mut_start  = str_extract(Location, "(?<=:)[0-9]+[^-]"),
       mut_end    = str_extract(Location, "(?<=-)[0-9]+")) %>%
 
     # generate unique string describing mutation
     mutate(
-      mut_ref = str_extract(mut_nucs, "^[A-Z]"),
-      mut_var = str_extract(mut_nucs,  "[A-Z]$"),
+      mut_ref = str_extract(mut_nucs, "^[A-Z*]"),
+      mut_var = str_extract(mut_nucs,  "[A-Z*]$"),
 
       mut_str = paste0(mut_ref, mut_start, mut_var)
     ) %>%
@@ -141,8 +141,8 @@ get_protein_mut <- function(vepfile) {
     mutate(
       # TODO This may behave unexpectedly; in the case of no change aa_ref
       # and aa_var are the same, aa_var will not be empty / NA
-      aa_ref = str_extract(Amino_acids, "^[A-Z]"),
-      aa_var = str_extract(Amino_acids,  "[A-Z]$"),
+      aa_ref = str_extract(Amino_acids, "^[A-Z*]"),
+      aa_var = str_extract(Amino_acids,  "[A-Z*]$"),
 
       aa_str = paste0(aa_ref, prot_pos, aa_var)
     ) %>%
