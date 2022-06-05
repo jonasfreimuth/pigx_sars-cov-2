@@ -99,7 +99,7 @@ NoSignatureTable <- data.frame(
   "gene" = nomatch.df$gene_name,
   "protein_mutation" = nomatch.df$aa_str,
   "frequency" = nomatch.df$freq, # TODO more clear name stating which frequency
-  "depth" = nomatch.df$depth
+  "depth" = nomatch.df$dep
 ) # TODO more clear title stating which depth
 
 DT::datatable(NoSignatureTable,
