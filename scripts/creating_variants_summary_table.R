@@ -1,3 +1,4 @@
+library("data.table")
 
 get_files <- function(variants_dir) {
   files <- list.files(
@@ -16,10 +17,11 @@ create_summary <- function(files) {
   # read files into list
   variants_list <- lapply(
     X = files,
-    FUN = read.csv,
+    FUN = fread,
     header = TRUE,
     colClasses = "character",
-    check.names = FALSE
+    check.names = FALSE,
+    row.names = NULL
   )
 
   # remove empty files from list
@@ -42,11 +44,13 @@ create_summary <- function(files) {
   return(merged_variants)
 }
 
-args <- commandArgs(trailingOnly = TRUE)
+# args <- commandArgs(trailingOnly = TRUE)
+args <- c("/home/jfreige/proj/pigx_sars-cov-2/tests/output/variants", "/home/jfreige/proj/pigx_sars-cov-2/tests/output/variants/data_variant_plot.csv")
+
 variants_dir <- args[1]
 output_file <- args[2]
 
 files <- get_files(variants_dir)
 output <- create_summary(files)
 # write to output file
-write.csv(output, output_file, row.names = FALSE, quote = FALSE)
+fwrite(output, output_file, row.names = FALSE, quote = FALSE)
