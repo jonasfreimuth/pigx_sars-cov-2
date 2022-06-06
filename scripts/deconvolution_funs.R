@@ -151,7 +151,7 @@ get_protein_mut <- function(vepfile) {
     # TODO Why do we delete these mutations? This just means they do not
     # affect the proteins, the mutations may still be informative...
     filter(! str_detect(prot_pos, "^-")) %>%
-    # TODO What is the relevance of this mutation?
+    # TODO What is the relevance of this information?
     # specific B117 mutations: 21990-21993, 21764-21770, maybe also 3675-3677,
     # 69-70 - all there
 
