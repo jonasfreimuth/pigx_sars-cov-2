@@ -72,7 +72,6 @@ pool_by_weighted_mean <- function(df, weights, group_fun = c("day_location", "da
   # get variants from data frame, all cols not known to be predefined metadata
   # columns
   meta_cols <- c(
-    "Others",
     "samplename",
     "dates",
     "location_name",
