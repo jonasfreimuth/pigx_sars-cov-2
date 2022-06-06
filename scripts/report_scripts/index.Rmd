@@ -223,14 +223,13 @@ approved_var_plot_location_pooled <- pool_by_weighted_mean(
   weights, "day_location"
 )
 
-# TODO change order or "variable" so that "WT" is always displayed on top
 melted <- reshape2::melt(approved_var_plot_location_pooled,
   id.vars = c("dates", "samplename")
 )
 
 p_variant_pooled <- subset(melted) %>%
   group_by(dates) %>%
-  arrange(variable) %>%
+  mutate(variable = give_priority_in_order(variable, "[Oo]thers")) %>%
   mutate(value = round(value, 4)) %>%
   plot_ly(
     type = "scatter",
@@ -275,8 +274,9 @@ melted <- reshape2::melt(approved_var_plot,
     "dates", "samplename", "location_name",
     "coordinates_lat", "coordinates_long"
   )
-)
-
+) %>%
+  mutate(variable = give_priority_in_order(variable, "[Oo]thers"))
+  
 location_plot <- function(melted, location) {
   subset(melted, location_name == location) %>%
     group_by(dates) %>%
@@ -374,6 +374,7 @@ melted <- reshape2::melt(
   ),
   rm.NA = TRUE
 ) %>%
+  mutate(variable = give_priority_in_order(variable, "[Oo]thers")) %>%
   mutate(value = round(value, 4))
 
 locations <- approved_var_plot_day_pooled %>%
