@@ -1,15 +1,5 @@
 library("data.table")
 
-get_files <- function(mutations_dir) {
-  files <- list.files(
-    path = mutations_dir,
-    pattern = "_mutations.csv",
-    full.names = TRUE,
-    recursive = FALSE
-  )
-  return(files)
-}
-
 create_summary <- function(files, output_file) {
   cat(paste("Summarizing", length(files), "mutation files.\n"))
 
@@ -43,10 +33,11 @@ create_summary <- function(files, output_file) {
 }
 
 args <- commandArgs(trailingOnly = TRUE)
-mutations_dir <- args[1]
-output_file <- args[2]
 
-files <- get_files(mutations_dir)
+output_file <- args[1]
+files       <- args[2:length(args)]
+
 output <- create_summary(files)
+
 # write to output file
 write.csv(output, output_file, row.names = FALSE, quote = FALSE)

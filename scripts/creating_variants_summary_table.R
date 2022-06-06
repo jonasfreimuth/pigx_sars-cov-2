@@ -1,16 +1,5 @@
 library("data.table")
 
-get_files <- function(variants_dir) {
-  files <- list.files(
-    path = variants_dir,
-    # TODO: pass file names from args
-    pattern = "_variants_with_meta.csv",
-    full.names = TRUE,
-    recursive = FALSE
-  )
-  return(files)
-}
-
 create_summary <- function(files) {
   cat(paste("Summarizing", length(files), "variant files.\n"))
 
@@ -45,10 +34,10 @@ create_summary <- function(files) {
 
 args <- commandArgs(trailingOnly = TRUE)
 
-variants_dir <- args[1]
-output_file <- args[2]
+output_file <- args[1]
+files       <- args[2:length(args)]
 
-files <- get_files(variants_dir)
 output <- create_summary(files)
+
 # write to output file
 fwrite(output, output_file, row.names = FALSE, quote = FALSE)
