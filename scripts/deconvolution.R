@@ -53,7 +53,8 @@ source(params$deconvolution_functions)
 
 # set script wide separator used for variants that contain the same signature
 # muations
-var_sep <- ","
+var_sep <- "_"
+aa_sep  <- "/"
 
 ## ----printInputSettings, echo = FALSE-----------------------------------------
 sample_name         <- params$sample_name
@@ -431,7 +432,7 @@ if (execute_deconvolution) {
       freq = sum(as.numeric(freq)),
       gene_mut = paste(gene_mut, collapse = var_sep)
     ) %>%
-    mutate(aa_str = replace(aa_str, is.na(aa_str), "\\:\\")) %>%
+    mutate(aa_str = replace(aa_str, is.na(aa_str), paste0("*", aa_sep, "*"))) %>%
     # 211006 this exclusion is necessary because this mutation has a wrong entry
     # in VEP which gives two AA_muts instead of probably 1 deletion
     filter(!(gene_mut %in% "G13477A")) %>%
@@ -439,7 +440,9 @@ if (execute_deconvolution) {
 
     # report the gene, translated_AA_mut and NT mut accordingly
     # easier to spot translation inconsitentcies that way
-    mutate(nuc_aa_mut = paste(aa_str, gene_mut, sep = "::")) %>%
+    mutate(nuc_aa_mut = paste(
+      aa_str, gene_mut, sep = str_glue("{aa_sep}{aa_sep}")
+      )) %>%
     dplyr::select(nuc_aa_mut, freq) %>%
 
     # Filter aa muts that contain NA
