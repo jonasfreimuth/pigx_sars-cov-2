@@ -362,24 +362,15 @@ if (execute_deconvolution) {
   fwrite(variant_abundance_df, variants_file)
 
   # plot comes here in report
-} else {
-  cat("Writing dummy variants file to ", variants_file, "...\n")
 
-  # write dummy variants file
-  writeLines(
-    "Deconvolution not run, this is a dummy file.",
-    variants_file
-  )
-}
+  # TODO: check if the else of the above if is handled correctly
 
-# TODO: check if the else of the above if is handled correctly
+  ## ----csv_output_variant_plot, include = F-------------------------------------
+  # prepare processed variant values to output them as a csv which will be used
+  # for the plots in index.rmd those outputs are not offically declared as outputs
+  # which can lead to issues - that part should be handled by a seperate
+  # file (and maybe rule)
 
-## ----csv_output_variant_plot, include = F-------------------------------------
-# prepare processed variant values to output them as a csv which will be used
-# for the plots in index.rmd those outputs are not offically declared as outputs
-# which can lead to issues - that part should be handled by a seperate
-# file (and maybe rule)
-if (execute_deconvolution) {
   output_variant_plot <- variant_abundance_df %>%
 
     pivot_wider(names_from = variant, values_from = abundance) %>%
@@ -400,21 +391,6 @@ if (execute_deconvolution) {
     variants_with_meta_file
   )
 
-} else {
-  cat(
-    "Writing dummy variants file with metadata to ",
-    variants_with_meta_file,
-     "...\n"
-  )
-
-  # write dummy variants file
-  writeLines(
-    "Deconvolution not run, this is a dummy file.",
-    variants_with_meta_file
-  )
-}
-
-if (execute_deconvolution) {
   ## ----csv_output_mutation_plot, include = FALSE------------------------------
   # prepare processed mutation values to output them as a csv which will be used
   # for the plots in index.rmd those outputs are not officially declared as
@@ -465,6 +441,25 @@ if (execute_deconvolution) {
   )
 
 } else {
+  cat("Writing dummy variants file to ", variants_file, "...\n")
+
+  # write dummy variants file
+  writeLines(
+    "Deconvolution not run, this is a dummy file.",
+    variants_file
+  )
+  
+  cat(
+    "Writing dummy variants file with metadata to ",
+    variants_with_meta_file,
+     "...\n"
+  )
+
+  # write dummy variants file
+  writeLines(
+    "Deconvolution not run, this is a dummy file.",
+    variants_with_meta_file
+  )
 
   cat("Writing dummy mutation file to ", mutation_output_file, "...\n")
 
