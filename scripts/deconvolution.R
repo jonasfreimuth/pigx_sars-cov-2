@@ -161,7 +161,7 @@ complete_df <- dplyr::left_join(
   mutate(gene_mut_collapsed = paste(gene_name, gene_mut, sep = ":"))
 
 complete_dep_filtered_df <- complete_df %>%
- filter(as.numeric(dep) > as.numeric(params$mutation_depth_threshold))
+  filter(as.numeric(dep) > as.numeric(params$mutation_depth_threshold))
 
 # filter for mutations which are signature mutations
 match_df <- complete_dep_filtered_df %>%
@@ -249,7 +249,7 @@ if (execute_deconvolution) {
   # generate deduped signature matrix
   # is a col was duplicated this contains only the first col of each dupe group
   msig_deduped_df <- msig_simple_df[, !is_dupe] %>%
-    rename(!! dupe_group_names)
+    rename(!!dupe_group_names)
 
   ## ----calculate_sigmat_weigths, include = FALSE------------------------------
   deconv_lineages <- colnames(msig_deduped_df)
@@ -376,15 +376,16 @@ if (execute_deconvolution) {
     pivot_wider(names_from = variant, values_from = abundance) %>%
 
     mutate(
-    samplename = sample_name,
-    dates = date,
-    location_name = location_name,
-    coordinates_lat = coordinates_lat,
-    coordinates_long = coordinates_long,
-    others = 1 - rowSums(
-      across(all_of(variant_abundance_df$variant)), na.rm = TRUE
+      samplename = sample_name,
+      dates = date,
+      location_name = location_name,
+      coordinates_lat = coordinates_lat,
+      coordinates_long = coordinates_long,
+      others = 1 - rowSums(
+        across(all_of(variant_abundance_df$variant)),
+        na.rm = TRUE
+      )
     )
-  )
 
   fwrite(
     output_variant_plot,
@@ -417,8 +418,9 @@ if (execute_deconvolution) {
     # report the gene, translated_AA_mut and NT mut accordingly
     # easier to spot translation inconsitentcies that way
     mutate(nuc_aa_mut = paste(
-      aa_str, gene_mut, sep = str_glue("{aa_sep}{aa_sep}")
-      )) %>%
+      aa_str, gene_mut,
+      sep = str_glue("{aa_sep}{aa_sep}")
+    )) %>%
     dplyr::select(nuc_aa_mut, freq) %>%
 
     # Filter aa muts that contain NA
@@ -439,7 +441,6 @@ if (execute_deconvolution) {
   fwrite(output_mutation_frame, mutation_output_file,
     row.names = FALSE, quote = FALSE
   )
-
 } else {
   cat("Writing dummy variants file to ", variants_file, "...\n")
 
@@ -448,11 +449,11 @@ if (execute_deconvolution) {
     "Deconvolution not run, this is a dummy file.",
     variants_file
   )
-  
+
   cat(
     "Writing dummy variants file with metadata to ",
     variants_with_meta_file,
-     "...\n"
+    "...\n"
   )
 
   # write dummy variants file
