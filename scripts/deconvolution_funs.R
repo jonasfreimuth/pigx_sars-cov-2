@@ -151,13 +151,17 @@ get_protein_mut <- function(vepfile) {
     # TODO Why do we delete these mutations? This just means they do not
     # affect the proteins, the mutations may still be informative...
     filter(! str_detect(prot_pos, "^-")) %>%
-    distinct() %>%
     # TODO What is the relevance of this mutation?
     # specific B117 mutations: 21990-21993, 21764-21770, maybe also 3675-3677,
     # 69-70 - all there
 
     # remove unneeded cols
-    dplyr::select(-matches(names(vepfile_df), ignore.case = FALSE))
+    dplyr::select(-matches(names(vepfile_df), ignore.case = FALSE)) %>%
+
+    # This also removes variants that essentially look the same, but differ in
+    # their VEP determined Gene
+    # e.g. Gene:ENSSASG00005000002 <> Gene:ENSSASG00005000003
+    distinct()
 
     # TODO Previously deletions were handled by generating pseudo rows for each
     # one. I currently do not have access to a file with deletions, and so
