@@ -43,8 +43,7 @@ create_summary <- function(files) {
   return(merged_variants)
 }
 
-# args <- commandArgs(trailingOnly = TRUE)
-args <- c("/home/jfreige/proj/pigx_sars-cov-2/tests/output/variants", "/home/jfreige/proj/pigx_sars-cov-2/tests/output/variants/data_variant_plot.csv")
+args <- commandArgs(trailingOnly = TRUE)
 
 variants_dir <- args[1]
 output_file <- args[2]
