@@ -6,10 +6,7 @@ create_summary <- function(files) {
   # read files into list
   variants_list <- lapply(
     X = files,
-    FUN = fread,
-    header = TRUE,
-    colClasses = "character",
-    check.names = FALSE
+    FUN = fread
   )
 
   # remove empty files from list
