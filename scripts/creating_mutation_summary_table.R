@@ -1,6 +1,6 @@
 library("data.table")
 
-create_summary <- function(files, output_file) {
+create_summary <- function(files) {
   cat(paste("Summarizing", length(files), "mutation files.\n"))
 
   # read files into list
