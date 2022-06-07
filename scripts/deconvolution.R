@@ -346,10 +346,10 @@ if (execute_deconvolution) {
 
   # TODO: check if the else of the above if is handled correctly
 
-  ## ----csv_output_variant_plot, include = F-------------------------------------
+  ## ----csv_output_variant_plot, include = F-----------------------------------
   # prepare processed variant values to output them as a csv which will be used
-  # for the plots in index.rmd those outputs are not offically declared as outputs
-  # which can lead to issues - that part should be handled by a seperate
+  # for the plots in index.rmd those outputs are not offically declared as
+  # outputs which can lead to issues - that part should be handled by a seperate
   # file (and maybe rule)
 
   output_variant_plot <- variant_abundance_df %>%
@@ -367,6 +367,7 @@ if (execute_deconvolution) {
         na.rm = TRUE
       )
     )
+
 
   fwrite(
     output_variant_plot,
@@ -390,7 +391,9 @@ if (execute_deconvolution) {
       freq = sum(as.numeric(freq)),
       gene_mut = paste(gene_mut, collapse = var_sep)
     ) %>%
-    mutate(aa_str = replace(aa_str, is.na(aa_str), paste0("*", aa_sep, "*"))) %>%
+    mutate(aa_str = replace(aa_str, is.na(aa_str),
+      paste0("*", aa_sep, "*"))) %>%
+
     # 211006 this exclusion is necessary because this mutation has a wrong entry
     # in VEP which gives two AA_muts instead of probably 1 deletion
     filter(!(gene_mut %in% "G13477A")) %>%
