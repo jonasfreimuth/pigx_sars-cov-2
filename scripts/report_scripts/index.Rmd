@@ -150,7 +150,7 @@ These plots provide an overview of the relative frequency dynamics of
 identified lineages at specific wastewater sampling locations over time. 
 
 ```{r sample_quality_score}
-coverages.df <- merge(get_genome_cov(params$coverage_dir),
+coverages_df <- merge(get_genome_cov(params$coverage_dir),
   get_mutation_cov(params$coverage_dir),
   by = "samplename"
 ) %>%
@@ -160,13 +160,13 @@ coverages.df <- merge(get_genome_cov(params$coverage_dir),
     )
   )
 
-if (!(length(coverages.df) == 0)) {
+if (!(length(coverages_df) == 0)) {
   # take only the samples over the mutation coverage threshold
-  good_samples.df <- coverages.df %>%
+  good_samples_df <- coverages_df %>%
     filter(as.numeric(proport_muts_covered) >= mutation_coverage_threshold)
 
-  bad_samples_df <- coverages.df %>%
-    filter(!(samplename %in% good_samples.df$samplename))
+  bad_samples_df <- coverages_df %>%
+    filter(!(samplename %in% good_samples_df$samplename))
 } else {
   warning("\n No coverage values found.")
 }
@@ -175,10 +175,10 @@ if (!(length(coverages.df) == 0)) {
 ```{r filter_plot_frames_samplescore, warning=TRUE}
 # only use good samples for processing and visualiztaion
 approved_var_plot <- df_var %>%
-  filter(samplename %in% good_samples.df$samplename) %>%
+  filter(samplename %in% good_samples_df$samplename) %>%
   unique()
 approved_mut_plot <- df_mut %>%
-  filter(samplename %in% good_samples.df$samplename)
+  filter(samplename %in% good_samples_df$samplename)
 
 # pool the samples per day, discard locations
 weights <- read.csv(params$overviewQC, header = TRUE, check.names = FALSE) %>%
@@ -923,7 +923,7 @@ cat(
 ```
 
 ```{r table_ample_quality_score}
-if (!(length(coverages.df) == 0)) {
+if (!(length(coverages_df) == 0)) {
   # TODO refine column names --> e.g "coverage in percent",
   bad_samples_df <- bad_samples_df %>% slice_head(n = 20)
   create_dt(bad_samples_df)
