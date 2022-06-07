@@ -606,11 +606,14 @@ melted <- melted %>%
           "SigMut",
           "NoSigMut"
         )) %>%
-    dplyr::select(- mut_str)
+    dplyr::select(- mut_str) %>%
 
-# sort by dates
-idx <- order(melted$dates)
-melted <- melted[idx, ]
+    # sort by dates
+    arrange(dates) %>%
+
+    # coerce dates to string, same reason as in the variants plot
+    mutate(dates = as.character(dates))
+
 
 p_mutations_pooled <- subset(melted) %>%
   group_by(dates) %>%
@@ -675,11 +678,13 @@ melted <- reshape2::melt(filtered_approved_mut_plot,
           "SigMut",
           NULL
         )) %>%
-    dplyr::select(- mut_str)
+    dplyr::select(- mut_str) %>%
 
-# sort by dates
-idx <- order(melted$dates)
-melted <- melted[idx, ]
+    # sort by dates
+    arrange(dates) %>%
+
+    # coerce dates to string, same reason as in the variants plot
+    mutate(dates = as.character(dates))
 
 locations <- as.character(unique(melted$location_name))
 
