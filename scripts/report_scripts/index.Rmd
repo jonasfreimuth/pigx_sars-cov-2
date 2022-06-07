@@ -659,21 +659,23 @@ plot_muts <- function(melted, location) {
     )
 }
 
+# TODO Unify the sigflag values across the report
 melted <- reshape2::melt(filtered_approved_mut_plot,
   id.vars = c(
     "dates", "samplename", "location_name",
     "coordinates_lat", "coordinates_long"
   )
-) %>%
-  rowwise() %>%
-  mutate(
-    sigflag = ifelse(
-      any(sigmuts_df == str_split(
-        variable, str_glue("{aa_sep}{aa_sep}")
-      )[[1]][2]),
-      "SigMut", NULL
-    )
-  )
+)  %>%
+    mutate(mut_str = str_extract(
+          variable,
+          str_glue("(?<={aa_sep}{aa_sep})[[:alnum:]]+"))) %>%
+    mutate(
+      sigflag = ifelse(
+         mut_str %in%  unlist(sigmuts_df),
+          "SigMut",
+          NULL
+        )) %>%
+    dplyr::select(- mut_str)
 
 # sort by dates
 idx <- order(melted$dates)
