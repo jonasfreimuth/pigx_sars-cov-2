@@ -273,10 +273,15 @@ melted <- reshape2::melt(approved_var_plot,
   id.vars = c(
     "dates", "samplename", "location_name",
     "coordinates_lat", "coordinates_long"
+  )) %>%
+  mutate(
+    variable = give_priority_in_order(variable, "[Oo]thers"),
+    
+    # conversion to character necessary, if it remains a date the plot will 
+    # separate the dots on every date
+    dates = as.character(dates)
   )
-) %>%
-  mutate(variable = give_priority_in_order(variable, "[Oo]thers"))
-  
+
 location_plot <- function(melted, location) {
   subset(melted, location_name == location) %>%
     group_by(dates) %>%
