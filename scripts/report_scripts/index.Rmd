@@ -276,8 +276,8 @@ melted <- reshape2::melt(approved_var_plot,
   )) %>%
   mutate(
     variable = give_priority_in_order(variable, "[Oo]thers"),
-    
-    # conversion to character necessary, if it remains a date the plot will 
+
+    # conversion to character necessary, if it remains a date the plot will
     # separate the dots on every date
     dates = as.character(dates)
   )
@@ -361,7 +361,8 @@ cat(
 ```
 
 ```{r variant_location_maps_plot, out.width="900px", out.height="900px", eval=VARIANTS_FOUND}
-# TODO: the note about arbitray locations should be enable to be turned on and off
+# TODO: the note about arbitray locations should be enable to be turned on and
+# off
 
 approved_var_plot_day_pooled <- pool_by_weighted_mean(
   approved_var_plot,
