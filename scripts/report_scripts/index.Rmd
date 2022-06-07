@@ -478,8 +478,11 @@ mutations_sig <- filter_lm_res_top20(mutations_sig_unfiltered, 0.05)
 
 sigmuts_df <- fread(params$mutation_sheet) %>%
   na_if("") %>%
-  # split gene name of for easier matching
-  mutate_all(funs(str_replace(., str_glue('^[^{aa_sep}]*{aa_sep}', ''))))
+  # remove gene name of for easier matching
+  mutate(across(everything(),
+                ~ str_extract(
+                  .x, str_glue("(?<={var_sep})[[:alnum:]]+")
+                )))
 
 if (nrow(mutations_sig) > 0) {
   # flag if mutation is signature mutation
