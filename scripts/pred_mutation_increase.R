@@ -10,12 +10,7 @@ refined_lm_model <- function(mutations_df) {
   # for mutation frequency - a missing value can be assumed as "not found", so
   # NA can be set to 0
   mutations_df <- mutations_df %>%
-    replace(is.na(.), 0) %>%
-
-    # TODO Get rid of this again
-    # due to fread mutations_df is a data table. For the moment that
-    # complicates things, so let's just coerce it to a pure df.
-    as.data.frame()
+    replace(is.na(.), 0)
 
   mutations <- names(mutations_df %>% select(- dates))
   dates     <- mutations_df$dates
