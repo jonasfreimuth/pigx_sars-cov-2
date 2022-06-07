@@ -709,11 +709,12 @@ cat("## Trending mutations geo-localized\n\nThis plot visualizes proportions ",
   sep = ""
 )
 
-cat(create_html_note("Locations of wastewater processing plants have been\n",
-  "generated arbitrarily and do not correspond to actual ",
-  "locations.",
-  sep = ""
-))
+cat(create_html_note(paste(
+    "Locations of wastewater processing plants have been\n",
+    "generated arbitrarily and do not correspond to actual ",
+    "locations.",
+    sep = ""
+)))
 
 cat(
   "Click on a lineage in the legend to toggle its visibility in the map;\n",
