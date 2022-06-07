@@ -111,7 +111,8 @@ df_mut <- fread(params$mutations_csv,
   check.names = FALSE
 )
 
-aa_sep <- "/"
+var_sep <- ":"
+aa_sep  <- "/"
 ```
 
 ```{r format_threshold}
