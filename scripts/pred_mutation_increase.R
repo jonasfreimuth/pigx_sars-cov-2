@@ -21,14 +21,19 @@ refined_lm_model <- function(mutations_df) {
     mutations,
     function(mutation) {
       mutation_col <- mutations_df[[mutation]]
-      lm      <- lm(mutation_col ~ dates)
-      lm_sum  <- summary(lm)
 
-      data.frame(
-        mutation     = mutation,
-        coefficients = lm_sum$coefficients["dates", "Estimate"],
-        pvalues      = lm_sum$coefficients["dates", "Pr(>|t|)"]
-      )
+      # only do regression if >= 20% of dates have detected mutations
+      # (if not, this will return NULL)
+      if (sum(mutation_col > 0) >= 0.2 * length(dates)) {
+        lm      <- lm(mutation_col ~ dates)
+        lm_sum  <- summary(lm)
+
+        data.frame(
+          mutation     = mutation,
+          coefficients = lm_sum$coefficients["dates", "Estimate"],
+          pvalues      = lm_sum$coefficients["dates", "Pr(>|t|)"]
+        )
+      }
     }
   )
 
