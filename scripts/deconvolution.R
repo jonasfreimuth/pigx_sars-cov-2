@@ -17,14 +17,14 @@ args <- commandArgs(trailingOnly = TRUE)
 # give default parameters
 if (length(args) == 0) {
   args <- c(
-    sample_name = "Test0",
-    output_dir = "/home/jfreige/proj/pigx_sars-cov-2/tests/output",
-    vep_file = "/home/jfreige/proj/pigx_sars-cov-2/tests/output/variants/Test0_vep_sarscov2_parsed.txt",
-    snv_file = "/home/jfreige/proj/pigx_sars-cov-2/tests/output/variants/Test0_snv.csv",
-    sample_sheet = "/home/jfreige/proj/pigx_sars-cov-2/tests/sample_sheet.csv",
-    mutation_sheet = "/home/jfreige/proj/pigx_sars-cov-2/tests/sample_data/mutation_sheet_211006_covidCG_NT_location.csv",
-    deconvolution_functions = "/home/jfreige/proj/pigx_sars-cov-2/scripts/deconvolution_funs.R",
-    mutation_depth_threshold = "100"
+    sample_name = "",
+    output_dir = "",
+    vep_file = "",
+    snv_file = "",
+    sample_sheet = "",
+    mutation_sheet = "",
+    deconvolution_functions = "",
+    mutation_depth_threshold = ""
   )
 }
 
