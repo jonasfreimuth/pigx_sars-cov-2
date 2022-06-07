@@ -386,7 +386,7 @@ if (execute_deconvolution) {
   # (process see line 1872 of documentation)
   # TODO These muations here are not filtered for coverage. Is this intended?
   output_mutation_frame <- complete_df %>%
-    group_by(aa_str) %>%
+    group_by(gene_name, aa_str) %>%
     summarise(
       freq = sum(as.numeric(freq)),
       gene_mut = paste(gene_mut, collapse = var_sep)
@@ -401,9 +401,12 @@ if (execute_deconvolution) {
 
     # report the gene, translated_AA_mut and NT mut accordingly
     # easier to spot translation inconsitentcies that way
-    mutate(nuc_aa_mut = paste(
-      aa_str, gene_mut,
-      sep = str_glue("{aa_sep}{aa_sep}")
+    mutate(nuc_aa_mut = paste0(
+      gene_name,
+      aa_sep,
+      aa_str,
+      aa_sep, aa_sep,
+      gene_mut
     )) %>%
     dplyr::select(nuc_aa_mut, freq) %>%
 
