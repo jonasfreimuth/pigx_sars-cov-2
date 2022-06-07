@@ -1,63 +1,80 @@
 library(dplyr)
 library(stringr)
 
-refined_lm_model <- function( mutations.df ){
- #' takes data frames with mutations, frequency values over time
- #' returns dataframe with related pvalues
-  
+refined_lm_model <- function(mutations_df) {
+  #' takes data frames with mutations, frequency values over time
+  #' returns dataframe with related pvalues
+
   # TODO check file format assumptions
-  
-  # for mutation frequency - a missing value can be assumed as "not found", so NA can be set to 0
-  mutations.df <- mutations.df %>% replace(is.na(.), 0)
-  
-  #initialize 3 lists for results
-  results_lm <- list ()
-  summaries <- list ()
-  pvalues <- list () 
+
+  # for mutation frequency - a missing value can be assumed as "not found", so
+  # NA can be set to 0
+  mutations_df <- mutations_df %>%
+    replace(is.na(.), 0)
+
+  # initialize 3 lists for results
+  results_lm <- list()
+  summaries <- list()
+  pvalues <- list()
   coeff <- list()
-  
-  #loop the mutations, doing the linear model, and extracting the pvalues
-  for ( i in names( mutations.df[,-which(names(mutations.df) %in% "dates")]) ){
-    # take only mutations that were found in at least 20% of samples (equals 20% of the values above 0) to ensure robust model calculation
-    tmp <- data.frame(values <- mutations.df[,i]) # maybe not the most elegant way to do this
-    if ( nrow( filter( tmp, values > 0 ) ) >= (nrow(mutations.df)*0.2)/1){
+
+  # loop the mutations, doing the linear model, and extracting the pvalues
+  for (i in names(mutations_df[, -which(names(mutations_df) %in% "dates")])) {
+    # take only mutations that were found in at least 20% of samples
+    # (equals 20% of the values above 0) to ensure robust model calculation
+
+    # maybe not the most elegant way to do this
+    tmp <- data.frame(values <- mutations_df[, i])
+    if (nrow(filter(tmp, values > 0)) >= (nrow(mutations_df) * 0.2) / 1) {
       # only select mutation columns
-      tmp <- mutations.df %>% select( dates, all_of(i) )
+      tmp <- mutations_df %>%
+       select(dates, all_of(i))
+
       # perform linear regression
-      test <- lm( formula = tmp[[i]] ~ tmp$dates )
+      test <- lm(formula = tmp[[i]] ~ tmp$dates)
+
       # extract results from model
-      coeff[[i]] <- as.data.frame(test["coefficients"]$coefficients["tmp$dates"])
+      coeff[[i]]      <- as.data.frame(
+        test["coefficients"]$coefficients["tmp$dates"]
+        )
+
       results_lm[[i]] <- test
-      summaries[[i]] <- summary( test )
-      pvalues[[i]] <- as.data.frame( summary( test )$coefficients[,4])
-      }
+      summaries[[i]]  <- summary(test)
+      pvalues[[i]]    <- as.data.frame(summary(test)$coefficients[, 4])
     }
-  
+  }
+
   # generate results data frame with all values
   coeff_df <- as.data.frame(do.call(rbind, coeff)) %>% tidyr::drop_na() %>%
-              # generate a proper dataframe from coeff values
-              tibble::rownames_to_column( "VALUE" ) %>% 
-              # proper column names
-              rename(mutation = VALUE, coefficients = "test[\"coefficients\"]$coefficients[\"tmp$dates\"]" )
-  
-  lm_res.df <-  do.call( rbind, pvalues ) %>%
-                # make proper df from p-values
-                tibble::rownames_to_column( "VALUE" ) %>%
-                # proper column names
-                rename(mutation = VALUE, pvalues = "summary(test)$coefficients[, 4]" ) 
-  if (!(all(is.nan(lm_res.df$pvalues)))){ 
-    lm_res.df <- lm_res.df %>% 
+    # generate a proper dataframe from coeff values
+    tibble::rownames_to_column("VALUE") %>%
+    # proper column names
+    rename(
+      mutation = VALUE,
+      coefficients = "test[\"coefficients\"]$coefficients[\"tmp$dates\"]"
+    )
+
+  lm_res_df <- do.call(rbind, pvalues) %>%
+    # make proper df from p-values
+    tibble::rownames_to_column("VALUE") %>%
+
+    # proper column names
+    rename(mutation = VALUE, pvalues = "summary(test)$coefficients[, 4]")
+
+  if (!(all(is.nan(lm_res_df$pvalues)))) {
+    lm_res_df <- lm_res_df %>%
       # only take the actual p-value
-      filter( stringr::str_detect( mutation, "dates" ) )  
+      filter(stringr::str_detect(mutation, "dates"))
   }
-  
-  lm_res.df <- lm_res.df %>%
-                # split the suffix from the model away
-                mutate(mutation = str_remove(mutation, ".tmp.*")) %>%
-                # join coeffs and pvalues togehter
-                left_join(coeff_df, by = "mutation")
-  
-  return ( lm_res.df )
+
+  lm_res_df <- lm_res_df %>%
+    # split the suffix from the model away
+    mutate(mutation = str_remove(mutation, ".tmp.*")) %>%
+
+    # join coeffs and pvalues togehter
+    left_join(coeff_df, by = "mutation")
+
+  return(lm_res_df)
 }
 
 filter_lm_res_top20 <- function ( lm_res.df, pvalue_cutoff){
