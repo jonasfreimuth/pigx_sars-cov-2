@@ -476,7 +476,7 @@ if (!RUN_MUTATION_REGRESSION) {
 ```{r linear_regression_tables, warning=TRUE, results='asis', eval=RUN_MUTATION_REGRESSION}
 mutations_sig <- filter_lm_res_top20(mutations_sig_unfiltered, 0.05)
 
-sigmuts_df <- fread(mutation_sheet) %>%
+sigmuts_df <- fread(params$mutation_sheet) %>%
   na_if("") %>%
   # split gene name of for easier matching
   mutate_all(funs(str_replace(., str_glue('^[^{aa_sep}]*{aa_sep}', ''))))
