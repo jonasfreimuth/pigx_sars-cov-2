@@ -10,8 +10,7 @@ create_summary <- function(files) {
   )
 
   # remove empty files from list
-  table_list_has_rows <- sapply(table_list, nrow)
-  table_list <- table_list[table_list_has_rows > 0]
+  table_list <- table_list[sapply(table_list, nrow) > 0]
 
   # merge variant tables in pairs
   merged_table <- Reduce(
