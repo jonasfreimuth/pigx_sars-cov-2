@@ -1,33 +1,6 @@
 library(dplyr)
 library(stringr)
 
-parsing_mutation_plot_data <- function(mutation_plot_data) {
-  #' taking csv as input which will be made by the variant reports
-  #' returns df containing only mutations with frequency values
-
-  # TODO check file format assumptions
-
-  # create vecotr of metadata col names to be excluded
-  meta_cols_excl <- c(
-    "samplename",
-    "location_name",
-    "coordinates_lat",
-    "coordinates_long"
-  )
-
-  lm_df <- mutation_plot_data %>%
-
-    # enforcing date type for column dates ...it will get rid of the time
-    mutate(dates = as.Date(dates)) %>%
-
-    select(- all_of(meta_cols_excl)) %>%
-
-    # remove mutations with NA for all rows and create a new dataframe
-    select(where(function(x) any(!is.na(x))))
-
-  return(lm_df)
-}
-
 refined_lm_model <- function( mutations.df ){
  #' takes data frames with mutations, frequency values over time
  #' returns dataframe with related pvalues
