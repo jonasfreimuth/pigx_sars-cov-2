@@ -487,10 +487,16 @@ sigmuts_df <- fread(params$mutation_sheet) %>%
 if (nrow(mutations_sig) > 0) {
   # flag if mutation is signature mutation
   mutations_sig <- mutations_sig %>%
-    rowwise() %>%
-    mutate(sigflag = ifelse(any(
-      sigmuts_df == str_split(mutation, str_glue("{aa_sep}{aa_sep}")[[1]][2]
-    ), "SigMut", "")))
+    mutate(mut_str = str_extract(
+          mutation,
+          str_glue("(?<={aa_sep}{aa_sep})[[:alnum:]]+"))) %>%
+    mutate(
+      sigflag = ifelse(
+         mut_str %in%  unlist(sigmuts_df),
+          "SigMut",
+          ""
+        )) %>%
+    dplyr::select(- mut_str)
 
   cat(
     "The following table shows the mutations showing ",
@@ -520,10 +526,16 @@ if (nrow(mutations_sig) > 0) {
 
 if (nrow(mutations_sig_unfiltered) > 0) {
   mutations_sig_unfiltered <- mutations_sig_unfiltered %>%
-    rowwise() %>%
-    mutate(sigflag = ifelse(any(
-      sigmuts_df == str_split(mutation, str_glue("{aa_sep}{aa_sep}"))[[1]][2]
-    ), "sigmut", ""))
+    mutate(mut_str = str_extract(
+          mutation,
+          str_glue("(?<={aa_sep}{aa_sep})[[:alnum:]]+"))) %>%
+    mutate(
+      sigflag = ifelse(
+         mut_str %in%  unlist(sigmuts_df),
+          "SigMut",
+          ""
+        )) %>%
+    dplyr::select(- mut_str)
 
   mutations_sig_unfiltered_download <- mutations_sig_unfiltered %>%
     dump_csv() %>%
@@ -581,17 +593,20 @@ melted <- reshape2::melt(approved_mut_plot_location_pooled,
 )
 
 melted <- melted %>%
-  # flag if mutation is signature mutation
-  rowwise() %>%
-  mutate(sigflag = ifelse(any(
-    sigmuts_df == str_split(variable, str_glue("{aa_sep}{aa_sep}"))[[1]][2]
-  ), "SigMut", "")) %>%
-  ungroup()
+    mutate(mut_str = str_extract(
+          variable,
+          str_glue("(?<={aa_sep}{aa_sep})[[:alnum:]]+"))) %>%
+    mutate(
+      sigflag = ifelse(
+         mut_str %in%  unlist(sigmuts_df),
+          "SigMut",
+          "NoSigMut"
+        )) %>%
+    dplyr::select(- mut_str)
 
 # sort by dates
 idx <- order(melted$dates)
 melted <- melted[idx, ]
-melted$sigflag[is.na(melted$sigflag)] <- "nosigmut"
 
 p_mutations_pooled <- subset(melted) %>%
   group_by(dates) %>%
