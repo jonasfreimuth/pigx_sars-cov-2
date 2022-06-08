@@ -452,7 +452,7 @@ increase over time are highlighted.
 ```{r mutation_notation, results='asis', eval=MUTATIONS_FOUND}
 cat(create_html_note(str_glue(
   "Mutations are noted in the pattern of:",
-  "\n _**gene {aa_sep}{aa_sep} protein-sequence mutation {var_sep} NT-sequence",
+  "\n _**gene {aa_sep} protein-sequence mutation {aa_sep}{aa_sep} NT-sequence",
   "mutation**_\nPlease note that this translation was done for single",
   "mutations. Combinations of single-NT mutations that taken together may lead",
   "to a different amino acid are not yet taken into account."
