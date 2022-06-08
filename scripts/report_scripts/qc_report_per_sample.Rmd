@@ -67,15 +67,24 @@ total, how many of their locations are covered and which locations have no read
 coverage at all. 
  
 ```{r amplicon_coverage, echo = FALSE}
-
-mut_cov_df <- data.frame(
-  "Total number of tracked mutations" = coverage_df[1],
-  "Number of mutations covered" = coverage_df[2],
-  "Mutation locations (NT) not covered" = coverage_df[3],
-  check.names = FALSE
+mutation_coverage_cols <- c(
+  "Total number of tracked mutations",
+  "Total number of mutations covered",
+  "Number of mutations not covered"
 )
 
-datatable(t(mut_cov_df), options = list(searching = FALSE, paging = FALSE))
+mut_cov_df <- coverage_df %>%
+  select(all_of(mutation_coverage_cols)) %>%
+  rename(c(
+    "Total number of tracked mutations" = mutation_coverage_cols[1],
+    "Number of mutations covered" = mutation_coverage_cols[2],
+    "Mutation locations (NT) not covered" = mutation_coverage_cols[3]
+  ))
+  
+
+datatable(
+  t(mut_cov_df) %>% set_colnames("Value"),
+  options = list(searching = FALSE, paging = FALSE))
 ```
 
 ## Reference Genome
@@ -85,14 +94,29 @@ mean coverage depth and percentage of the reference genome covered by
 pre-processed reads.
 
 ```{r read_coverage, echo = FALSE}
-read_cov_df <- data.frame(
-  "Number of aligned reads" = coverage_df[4],
-  "Total ref. genome coverage" = paste(round(as.integer(coverage_df[5]), 1), "%"),
-  "Mean read depth" = round(as.integer(coverage_df[6])),
-  check.names = FALSE
-) # TODO more clear title stating which coverage
+read_coverage_cols <- c(
+  "Total number aligned reads",
+  "Percentage ref.genome covered",
+  "Mean depth ref.genome coverage"
+)
 
-datatable(t(read_cov_df), options = list(searching = FALSE, paging = FALSE))
+read_cov_df <- coverage_df %>%
+  select(all_of(read_coverage_cols)) %>%
+  mutate(
+    `Percentage ref.genome covered` = paste(round(as.integer(
+      `Percentage ref.genome covered`
+      ), 1), "%"),
+    `Mean depth ref.genome coverage` = round(as.integer(
+      `Mean depth ref.genome coverage`
+      ))
+    ) %>%
+  rename(c(
+    "Number of aligned reads" = read_coverage_cols[1],
+    "Total ref. genome coverage" = read_coverage_cols[2],
+    "Mean read depth" = read_coverage_cols[3])
+  )
+
+datatable(t(read_cov_df) %>% set_colnames("Value"))
 ```
 
 # Read processing
