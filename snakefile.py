@@ -676,11 +676,17 @@ rule render_qc_report:
 
 rule create_variants_summary:
     input:
-        script = os.path.join(SCRIPTS_DIR, "create_summary_table.R"),
-        files = expand(os.path.join(VARIANTS_DIR, "{sample}_variants_with_meta.csv"), sample = SAMPLES)
-    output: os.path.join(VARIANTS_DIR, 'data_variant_plot.csv')
-    log: os.path.join(LOG_DIR, "create_variants_summary.log")
-    shell: """
+        script=os.path.join(SCRIPTS_DIR, "create_summary_table.R"),
+        files=expand(
+            os.path.join(VARIANTS_DIR, "{sample}_variants_with_meta.csv"),
+            sample=SAMPLES,
+        ),
+    output:
+        os.path.join(VARIANTS_DIR, "data_variant_plot.csv"),
+    log:
+        os.path.join(LOG_DIR, "create_variants_summary.log"),
+    shell:
+        """
         {RSCRIPT_EXEC} {input.script} {output} {input.files} > {log} 2>&1
         """
 
