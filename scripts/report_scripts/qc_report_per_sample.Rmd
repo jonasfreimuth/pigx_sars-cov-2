@@ -4,10 +4,11 @@ nav: "Quality control"
 author: "BIMSB Bioinformatics Platform"
 date: '`r format(as.POSIXct(if ("" != Sys.getenv("SOURCE_DATE_EPOCH")) { as.numeric(Sys.getenv("SOURCE_DATE_EPOCH")) } else { Sys.time() }, origin="1970-01-01"), "%Y-%m-%d %H:%M:%S")`'
 params:
-  sample_name: ''
-  coverage_file: ''
-  multiqc_report: ''
-  logo: ''
+  sample_name: ""
+  coverage_file: ""
+  multiqc_report: ""
+  logo: ""
+  coverage_table_outfile: ""
 ---
 
 <style>
@@ -147,11 +148,7 @@ fastqc-reports.
 # Download Stats csv
 
 ```{r data_download, include = FALSE}
-# not sure about the funct of the dataframe here, but it works so I leave it for now
-fwrite(coverage_df, file.path(
-  dirname(params$coverage_file),
-  "report_download_coverage.csv"
-))
+fwrite(coverage_df, params$coverage_table_outfile)
 
 coverage <- fread(params$coverage_file) %>%
   paste0(collapse = "\n") %>%
