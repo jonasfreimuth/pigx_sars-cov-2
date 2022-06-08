@@ -36,6 +36,7 @@ library(DT)
 library(magrittr)
 library(base64url)
 library(stringr)
+library(data.table)
 ```
 
 This report provides an overview over general quality control measures of the 
