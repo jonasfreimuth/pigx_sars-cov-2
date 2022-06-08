@@ -42,11 +42,9 @@ For detailed information about the methods please consult the
 [documentation](http://bioinformatics.mdc-berlin.de/pigx_docs/pigx-sars-cov-2.html#output-description).
 
 ```{r reading_data, include = FALSE}
-coverage.df <- read.table(params$coverage_file, sep = "\t", header = TRUE)
-coverage.df <- na_if(coverage.df, "[]")
-coverage.df <- gsub("\\[", "", coverage.df)
-coverage.df <- gsub("\\]", "", coverage.df)
-# FIXME: this can be sure done in a nicer and more compact way
+coverage.df <- fread(params$coverage_file) %>%
+  mutate(across(everything(), ~ na_if(.x, "[]"))) %>%
+  mutate(across(everything(), ~ gsub("\\[|\\]", "", .x)))
 ```
 
 # Coverage reports
