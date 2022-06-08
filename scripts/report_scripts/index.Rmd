@@ -464,7 +464,7 @@ cat(create_html_note(str_glue(
 cat(
   "## Increasing mutations\n\n",
   "To show the dynamic of significantly changing mutations over time a linear ",
-  "regression model was applied to the mutationresults across all samples.",
+  "regression model was applied to the mutation results across all samples.",
   sep = ""
 )
 
