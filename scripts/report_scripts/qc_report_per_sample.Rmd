@@ -34,6 +34,7 @@ library(dplyr)
 library(DT)
 library(magrittr)
 library(base64url)
+library(stringr)
 ```
 
 This report provides an overview over general quality control measures of the 
@@ -44,7 +45,10 @@ For detailed information about the methods please consult the
 ```{r reading_data, include = FALSE}
 coverage_df <- fread(params$coverage_file) %>%
   mutate(across(everything(), ~ na_if(.x, "[]"))) %>%
-  mutate(across(everything(), ~ gsub("\\[|\\]", "", .x)))
+  mutate(across(everything(), ~ gsub("\\[|\\]", "", .x))) %>%
+  mutate(`Number of mutations not covered` = str_replace_all(
+    `Number of mutations not covered`, "\\'", ""
+  ))
 ```
 
 # Coverage reports
