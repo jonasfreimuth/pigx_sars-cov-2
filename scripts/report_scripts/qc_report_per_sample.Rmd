@@ -43,6 +43,7 @@ For detailed information about the methods please consult the
 [documentation](http://bioinformatics.mdc-berlin.de/pigx_docs/pigx-sars-cov-2.html#output-description).
 
 ```{r reading_data, include = FALSE}
+# FIXME Rename these col names sensibly upstream
 coverage_df <- fread(params$coverage_file) %>%
   mutate(across(everything(), ~ na_if(.x, "[]"))) %>%
   mutate(across(everything(), ~ gsub("\\[|\\]", "", .x))) %>%
