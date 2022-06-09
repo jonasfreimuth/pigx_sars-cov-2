@@ -97,17 +97,12 @@ def no_variant_vep(sample, lofreq_output):
 def samtools_sort_preprimertrim_input(wildcards):
     sample = wildcards[0]
 
-    # everything in if statement in case we don't know how to handle the
-    # start point given by the settings file
-    if START_POINT == "fastq.gz":
-        input_file = os.path.join(MAPPED_READS_DIR, "{sample}_aligned.bam")
-
     if START_POINT == "bam":
         # take bam files directly from the reads dir
         input_file = os.path.join(READS_DIR, "{sample}.bam")
 
     else:
-        raise(f"Unknown start point: {START_POINT}")
+        input_file = os.path.join(MAPPED_READS_DIR, "{sample}_aligned.bam")
 
     return input_file
 
