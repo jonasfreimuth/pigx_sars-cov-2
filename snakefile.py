@@ -111,6 +111,7 @@ def samtools_sort_preprimertrim(wildcards):
 
     return input_file
 
+
 # function to pass read files to trim/filter/qc improvement
 def trim_reads_input(args):
     """
