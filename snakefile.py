@@ -94,7 +94,7 @@ def no_variant_vep(sample, lofreq_output):
 
 # Input functions
 
-def samtools_sort_preprimertrim(wildcards):
+def samtools_sort_preprimertrim_input(wildcards):
     sample = wildcards[0]
 
     # everything in if statement in case we don't know how to handle the
