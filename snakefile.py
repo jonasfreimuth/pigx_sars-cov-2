@@ -94,6 +94,17 @@ def no_variant_vep(sample, lofreq_output):
 
 # Input functions
 
+def samtools_sort_preprimertrim_input(wildcards):
+    sample = wildcards[0]
+
+    if START_POINT == "bam":
+        # take bam files directly from the reads dir
+        input_file = os.path.join(READS_DIR, f"{sample}.bam")
+
+    else:
+        input_file = os.path.join(MAPPED_READS_DIR, f"{sample}_aligned.bam")
+
+    return input_file
 
 
 # function to pass read files to trim/filter/qc improvement
@@ -141,7 +152,7 @@ def map_input(args):
 def lofreq_input(wildcards):
     sample = wildcards[0]
 
-    if (RUN_IVAR_PRIMER_TRIMING):
+    if RUN_IVAR_PRIMER_TRIMING and not START_POINT == "bam":
         file_descript = "_aligned_sorted_primer-trimmed_sorted"
 
     else:
@@ -327,6 +338,25 @@ SAMTOOLS_EXEC        = tool("samtools")
 VEP_EXEC             = tool("vep")
 IVAR_EXEC            = tool("ivar")
 
+# start file types and the rules that will be skipped:
+#   fastq.gz: 
+#     None
+#   bam:
+#     * fastp
+#     * fastp_se
+#     * bwa_align
+#     * samtools_filter_aligned
+#     * samtools_filter_unaligned
+#     * ivar_primer_trim
+#     * samtools_sort_postprimertrim
+#     * samtools_index_postprimertrim
+#     * fastqc_raw_se
+#     * fastqc_raw
+#     * fastqc_trimmed_se
+#     * fastqc_trimmed_pe
+#     * fastqc_primer_trimmed
+# 
+
 ## Load sample sheet
 with open(SAMPLE_SHEET_CSV, 'r') as fp:
   rows =  [row for row in csv.reader(fp, delimiter=',')]
@@ -480,7 +510,7 @@ rule samtools_filter_unaligned:
         "{SAMTOOLS_EXEC} view -bh -f 4 {input} > {output} 2>> {log} 3>&2"
 
 rule samtools_sort_preprimertrim:
-    input: os.path.join(MAPPED_READS_DIR, '{sample}_aligned.bam')
+    input: samtools_sort_preprimertrim_input
     output: os.path.join(MAPPED_READS_DIR, '{sample}_aligned_sorted.bam')
     log: os.path.join(LOG_DIR, 'samtools_sort_{sample}.log')
     shell: "{SAMTOOLS_EXEC} sort -o {output} {input} >> {log} 2>&1"
