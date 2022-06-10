@@ -99,10 +99,10 @@ def samtools_sort_preprimertrim_input(wildcards):
 
     if START_POINT == "bam":
         # take bam files directly from the reads dir
-        input_file = os.path.join(READS_DIR, "{sample}.bam")
+        input_file = os.path.join(READS_DIR, f"{sample}.bam")
 
     else:
-        input_file = os.path.join(MAPPED_READS_DIR, "{sample}_aligned.bam")
+        input_file = os.path.join(MAPPED_READS_DIR, f"{sample}_aligned.bam")
 
     return input_file
 
