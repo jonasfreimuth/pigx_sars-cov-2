@@ -438,7 +438,7 @@ run_params_info = (
     f"\tTargets: {TARGETS}\n"
 )
 
-print(run_params_info)
+logger.info(run_params_info)
 
 rule all:
     input: OUTPUT_FILES
