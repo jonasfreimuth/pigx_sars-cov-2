@@ -908,6 +908,7 @@ rule render_variant_report:
         }}' > {log} 2>&1
         """
 
+
 # ANNOT: Render quality control report, summarizing coverage, and linking to the
 # per sample fastq reports for the different stages of processing (see rule 
 # multiqc)
@@ -925,7 +926,6 @@ rule render_qc_report:
         os.path.join(LOG_DIR, "reports", "{sample}_qc_report.log"),
     script:
         "snakefile_scripts/rule_render_qc_report.py"
-        
 
 
 rule create_variants_summary:
