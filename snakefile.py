@@ -306,7 +306,7 @@ def render_qc_report_input(wildcards):
 def render_qc_report_params(wildcards, input, output = None, threads = None, resources = None):
     params = {"rscript_exec": RSCRIPT_EXEC}
 
-    if input.multiqc:
+    if "multiqc" in input.keys():
         params["multiqc_ran"]      = True
         params["multiqc_rel_path"] = input.multiqc[len(REPORT_DIR) + 1 :]
 
