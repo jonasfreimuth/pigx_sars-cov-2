@@ -23,13 +23,13 @@
   (list (channel
          (name 'guix)
          (url "https://git.savannah.gnu.org/git/guix.git")
-         (commit
-          "b540e5e6bba6e0047864abcc3a6dfec46ff6cd32")
-         (introduction
+                 (commit
+          "6aa457fed15157495121646b57c22ec68af41fb7")
+        (introduction
           (make-channel-introduction
-           "9edb3f66fd807b096b48283debdcddccfea34bad"
-           (openpgp-fingerprint
-            "BBB0 2DDF 2CEA F6A8 0D1D  E643 A2A0 6DF2 A33A 54FA"))))))
+            "9edb3f66fd807b096b48283debdcddccfea34bad"
+            (openpgp-fingerprint
+              "BBB0 2DDF 2CEA F6A8 0D1D  E643 A2A0 6DF2 A33A 54FA"))))))
 
 (define (lookup name)
   (specification->package name))
@@ -59,6 +59,7 @@
         "r-minimal"
         "r-base64url"
         "r-data-table"
+        "r-deconvr"
         "r-dplyr"
         "r-dt"
         "r-ggplot2"
