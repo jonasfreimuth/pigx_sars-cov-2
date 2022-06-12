@@ -28,7 +28,8 @@ if (length(args) == 0) {
     non_sigmut_output_file = "",
     variants_output_file = "",
     variants_with_meta_output_file = "",
-    mutation_output_file = ""
+    mutation_output_file = "",
+    deconvolution_method = ""
   )
 }
 
@@ -44,7 +45,8 @@ params <- list(
     non_sigmut_output_file = args[[9]],
     variants_output_file = args[[10]],
     variants_with_meta_output_file = args[[11]],
-    mutation_output_file = args[[12]]
+    mutation_output_file = args[[12]],
+    deconvolution_method = args[[13]]
 )
 
 # pretty print parameters for easier debugging
