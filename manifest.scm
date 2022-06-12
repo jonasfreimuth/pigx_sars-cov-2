@@ -69,7 +69,6 @@
         "r-rmarkdown"
         "r-stringr"
         "r-tidyr"
-        "r-tidyverse"
         "r-reshape2"
         "r-r-utils"
         "r-viridis"
