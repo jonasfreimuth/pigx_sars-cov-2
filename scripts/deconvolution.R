@@ -28,7 +28,8 @@ if (length(args) == 0) {
     non_sigmut_output_file = "",
     variants_output_file = "",
     variants_with_meta_output_file = "",
-    mutation_output_file = ""
+    mutation_output_file = "",
+    deconvolution_method = ""
   )
 }
 
@@ -45,7 +46,8 @@ arg_names <- c(
     "non_sigmut_output_file",
     "variants_output_file",
     "variants_with_meta_output_file",
-    "mutation_output_file"
+    "mutation_output_file",
+    "deconvolution_method"
 )
 
 params <- lapply(args, function(x) x)
