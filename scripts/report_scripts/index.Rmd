@@ -676,7 +676,7 @@ melted <- reshape2::melt(filtered_approved_mut_plot,
       sigflag = ifelse(
          mut_str %in%  unlist(sigmuts_df),
           "SigMut",
-          NULL
+          NA
         )) %>%
     dplyr::select(- mut_str) %>%
 
