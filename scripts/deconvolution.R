@@ -332,7 +332,7 @@ if (execute_deconvolution) {
     msig_all_df <- rbind(msig_inverse, msig_deduped_df_weighted)
 
   } else {
-    msig_all_df <- rbind(misg_inverse, msig_deduped_df)
+    msig_all_df <- rbind(msig_inverse, msig_deduped_df)
   }
 
    msig_all_df <- msig_all_df %>%
