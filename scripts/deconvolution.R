@@ -320,7 +320,7 @@ if (execute_deconvolution) {
 
   # make matrix with Others mutations and inverse the values and wild type
   # freqs
-  msig_inverse <- msig_deduped_df_weighted %>%
+  msig_inverse <- msig_deduped_df %>%
     mutate(across(everything(), ~ as.numeric(!as.logical(.x))))
 
   if (do_weighting) {
