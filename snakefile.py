@@ -436,6 +436,16 @@ targets = {
         'description': "Produce a comprehensive report. This is the default target.",
         'files': final_report_files
     },
+    "deconvolution": {
+        "description": "Run deconvolution for all provided samples.",
+        "files": (
+            expand(
+                os.path.join(
+                    VARIANTS_DIR,
+                    "{sample}_variants.csv"),
+                sample = SAMPLES)
+        )
+    },
     'lofreq': {
         'description': "Call variants and produce .vcf file and overview .csv file.",
         'files': (
