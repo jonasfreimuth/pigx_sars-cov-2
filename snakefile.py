@@ -924,7 +924,7 @@ rule run_deconvolution:
         "{output.variant_proportions}" \
         "{output.variants_with_meta}" \
         "{output.mutations}" \
-        "{DECONVOLUTION_METHOD}"
+        "{DECONVOLUTION_METHOD}" \
         > {log} 2>&1
         """
 
