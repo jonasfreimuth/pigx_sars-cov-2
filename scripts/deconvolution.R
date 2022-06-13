@@ -72,6 +72,9 @@ source(params$deconvolution_functions)
 var_sep <- "_"
 aa_sep  <- "/"
 
+# determine if signature mutation matrix needs to be weighted
+do_weighting <- str_detect(params$deconvolution_method, "weighted")
+
 ## ----printInputSettings, echo = FALSE-----------------------------------------
 sample_name         <- params$sample_name
 sample_sheet        <- data.table::fread(params$sample_sheet)
@@ -238,41 +241,43 @@ if (execute_deconvolution) {
   ## ----calculate_sigmat_weigths, include = FALSE------------------------------
   deconv_lineages <- colnames(msig_deduped_df)
 
-  # create list of proportion values that will be used as weigths
-  sigmut_proportion_weights <- list()
-  for (lineage in deconv_lineages) {
-    if (str_detect(lineage, "Others")) {
-      # !! 17/02/2022 It's not yet tested how robust this behaves when one would
-      # mindlessly clutter the mutationsheet
-      # with lineages that are very unlikely to detect or not detected
+  if (do_weighting) {
+    # create list of proportion values that will be used as weigths
+    sigmut_proportion_weights <- list()
+    for (lineage in deconv_lineages) {
+      if (str_detect(lineage, "Others")) {
+        # !! 17/02/2022 It's not yet tested how robust this behaves when one would
+        # mindlessly clutter the mutationsheet
+        # with lineages that are very unlikely to detect or not detected
 
-      # n all detected mutations / n all known mutations
-      # TODO Find out why
-      value <- nrow(msig_deduped_df) / nrow(sigmuts_deduped)
-    } else if (grepl(var_sep, lineage)) {
-      # as we can not weight the variants separately by their n detected sig
-      # muts / n known sig muts (for this group), we use n detected sigmuts
-      # (that is still accurate) / group average n known signature mutations
-      group <- unlist(str_split(lineage, var_sep))
-      avrg <- sum(sigmut_df$variant %in% group) / length(group)
-      value <- sum(msig_deduped_df[lineage]) / avrg
-    } else {
-      # n lineage signature mutations detected in sample /
-      # n known lineage signature mutations (provided in the mutation
-      # sheet)
-      value <- sum(msig_deduped_df[lineage]) /
-        sum(sigmut_df$variant == lineage)
+        # n all detected mutations / n all known mutations
+        # TODO Find out why
+        value <- nrow(msig_deduped_df) / nrow(sigmuts_deduped)
+      } else if (grepl(var_sep, lineage)) {
+        # as we can not weight the variants separately by their n detected sig
+        # muts / n known sig muts (for this group), we use n detected sigmuts
+        # (that is still accurate) / group average n known signature mutations
+        group <- unlist(str_split(lineage, var_sep))
+        avrg <- sum(sigmut_df$variant %in% group) / length(group)
+        value <- sum(msig_deduped_df[lineage]) / avrg
+      } else {
+        # n lineage signature mutations detected in sample /
+        # n known lineage signature mutations (provided in the mutation
+        # sheet)
+        value <- sum(msig_deduped_df[lineage]) /
+          sum(sigmut_df$variant == lineage)
+      }
+      sigmut_proportion_weights[lineage] <- value
     }
-    sigmut_proportion_weights[lineage] <- value
+
+
+    # apply weights to signature matrix
+    msig_deduped_df_weighted <- msig_deduped_df %>%
+      mutate(across(
+        everything(), ~ .x / sigmut_proportion_weights[[cur_column()]]
+      )) %>%
+      replace(is.na(.), 0)
   }
-
-  # apply weights to signature matrix
-  msig_deduped_df_weighted <- msig_deduped_df %>%
-    mutate(across(
-      everything(), ~ .x / sigmut_proportion_weights[[cur_column()]]
-    )) %>%
-    replace(is.na(.), 0)
-
 
   ## ----simulating_WT_mutations, include = FALSE-------------------------------
   # construct additional WT mutations that are not weighted
@@ -290,18 +295,20 @@ if (execute_deconvolution) {
   # to one of the original mutations frequencies
   others_freq_vec <- 1 - bulk_freq_vec
 
-  others_select_vec <- str_detect(names(sigmut_proportion_weights), "Others")
+  if (do_weighting) {
+    others_select_vec <- str_detect(names(sigmut_proportion_weights), "Others")
 
-  if (sum(others_select_vec) > 1) {
-    stop(
-      paste(
-        "More than one entry matching \"Others\" in weights list. This is not",
-        "allowed."
+    if (sum(others_select_vec) > 1) {
+      stop(
+        paste(
+          "More than one entry matching \"Others\" in weights list. This is",
+          "not allowed."
+        )
       )
-    )
-  }
+    }
 
-  others_prop_wt <- sigmut_proportion_weights[others_select_vec]
+    others_prop_wt <- sigmut_proportion_weights[others_select_vec]
+  }
 
   # generate vector with all mutation frequencies: dummy and real
   bulk_all_df <- data.frame(sample = c(others_freq_vec, bulk_freq_vec)) %>%
@@ -314,22 +321,30 @@ if (execute_deconvolution) {
   # make matrix with Others mutations and inverse the values and wild type
   # freqs
   msig_inverse <- msig_deduped_df_weighted %>%
-    mutate(across(everything(), ~ as.numeric(!as.logical(.x)))) %>%
+    mutate(across(everything(), ~ as.numeric(!as.logical(.x))))
 
-    # apply weights right away
-    mutate(across(
-      everything(),
-      ~ .x / as.numeric(others_prop_wt)
-    ))
+  if (do_weighting) {
+     msig_inverse <- msig_inverse %>%
 
+      # apply weights
+      mutate(across(
+        everything(),
+        ~ .x / as.numeric(others_prop_wt)
+      ))
 
-  # generate combined signature matrix for variants, dummy and real
-  msig_all_df <- rbind(msig_inverse, msig_deduped_df_weighted) %>%
+    # generate combined signature matrix for variants, dummy and real
+    msig_all_df <- rbind(msig_inverse, msig_deduped_df_weighted)
 
-    # Add IDs col and put it at position 1. Both name and posistion are required
-    # by the deconvolute function.
-    mutate(IDs = seq(1, 2 * length(bulk_freq_vec))) %>%
-    dplyr::select(IDs, everything())
+  } else {
+    msig_all_df <- rbind(misg_inverse, msig_deduped_df)
+  }
+
+   msig_all_df <- msig_all_df %>%
+
+      # Add IDs col and put it at position 1. Both name and posistion are
+      # required by the deconvolute function.
+      mutate(IDs = seq(1, 2 * length(bulk_freq_vec))) %>%
+      dplyr::select(IDs, everything())
 
   # central deconvolution step
   deconvolution_output <- deconvolute(
