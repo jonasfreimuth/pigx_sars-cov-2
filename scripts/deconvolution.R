@@ -183,11 +183,11 @@ fwrite(
 # get  NT mutations only, input for the signature matrix
 mutations_vec <- match_df$gene_mut_collapsed
 
-# only execute the deconvolution when at least one signature mutation was found
-execute_deconvolution <- length(mutations_vec) > 0
+# only do steps necessary for deconvolution when at least one signature mutation
+# was found
+run_pre_deconv <- length(mutations_vec) > 0
 
-
-if (execute_deconvolution) {
+if (run_pre_deconv) {
   ## ----creating_signature_matrix, include = FALSE-----------------------------
   # create an empty data frame add a column for the Wildtype
   # Wildtype in this case means the reference version of SARS-Cov-2
@@ -248,6 +248,14 @@ if (execute_deconvolution) {
 
   ## ----calculate_sigmat_weigths, include = FALSE------------------------------
   deconv_lineages <- colnames(msig_deduped_df)
+
+  # special case: svr can't run on two or less variants, so we need to break
+  # early if that is the case
+  if (length(deconv_lineages) <= 2 && deconv_model == "svr") {
+    no_svr_exception <- FALSE
+  } else {
+    no_svr_exception <- TRUE
+  }
 
   if (do_weighting) {
     # create list of proportion values that will be used as weigths
@@ -352,6 +360,16 @@ if (execute_deconvolution) {
       # required by the deconvolute function.
       mutate(IDs = seq(1, 2 * length(bulk_freq_vec))) %>%
       dplyr::select(IDs, everything())
+}
+
+# if sigmat dedupe did not run no_svr_exception cannot be known
+if (run_sigmat_dedupe) {
+  run_deconvolution <- no_svr_exception
+} else {
+  run_deconvolution <- FALSE
+}
+
+if (run_deconvolution) {
 
   # central deconvolution step
   deconvolution_output <- deconvolute(
