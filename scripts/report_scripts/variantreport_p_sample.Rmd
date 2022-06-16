@@ -133,8 +133,10 @@ please consult the
 # get  NT mutations only, input for the signature matrix
 mutations.vector <- match.df$gene_mut_collapsed
 
+df <- fread(params$variants_file)
+
 # only execute the deconvolution when at least one signature mutation was found
-executeDeconvolution <- length(mutations.vector) > 0
+executeDeconvolution <- nrow(df) > 0
 ```
 
 `r if (executeDeconvolution) {"The following bar plot shows the proportion of each lineage in the sample as predicted by the deconvolution model. For the case of multiple lineages being indistinguishable because of shared signature mutations, the deconvolution result for this group is distributed equally across each grouped lineage and they all get the same value."}` 
@@ -163,8 +165,6 @@ Variant_colors <- c(
   "#67a04e"
 )
 # TODO this should be put into a separate color palette function in a separate file
-
-df <- fread(params$variants_file)
 
 font_family <- "DejaVu Sans"
 
