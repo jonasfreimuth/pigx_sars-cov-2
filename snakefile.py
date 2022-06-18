@@ -470,13 +470,7 @@ targets = {
         "description": (
             "Run deconvolution for all provided samples and create a summary "
             "table containing abundances from all samples."),
-        "files": (
-            expand(
-                os.path.join(
-                    VARIANTS_DIR,
-                    "{sample}_variants.csv"),
-                sample = SAMPLES)
-        )
+        "files": [os.path.join(VARIANTS_DIR, "data_variant_plot.csv")]
     },
     'lofreq': {
         'description': "Call variants and produce .vcf file and overview .csv file.",
