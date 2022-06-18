@@ -467,7 +467,9 @@ targets = {
         'files': final_report_files
     },
     "deconvolution": {
-        "description": "Run deconvolution for all provided samples.",
+        "description": (
+            "Run deconvolution for all provided samples and create a summary "
+            "table containing abundances from all samples."),
         "files": (
             expand(
                 os.path.join(
