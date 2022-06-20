@@ -366,9 +366,17 @@ if (run_pre_deconv) {
       dplyr::select(IDs, everything())
 }
 
-# if sigmat dedupe did not run no_svr_exception cannot be known
-if (run_sigmat_dedupe) {
-  run_deconvolution <- no_svr_exception
+# if pre-deconvolution steps did not run no_svr_exception cannot be known
+if (run_pre_deconv) {
+  if (deconv_model == "svr") {
+    # To make svr model work with less than 10 cases, one would need to adjust
+    # the crossvalidation sample size in the underlying e1071::tune function,
+    # which is currently not supported by the deconvolute function.
+    # This would probably also lead to inaccurate results.
+    run_deconvolution <- nrow(msig_all_df) >= 10
+  } else {
+    run_deconvolution <- TRUE
+  }
 } else {
   run_deconvolution <- FALSE
 }
