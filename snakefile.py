@@ -293,11 +293,21 @@ VEP_DB              = config["locations"]["vep-db-dir"]
 OUTPUT_DIR          = config["locations"]["output-dir"]
 
 # TODO: get default read length from multiqc
-READ_LENGTH      = config['trimming']['read-length']
-CUT_OFF          = config['trimming']['cut-off']
+parameters = config["parameters"]
 
-MUTATION_DEPTH_THRESHOLD    = config["reporting"]["mutation-depth-threshold"]
-MUTATION_COVERAGE_THRESHOLD = config['reporting']['mutation-coverage-threshold']
+# vep parameters
+VEP_BUFFER_SIZE         = parameters["vep"]["buffer-size"]
+SPECIES                 = parameters["vep"]["species"]
+VEP_TRANSCRIPT_DISTANCE = parameters["vep"]["transcript-distance"]
+
+# ivar parameters
+IVAR_QUALITY_CUTOFF = parameters["ivar_trimming"]["quality-cutoff"]
+IVAR_LENGTH_CUTOFF  = parameters["ivar_trimming"]["length-cutoff"]
+IVAR_WINDOW_WIDTH   = parameters["ivar_trimming"]["window-width"]
+
+# mutation regression parameters
+MUTATION_DEPTH_THRESHOLD    = parameters["reporting"]["mutation-depth-threshold"]
+MUTATION_COVERAGE_THRESHOLD = parameters['reporting']['mutation-coverage-threshold']
 
 START_POINT = config["control"]["start"]
 TARGETS     = config["control"]["targets"]
@@ -530,12 +540,23 @@ rule ivar_primer_trim:
         os.path.join(MAPPED_READS_DIR, "{sample}_aligned_sorted_primer-trimmed.bam"),
     params:
         output=lambda wildcards, output: os.path.splitext(f"{output}")[0],
+        quality_cutoff=IVAR_QUALITY_CUTOFF,
+        length_cutoff=IVAR_LENGTH_CUTOFF,
+        window_width=IVAR_WINDOW_WIDTH
     log:
         os.path.join(LOG_DIR, "ivar_{sample}.log"),
     # TODO number parameter should be accessible over settings file
     shell:
         """
-        {IVAR_EXEC} trim -b {input.primers} -p {params.output} -i {input.aligned_bam} -q 15 -m 180 -s 4 >> {log} 2>&1
+        {IVAR_EXEC} trim \
+        -b {input.primers} \
+        -p {params.output} \
+        -i {input.aligned_bam} \
+        -q {params.quality_cutoff} \
+        -m {params.length_cutoff} \
+        -s {params.window_width} \
+        -e \
+        >> {log} 2>&1
         """
 
 
@@ -674,17 +695,33 @@ rule vcf2csv:
     shell: "{PYTHON_EXEC} {params.script} {input} >> {log} 2>&1"
 
 rule vep:
-    input: os.path.join(VARIANTS_DIR, '{sample}_snv.vcf')
-    output: os.path.join(VARIANTS_DIR, '{sample}_vep_sarscov2.txt')
+    input:
+        os.path.join(VARIANTS_DIR, "{sample}_snv.vcf"),
+    output:
+        os.path.join(VARIANTS_DIR, "{sample}_vep_sarscov2.txt"),
     params:
-        species = "sars_cov_2"
-    log: os.path.join(LOG_DIR, 'vep_{sample}.log')
+        buffer_size=VEP_BUFFER_SIZE,
+        species=SPECIES,
+        transcript_distance=VEP_TRANSCRIPT_DISTANCE
+    log:
+        os.path.join(LOG_DIR, "vep_{sample}.log"),
     shell:
-      """
-      {VEP_EXEC} --verbose --offline --dir_cache {VEP_DB} --DB_VERSION 101 --appris --biotype --buffer_size 5000 --check_existing\
-      --distance 5000 --mane --protein --species {params.species} --symbol --transcript_version --tsl\
-      --input_file {input} --output_file {output} >> {log} 2>&1
-      """
+        """
+        {VEP_EXEC} --verbose --offline \
+        --dir_cache {VEP_DB} \
+        --DB_VERSION 101 \
+        --buffer_size {params.buffer_size} \
+        --species {params.species} \
+        --check_existing \
+        --distance {params.transcript_distance} \
+        --biotype \
+        --protein \
+        --symbol \
+        --transcript_version \
+        --input_file {input} \
+        --output_file {output} \
+        >> {log} 2>&1
+        """
 
 rule parse_vep:
     input: os.path.join(VARIANTS_DIR, '{sample}_vep_sarscov2.txt')
@@ -831,10 +868,14 @@ rule render_variant_report:
             VARIANTS_DIR, "{sample}_variants.csv"
         ),
         mutations=os.path.join(MUTATIONS_DIR, "{sample}_mutations.csv"),
+        vep_raw=os.path.join(VARIANTS_DIR, "{sample}_vep_sarscov2.txt"),
         vep=os.path.join(VARIANTS_DIR, "{sample}_vep_sarscov2_parsed.txt"),
         snv=os.path.join(VARIANTS_DIR, "{sample}_snv.csv"),
     output:
         varreport=os.path.join(REPORT_DIR, "{sample}.variantreport_p_sample.html"),
+    params:
+        vep_transcript_distance=VEP_TRANSCRIPT_DISTANCE,
+        vep_species=SPECIES
     log:
         os.path.join(LOG_DIR, "reports", "{sample}_variant_report.log"),
     shell:
@@ -848,6 +889,9 @@ rule render_variant_report:
           "variants_file": "{input.variants_file}", \
           "snv_file": "{input.snv}", \
           "vep_file": "{input.vep}", \
+          "vep_file_raw": "{input.vep_raw}", \
+          "vep_transcript_distance": "{params.vep_transcript_distance}", \
+          "vep_species": "{params.vep_species}", \
           "logo": "{LOGO}" \
         }}' > {log} 2>&1
         """
