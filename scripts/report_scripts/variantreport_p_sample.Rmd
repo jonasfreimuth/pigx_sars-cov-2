@@ -8,8 +8,11 @@ params:
   sigmut_file: ""
   non_sigmut_file: ""
   variants_file: ""
-  vep_file: ""
   snv_file: ""
+  vep_file: ""
+  vep_file_raw: ""
+  vep_transcript_distance: ""
+  vep_species: ""
   logo: ""
 ---
 
@@ -32,6 +35,7 @@ library(ggplot2)
 library(DT)
 library(base64url)
 library(data.table)
+library(stringr)
 ```
 
 This lineage analysis report provides an overview over all mutations found in 
@@ -198,6 +202,15 @@ ggplot(data = df, aes(variant, abundance,
 
 # Analysis Parameter
 
+```{r extract_analysis_parameters}
+# the info is contained in the header, so we only need the first couple of lines
+vep_assembly <- readLines(params$vep_file_raw, n = 500) %>%
+  paste(collapse = "") %>%
+  str_extract("(?<=## assembly version )[[:alnum:]]+")
+
+trans_dist <- params$vep_transcript_distance
+```
+
 ## LoFreq filter
 | LoFreq is used with default filter settings:       |                   |
 | :------------------------------------------------- | :---------------- |
@@ -207,14 +220,14 @@ ggplot(data = df, aes(variant, abundance,
 | Minimum Indel Quality (Phred)                      | 47                |
 
 ## VEP settings  
-* Species: SARS-CoV-2  
-* Assembly: ASM985889v3  
+* Species: `r params$vep_species` 
+* Assembly: `r vep_assembly`  
 
-|                                                   |        |
-| :------------------------------------------------ | :----- |
-| Matched Annotations from NCBI and EMBL-EBI (MANE) | yes    |
-| Restrict results by severity of consequence       | no     |
-| upstream/downstream distance                      | 5000bp |
+|                                                   |                  |
+| :------------------------------------------------ | :--------------- |
+| Matched Annotations from NCBI and EMBL-EBI (MANE) | yes              |
+| Restrict results by severity of consequence       | no               |
+| upstream/downstream distance                      | `r trans_dist`bp |
 
 
 # Raw data 
