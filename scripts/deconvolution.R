@@ -79,7 +79,7 @@ deconv_model <- str_extract_all(
   "[^(weighted)_]*"
 ) %>%
   lapply(paste0, collapse = "") %>%
-  unlist() 
+  unlist()
 
 
 ## ----printInputSettings, echo = FALSE-----------------------------------------
@@ -262,8 +262,8 @@ if (run_pre_deconv) {
     sigmut_proportion_weights <- list()
     for (lineage in deconv_lineages) {
       if (str_detect(lineage, "Others")) {
-        # !! 17/02/2022 It's not yet tested how robust this behaves when one would
-        # mindlessly clutter the mutationsheet
+        # !! 17/02/2022 It's not yet tested how robust this behaves when one
+        # would mindlessly clutter the mutationsheet
         # with lineages that are very unlikely to detect or not detected
 
         # n all detected mutations / n all known mutations
@@ -501,7 +501,7 @@ if (run_deconvolution) {
     "Deconvolution not run, this is a dummy file.",
     params$variants_output_file
   )
-  
+
   # write dummy variants with meta file
   cat(
     "Writing dummy variants file with metadata to ",
