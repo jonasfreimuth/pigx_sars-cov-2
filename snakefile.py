@@ -254,7 +254,7 @@ def multiqc_input(args):
 # WIP - until then use hack that create a single line in the lofreq output
 def vep_input(args):
     """
-    Fucntion to skip all VEP rules for a sample in case no variants are found by
+    Function to skip all VEP rules for a sample in case no variants are found by
     lofreq through creation of dummy VEP output files (?)
     """
     sample = args[0]
