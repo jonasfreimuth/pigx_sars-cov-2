@@ -361,11 +361,7 @@ if (execute_deconvolution) {
       dates = date,
       location_name = location_name,
       coordinates_lat = coordinates_lat,
-      coordinates_long = coordinates_long,
-      others = 1 - rowSums(
-        across(all_of(variant_abundance_df$variant)),
-        na.rm = TRUE
-      )
+      coordinates_long = coordinates_long
     )
 
 
