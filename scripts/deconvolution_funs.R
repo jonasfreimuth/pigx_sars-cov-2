@@ -45,15 +45,15 @@ get_protein_mut <- function(vepfile) {
     rename(
       prot_pos  = Protein_position,
       conseq    = Consequence,
-      gene_name = SYMBOL) %>%
-
+      gene_name = SYMBOL
+    ) %>%
     # get general info on mutation and its position
     mutate(
       mut_nucs   = str_extract(Uploaded_variation, "[A-Z*]/[A-Z*]$"),
       mut_chrom  = str_extract(Location, "^[^:]+"),
       mut_start  = str_extract(Location, "(?<=:)[0-9]+[^-]"),
-      mut_end    = str_extract(Location, "(?<=-)[0-9]+")) %>%
-
+      mut_end    = str_extract(Location, "(?<=-)[0-9]+")
+    ) %>%
     # generate unique string describing mutation
     mutate(
       mut_ref = str_extract(mut_nucs, "^[A-Z*]"),
@@ -75,7 +75,7 @@ get_protein_mut <- function(vepfile) {
     # delete all rows with no protein position value
     # TODO Why do we delete these mutations? This just means they do not
     # affect the proteins, the mutations may still be informative...
-    filter(! str_detect(prot_pos, "^-")) %>%
+    filter(!str_detect(prot_pos, "^-")) %>%
     # TODO What is the relevance of this information?
     # specific B117 mutations: 21990-21993, 21764-21770, maybe also 3675-3677,
     # 69-70 - all there
@@ -196,7 +196,7 @@ deconv <- function(bulk, sig) {
   rlm_coefficients <- rlm_coefficients / sum_of_cof
 
   return(rlm_coefficients)
-  }
+}
 
 deconv_debug <- function(bulk, sig) {
   #' This function performs the deconvolution using a signature matrix for the
