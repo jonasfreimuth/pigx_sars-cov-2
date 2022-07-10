@@ -1,6 +1,7 @@
 library("MASS")
 library("stringr")
 library("dplyr")
+library("tidyr")
 library("data.table")
 
 parse_snv_csv <- function(snvfile) { # allele frequency from v-pipe vcf
@@ -63,10 +64,10 @@ get_protein_mut <- function(vepfile) {
 
     # get infos on mutation consequences for protein
     mutate(
-      # TODO This may behave unexpectedly; in the case of no change aa_ref
+      # Note: This may behave unexpectedly; in the case of no change aa_ref
       # and aa_var are the same, aa_var will not be empty / NA
-      aa_ref = str_extract(Amino_acids, "^[A-Z*]"),
-      aa_var = str_extract(Amino_acids,  "[A-Z*]$"),
+      aa_ref = str_extract(Amino_acids, "^[A-Z*-]+"),
+      aa_var = str_extract(Amino_acids,  "[A-Z*-]+$"),
 
       aa_str = paste0(aa_ref, prot_pos, aa_var)
     ) %>%
@@ -87,14 +88,53 @@ get_protein_mut <- function(vepfile) {
     # e.g. Gene:ENSSASG00005000002 <> Gene:ENSSASG00005000003
     distinct()
 
-    # TODO Previously deletions were handled by generating pseudo rows for each
-    # one. I currently do not have access to a file with deletions, and so
-    # cannot understand how to handle this properly. However this solution here
-    # is still better, because due to a bug the previous solution could almost
-    # never run. Now there is at least a warning...
-    if (any(!is.na(locations$mut_end))) {
-      warning("Found a deletion. Help.")
-    }
+  if (any(!is.na(locations$mut_end))) {
+    # TODO: look into whether any other consequence might lead to more than one
+    # AA ref / var
+    # (https://grch37.ensembl.org/info/genome/variation/prediction/predicted_data.html#consequences)
+    indel_locations_idcs <- with(
+      locations,
+      str_detect(conseq, "(deletion)|(insertion)")
+    )
+
+    locations_indel_df <- apply(
+      locations[indel_locations_idcs, ],
+      1,
+      function(row) {
+
+        # FIXME Probably more complicated than it needs to be. This just
+        # converts the named vector to a dataframe, but with one row instead of
+        # one col.
+        row <- row %>%
+          as.data.frame() %>%
+          transpose() %>%
+          set_names(names(row))
+
+        browser()
+
+        if (str_detect(row["conseq"], "insertion")) {
+          sep_row <- "aa_var"
+          rpl_col <- "aa_ref"
+        } else {
+          sep_col <- "aa_ref"
+          rpl_col <- "aa_var"
+        }
+
+        row_sepd <- row %>%
+          separate_rows(all_of(sep_col), sep = "(?<=[[:alpha:]])(?!$)")
+
+        row_sepd[2:nrow(row_sepd), rpl_col] <- "-"
+
+        return(row_sepd)
+      }
+    ) %>%
+      bind_cols()
+
+    locations[indel_locations_idcs, ] <- NULL
+
+    locations <- locations %>%
+      bind_rows(locations_indel_df)
+  }
 
   return(locations)
 }
