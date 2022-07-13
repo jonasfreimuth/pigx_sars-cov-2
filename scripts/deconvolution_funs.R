@@ -128,7 +128,7 @@ get_protein_mut <- function(vepfile) {
     ) %>%
       bind_rows()
 
-    locations[indel_locations_idcs, ] <- NULL
+    locations <- locations[- which(indel_locations_idcs), ]
 
     locations <- locations %>%
       bind_rows(locations_indel_df)
