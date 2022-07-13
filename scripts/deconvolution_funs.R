@@ -56,8 +56,8 @@ get_protein_mut <- function(vepfile) {
     ) %>%
     # generate unique string describing mutation
     mutate(
-      mut_ref = str_extract(mut_nucs, "^[A-Z*]"),
-      mut_var = str_extract(mut_nucs,  "[A-Z*]$"),
+      mut_ref = str_extract(mut_nucs, "^[A-Z*-]"),
+      mut_var = str_extract(mut_nucs,  "[A-Z*-]$"),
 
       mut_str = paste0(mut_ref, mut_start, mut_var)
     ) %>%
