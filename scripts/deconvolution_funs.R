@@ -110,8 +110,6 @@ get_protein_mut <- function(vepfile) {
           transpose() %>%
           set_names(names(row))
 
-        browser()
-
         if (str_detect(row["conseq"], "insertion")) {
           sep_col <- "aa_var"
           rpl_col <- "aa_ref"
