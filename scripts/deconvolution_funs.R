@@ -113,7 +113,7 @@ get_protein_mut <- function(vepfile) {
         browser()
 
         if (str_detect(row["conseq"], "insertion")) {
-          sep_row <- "aa_var"
+          sep_col <- "aa_var"
           rpl_col <- "aa_ref"
         } else {
           sep_col <- "aa_ref"
