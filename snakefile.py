@@ -610,7 +610,6 @@ rule ivar_primer_trim:
         window_width=IVAR_WINDOW_WIDTH
     log:
         os.path.join(LOG_DIR, "ivar_{sample}.log"),
-    # TODO number parameter should be accessible over settings file
     shell:
         """
         {IVAR_EXEC} trim \
