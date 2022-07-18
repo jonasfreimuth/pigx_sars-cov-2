@@ -14,7 +14,11 @@ chmod -R +w ${srcdir}/tests
 
 # Perform a full run
 
-${builddir}/pigx-sars-cov-2 --printshellcmds -s ${srcdir}/tests/settings.yaml ${srcdir}/tests/sample_sheet.csv
+if ! ${builddir}/pigx-sars-cov-2 --printshellcmds -s ${srcdir}/tests/settings.yaml ${srcdir}/tests/sample_sheet.csv
+then 
+    echo "ERROR: Run did not complete successfully."
+    exit 1
+fi
 
 if ! test -f "${srcdir}/tests/output/report/index.html"
 then
