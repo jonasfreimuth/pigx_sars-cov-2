@@ -27,7 +27,8 @@ dist_pkglibexec_scripts_SCRIPTS = \
 
 pkglibexec_snakefilescriptsdir = $(pkglibexecdir)/snakefile_scripts
 dist_pkglibexec_snakefilescripts_SCRIPTS = \
-  snakefile_scripts/rule_render_qc_report.py
+  snakefile_scripts/rule_render_qc_report.py \
+  snakefile_scripts/rule_reproducify.py
 
 pkglibexec_reportsdir = $(pkglibexecdir)/scripts/report_scripts/
 dist_pkglibexec_reports_SCRIPTS = \
