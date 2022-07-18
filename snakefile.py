@@ -458,6 +458,22 @@ if START_POINT not in ["bam", "vcf"]:
         expand(os.path.join(REPORT_DIR, '{sample}.Krona_report.html'), sample=SAMPLES)
     )
 
+parameter_file_keys = [
+    "sample-sheet",
+    "mutation-sheet",
+    "reference-fasta",
+    "amplicons-bed",
+    "mutations-bed"]
+
+parameter_file_locs = []
+
+for key in parameter_file_keys:
+    parameter_file_loc = os.path.join(
+        REPRODUCIFY_DIR,
+        os.path.basename(config["locations"][key]))
+
+    parameter_file_locs.append(parameter_file_loc)
+
 reproducify_files = {
     # Carefull, this here is a dict as it will later be used by the reproducify
     # rulescript. It will be converted to a list only in the targets dict.
@@ -469,23 +485,9 @@ reproducify_files = {
         "database_versions.txt"),
     "pigx_version_out":   os.path.join(
         REPRODUCIFY_DIR,
-        "pigx_version.txt"),
-    "sample_sheet_out":   os.path.join(
-        REPRODUCIFY_DIR,
-        os.path.basename(config["locations"]["sample-sheet"])),
-    "mutation_sheet_out": os.path.join(
-        REPRODUCIFY_DIR,
-        os.path.basename(config["locations"]["mutation-sheet"])),
-    "reference_out":      os.path.join(
-        REPRODUCIFY_DIR,
-        os.path.basename(config["locations"]["reference-fasta"])),
-    "amplicons_out":      os.path.join(
-        REPRODUCIFY_DIR,
-        os.path.basename(config["locations"]["amplicons-bed"])),
-    "mutations_out":      os.path.join(
-        REPRODUCIFY_DIR,
-        os.path.basename(config["locations"]["mutations-bed"]))
-}
+        "pigx_version.txt")}
+
+reproducify_files.update(dict(zip(parameter_file_keys, parameter_file_locs)))    
 
 logger.info(reproducify_files.keys())
 
@@ -573,6 +575,7 @@ rule reproducify:
     # at the output. So now it is split here and rearranged in the rulescript.
     params:
         config=config,
+        param_file_keys=parameter_file_keys,
         output_keys=[* reproducify_files.keys()]
     log:
         os.path.join(LOG_DIR, 'reproducify.log')
