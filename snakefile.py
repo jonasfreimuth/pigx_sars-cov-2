@@ -356,6 +356,7 @@ COVERAGE_DIR      = os.path.join(OUTPUT_DIR, 'coverage')
 REPORT_DIR        = os.path.join(OUTPUT_DIR, 'report')
 FASTQC_DIR        = os.path.join(REPORT_DIR, 'fastqc')
 MULTIQC_DIR       = os.path.join(REPORT_DIR, 'multiqc')
+REPRODUCIFY_DIR   = os.path.join(OUTPUT_DIR, "reproducify")
 SCRIPTS_DIR       = os.path.join(config['locations']['pkglibexecdir'], 'scripts/')
 TMP_DIR           = os.path.join(config['locations']['output-dir'], 'pigx_work')
 
@@ -457,6 +458,37 @@ if START_POINT not in ["bam", "vcf"]:
         expand(os.path.join(REPORT_DIR, '{sample}.Krona_report.html'), sample=SAMPLES)
     )
 
+reproducify_files = {
+    # Carefull, this here is a dict as it will later be used by the reproducify
+    # rulescript. It will be converted to a list only in the targets dict.
+    "config_out":         os.path.join(
+        REPRODUCIFY_DIR,
+        "config.json"),
+    "db_versions_out":    os.path.join(
+        REPRODUCIFY_DIR,
+        "database_versions.txt"),
+    "pigx_version_out":   os.path.join(
+        REPRODUCIFY_DIR,
+        "pigx_version.txt"),
+    "sample_sheet_out":   os.path.join(
+        REPRODUCIFY_DIR,
+        os.path.basename(config["locations"]["sample-sheet"])),
+    "mutation_sheet_out": os.path.join(
+        REPRODUCIFY_DIR,
+        os.path.basename(config["locations"]["mutation-sheet"])),
+    "reference_out":      os.path.join(
+        REPRODUCIFY_DIR,
+        os.path.basename(config["locations"]["reference-fasta"])),
+    "amplicons_out":      os.path.join(
+        REPRODUCIFY_DIR,
+        os.path.basename(config["locations"]["amplicons-bed"])),
+    "mutations_out":      os.path.join(
+        REPRODUCIFY_DIR,
+        os.path.basename(config["locations"]["mutations-bed"]))
+}
+
+logger.info(reproducify_files.keys())
+
 targets = {
     'help': {
         'description': "Print all rules and their descriptions.",
@@ -483,6 +515,18 @@ targets = {
         'files': (
             expand(os.path.join(MULTIQC_DIR, '{sample}', 'multiqc_report.html'), sample=SAMPLES)
         )
+    },
+    "reproducify": {
+        # TODO Check this after implementation
+        "description": (
+            "Save all information necessary to reproduce the output of the"
+            "pipeline in an extra dir. This includes:"
+            "* The pipeline version"
+            "* Database versions"
+            "* Input files (excluding input reads / other starting files)"
+            "* The full config file"),
+        "files": (
+            reproducify_files.values())
     }
 }
 
@@ -521,6 +565,22 @@ onsuccess:
             logger.info("The following files have been generated:")
             for name in generated:
                 logger.info("  - {}".format(name))
+
+
+rule reproducify:
+    # FIXME This weird split of the reproducify_files dict seems necessary as
+    # snakemake doesnt seem to recognise the output files when you give the dict
+    # at the output. So now it is split here and rearranged in the rulescript.
+    params:
+        config=config,
+        output_keys=[* reproducify_files.keys()]
+    log:
+        os.path.join(LOG_DIR, 'reproducify.log')
+    output:
+        reproducify_files.values()
+    script:
+        "snakefile_scripts/rule_reproducify.py"
+
 
 # Trimming in three steps: general by qual and cutoff, get remaining adapters out, get remaining primers out
 
