@@ -74,11 +74,19 @@ deconvolution:
 #   * final_reports:  Produce a comprehensive report. This is the default target.
 #   * lofreq:         Call variants and produce .vcf file and overview .csv file.
 #   * multiqc:        Create MultiQC reports for including raw and trimmed reads.
-#
+#   * reproducify: Save all information necessary to reproduce the output of the
+#       pipeline in an extra dir. This includes:
+#       TODO Check this after implementation
+#       * The pipeline version
+#       * Database versions
+#       * Input files (excluding input reads / other starting files)
+#       * The full config file
+# run-ivar-primer-trimming: Whether or not reads are quality and primer trimmed.
 control:
   start: fastq.gz
   targets: 
     - final_reports
+    - reproducify
   run-ivar-primer-trimming: yes
 
 execution:
