@@ -65,7 +65,7 @@ mkdir -p $DBDIR
 
 cd $DBDIR
 
-LOGFILE="../db_dl.log"
+LOGFILE="database_downloads.log"
 
 if test -e "$LOGFILE"
 then
