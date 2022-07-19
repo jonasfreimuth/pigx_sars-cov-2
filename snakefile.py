@@ -463,7 +463,8 @@ parameter_file_keys = [
     "mutation-sheet",
     "reference-fasta",
     "amplicons-bed",
-    "mutations-bed"]
+    "mutations-bed",
+    "db-dl-log-file"]
 
 parameter_file_locs = []
 
@@ -480,9 +481,6 @@ reproducify_files = {
     "config_out":         os.path.join(
         REPRODUCIFY_DIR,
         "config.json"),
-    "db_versions_out":    os.path.join(
-        REPRODUCIFY_DIR,
-        "database_versions.txt"),
     "pigx_version_out":   os.path.join(
         REPRODUCIFY_DIR,
         "pigx_version.txt")}

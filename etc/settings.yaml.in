@@ -8,6 +8,7 @@ locations:
   sigmut-db-dir: databases/sigmut
   vep-db-dir: databases/vep
   mutation-sheet: databases/mutation_sheet.csv
+  db-dl-log-file: databases/database_downloads.log
 
 parameters:
   # Parameters for rule vep. See documentation about arguments
@@ -39,6 +40,9 @@ parameters:
   reporting:
     mutation-coverage-threshold: 90
     mutation-depth-threshold: 100
+
+  reproducify:
+    save-db-version-log: yes
     
 
 # Control the deconvolution method used.
