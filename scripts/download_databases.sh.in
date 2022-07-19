@@ -8,16 +8,22 @@ function install_kraken_db {
     local DBNAME="kraken_db"
     mkdir -p "$DBNAME"
 
-    # NOTE: This command will download a very large file, after unpacking this will
-    # require about 100GB of disc space. If this is not feasible use another
-    # database instead. For this please see link above or commented lines below.
-    @WGET@ -qO- https://genome-idx.s3.amazonaws.com/kraken/k2_pluspfp_20210127.tar.gz | tar -C $DBNAME -xzv
+    # NOTE: The defualt kraken database is a very large file, after unpacking,
+    # this will require about 100GB of disc space. If this is not feasible use
+    # another database instead. For this please see link above or commented
+    # lines below.
+    local DBURL="https://genome-idx.s3.amazonaws.com/kraken/k2_pluspfp_20210127.tar.gz"
 
-    # Use the following two lines to use smaller 8GB version instead.
-    # @WGET@ -qO- https://genome-idx.s3.amazonaws.com/kraken/k2_pluspfp_8gb_20210127.tar.gz | tar -C $DBNAME -xzv
+    # smaller database version, uncomment to use. The _database_ itself takes
+    # up 8GB, but the entire dir after installation will take up around 12 GB.
+    # local DBURL="https://genome-idx.s3.amazonaws.com/kraken/k2_pluspfp_8gb_20210127.tar.gz"
+    
+    @WGET@ -qO- "$DBURL" | tar -C $DBNAME -xzv
 
     @KRAKEN2_BUILD@ --use-ftp --download-taxonomy --db $DBNAME
     @KRAKEN2_BUILD@ --build --db $DBNAME
+
+    echo "$(date) Built Kraken2 db downloaded from $DBURL." >> $1
 }
 
 
@@ -30,6 +36,10 @@ function install_krona_db {
     KRONA="$(dirname @IMPORT_TAXONOMY@)/../share/krona-tools/"
     $KRONA/updateTaxonomy.sh "$DBNAME"
     $KRONA/updateAccessions.sh "$DBNAME"
+
+    # FIXME I could not figure out a way to record any infos of how the data
+    # downloaded is versioned.
+    echo "$(date) Installed/updated KRONA db." >> $1
 }
 
 
@@ -38,7 +48,12 @@ function install_vep_db {
 
     local DBNAME="vep_db"
     mkdir -p "$DBNAME"
-    @WGET@ -qO- ftp://ftp.ensemblgenomes.org/pub/viruses/variation/indexed_vep_cache/sars_cov_2_vep_101_ASM985889v3.tar.gz | tar -C $DBNAME -xzv
+
+    local DBURL="ftp://ftp.ensemblgenomes.org/pub/viruses/variation/indexed_vep_cache/sars_cov_2_vep_101_ASM985889v3.tar.gz"
+
+    @WGET@ -qO- "$DBURL" | tar -C $DBNAME -xzv    
+
+    echo "$(date) Downlaoded VEP db from $DBURL." >> $1
 }
 
 
@@ -49,8 +64,16 @@ DBDIR=$PWD/databases
 mkdir -p $DBDIR
 
 cd $DBDIR
-install_kraken_db
-install_krona_db
-install_vep_db
+
+LOGFILE="database_downloads.log"
+
+if test -e "$LOGFILE"
+then
+    rm "$LOGFILE"
+fi
+
+install_kraken_db "$LOGFILE"
+install_krona_db  "$LOGFILE"
+install_vep_db    "$LOGFILE"
 
 echo "Done."
