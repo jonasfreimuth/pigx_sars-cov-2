@@ -23,7 +23,7 @@ function install_kraken_db {
     @KRAKEN2_BUILD@ --use-ftp --download-taxonomy --db $DBNAME
     @KRAKEN2_BUILD@ --build --db $DBNAME
 
-    echo "${date} Built Kraken2 db downlaoded from $DBURL."
+    echo "$(date) Built Kraken2 db downlaoded from $DBURL." >> $1
 }
 
 
@@ -39,7 +39,7 @@ function install_krona_db {
 
     # FIXME I could not figure out a way to record any infos of how the data
     # downloaded is versioned.
-    echo "${date} Installed/updated KRONA db."
+    echo "$(date) Installed/updated KRONA db." >> $1
 }
 
 
@@ -53,7 +53,7 @@ function install_vep_db {
 
     @WGET@ -qO- "$DBURL" | tar -C $DBNAME -xzv    
 
-    echo "${date} Downlaoded VEP db from $DBURL."
+    echo "$(date) Downlaoded VEP db from $DBURL." >> $1
 }
 
 
@@ -67,8 +67,13 @@ cd $DBDIR
 
 LOGFILE="../db_dl.log"
 
-install_kraken_db   >> LOGFILE
-install_krona_db    >> LOGFILE
-install_vep_db      >> LOGFILE
+if test -e "$LOGFILE"
+then
+    rm "$LOGFILE"
+fi
+
+install_kraken_db "$LOGFILE"
+install_krona_db  "$LOGFILE"
+install_vep_db    "$LOGFILE"
 
 echo "Done."
