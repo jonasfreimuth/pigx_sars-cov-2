@@ -26,9 +26,29 @@ with open(snakemake.log[0], "w") as log_file:
     # Copy "parameter files" into reproducify dir
     param_file_keys = snakemake.params["param_file_keys"]
 
+    # Handle the special case of the db_dl.log file, which may not be there.
+    if config["parameters"]["reproducify"]["save-db-version-log"]:
+        db_dl_log_file = config["locations"]["db-dl-log-file"]
+
+        if not os.path.exists(db_dl_log_file):
+            script_file = (
+                config["locations"]["pkglibexecdir"] +
+                "/scripts/download_databases.sh")
+            logger.error(
+                f"ERROR: Pipeline is configured to save the log file of "
+                f"database downloads to the\nreproducify dir, but could not "
+                f"find the log file at\n{db_dl_log_file}.\nThe "
+                f"file should be created automatically upon\n"
+                f"dowloading the databases using the script at\n"
+                f"{script_file}.\n"
+                f"To disable this message set\n\"parameters: reproducify: "
+                f"save-db-version-log\" to \"no\" in the settings file.")
+            sys.exit(1)
+
     for key in param_file_keys:
         origin = config["locations"][key]
         target = target_files[key]
+
         shutil.copy2(origin, target)
 
     # get the pipeline version string
@@ -56,7 +76,6 @@ with open(snakemake.log[0], "w") as log_file:
         logger.error(e)
         sys.exit(1)
 
-    # TODO Add database versions
     for file in snakemake.output:
         filepath = pathlib.Path(file)
         filepath.touch()
