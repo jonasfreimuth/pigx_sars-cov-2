@@ -76,7 +76,6 @@ with open(snakemake.log[0], "w") as log_file:
         logger.info(e)
         sys.exit(1)
 
-    # TODO Add database versions
     for file in snakemake.output:
         filepath = pathlib.Path(file)
         filepath.touch()
