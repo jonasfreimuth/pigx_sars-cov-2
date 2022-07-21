@@ -518,9 +518,7 @@ reproducify_files = {
         REPRODUCIFY_DIR,
         "pigx_version.txt")}
 
-reproducify_files.update(dict(zip(parameter_file_keys, parameter_file_locs)))    
-
-logger.info(reproducify_files.keys())
+reproducify_files.update(dict(zip(parameter_file_keys, parameter_file_locs)))
 
 targets = {
     'help': {
@@ -571,8 +569,6 @@ run_params_info = (
     f"\tStart point: {START_POINT}\n"
     f"\tTargets: {TARGETS}\n"
 )
-
-logger.info(run_params_info)
 
 rule all:
     input: OUTPUT_FILES
