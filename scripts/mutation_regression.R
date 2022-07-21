@@ -10,7 +10,6 @@ if (length(args) == 0) {
     mutation_sheet = "",
     fun_cvrg_scr = "",
     fun_lm = "",
-    fun_pool = "",
     fun_tbls = "",
     mutation_coverage_threshold = "",
     overviewQC = "",
@@ -58,7 +57,6 @@ df_mut <- fread(params$mutations_csv,
 
 
 ## ----filter_plot_frames_samplescore, warning=TRUE-----------------------------
-source(params$fun_pool)
 source(params$fun_cvrg_scr)
 
 # FIXME: Check if all this computation is necessary for the tasks below
@@ -74,7 +72,6 @@ good_samples_df <- merge(get_genome_cov(params$coverage_dir),
 approved_mut_plot <- df_mut %>%
   filter(samplename %in% good_samples_df$samplename)
 
-# pool the samples per day, discard locations
 weights <- fread(params$overviewQC, header = TRUE, check.names = FALSE) %>%
   dplyr::select(c(samplename, total_reads))
 
