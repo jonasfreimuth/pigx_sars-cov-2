@@ -71,7 +71,7 @@ with open(snakemake.log[0], "w") as log_file:
                 stdout = version_out_file,
                 stderr = log_file)
     except Exception as e:
-        logger.info(e)
+        logger.error(e)
         sys.exit(1)
 
     if config["parameters"]["reproducify"]["save-input-files"]:
