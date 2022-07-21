@@ -4,20 +4,21 @@ nav: "Overview"
 author: "BIMSB Bioinformatics Platform"
 date: '`r format(as.POSIXct(if ("" != Sys.getenv("SOURCE_DATE_EPOCH")) { as.numeric(Sys.getenv("SOURCE_DATE_EPOCH")) } else { Sys.time() }, origin="1970-01-01"), "%Y-%m-%d %H:%M:%S")`'
 params:
-  variants_csv: "/home/jfreige/proj/pigx_sars-cov-2/tests/output/variants/data_variant_plot.csv"
-  mutations_csv: "/home/jfreige/proj/pigx_sars-cov-2/tests/output/mutations/data_mutation_plot.csv"
-  sample_sheet: "/home/jfreige/proj/pigx_sars-cov-2/tests/sample_sheet.csv"
-  mutation_sheet: "/home/jfreige/proj/pigx_sars-cov-2/tests/sample_data/mutation_sheet_211006_covidCG_NT_location.csv"
-  mutation_coverage_threshold: "25"
-  mut_count_file: "/home/jfreige/proj/pigx_sars-cov-2/tests/output/mutations_counts.csv"
-  unfiltered_mutation_sig_file: "/home/jfreige/proj/pigx_sars-cov-2/tests/output/unfiltered_mutations_sig.csv"
-  logo: "/home/jfreige/proj/pigx_sars-cov-2/images/Logo_PiGx.png"
-  fun_lm: "/home/jfreige/proj/pigx_sars-cov-2/scripts/pred_mutation_increase.R"
-  fun_tbls: "/home/jfreige/proj/pigx_sars-cov-2/scripts/table_extraction.R"
-  fun_pool: "/home/jfreige/proj/pigx_sars-cov-2/scripts/pooling.R"
-  fun_index: "/home/jfreige/proj/pigx_sars-cov-2/scripts/fun_index.R"
-  overviewQC: "/home/jfreige/proj/pigx_sars-cov-2/tests/output/overview_QC.csv"
-  output_dir: "/home/jfreige/proj/pigx_sars-cov-2/tests/output"
+  variants_csv: ""
+  mutations_csv: ""
+  sample_sheet: ""
+  mutation_sheet: ""
+  mutation_coverage_threshold: ""
+  logo: ""
+  fun_tbls: ""
+  output_dir: ""
+  overviewQC: ""
+  fun_lm: ""
+  fun_cvrg_scr: ""
+  fun_pool: ""
+  fun_index: ""
+  unfiltered_mutation_sig_file: ""
+  mut_count_file: ""
 ---
 
 <style>
@@ -902,6 +903,6 @@ Table 1: Discarded samples not matching the provided sample quality scoring.
 
 ```{r table_sample_quality_score}
 # TODO refine column names --> e.g "coverage in percent",
-bad_samples_df <- bad_samples_df %>% slice_head(n = 20)
+bad_samples_df <- bad_samples_df
 create_dt(bad_samples_df)
 ```
