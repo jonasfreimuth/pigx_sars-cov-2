@@ -41,6 +41,7 @@ parameters:
     mutation-depth-threshold: 100
 
   reproducify:
+    save-input-files: no
     save-db-version-log: yes
     
 
