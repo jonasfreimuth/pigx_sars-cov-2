@@ -74,6 +74,16 @@ with open(snakemake.log[0], "w") as log_file:
         logger.error(e)
         sys.exit(1)
 
-    for file in snakemake.output:
-        filepath = pathlib.Path(file)
-        filepath.touch()
+    if config["parameters"]["reproducify"]["save-input-files"]:
+        loop_iter = zip(
+            snakemake.input.infiles,
+            target_files["input_file_list"])
+
+        for (origin, target) in loop_iter:
+            logger.info(f"{origin}, {target}")
+            try:
+                shutil.copy(origin, target)
+
+            except Exception as e:
+                logger.error(e)
+                sys.exit(1)
