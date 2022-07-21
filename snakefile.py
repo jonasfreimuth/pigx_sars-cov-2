@@ -51,6 +51,30 @@ def tool(name):
     return cmd + " " + toolArgs(name)
 
 
+def flatten_list(in_list):
+    """
+    Recursive function to flatten an arbitrarily nested list where each list may
+    consist of both values and sublists.
+    """
+    def _recurse_flatten_list(in_list, flat_list = []):
+        if len(in_list) != 0:
+            for item in in_list:
+                if type(item) is list:
+                    res = _recurse_flatten_list(item, [])
+                    if res:
+                        flat_list += res
+
+                else:
+                    flat_list.append(item)
+
+            return flat_list
+
+        else:
+            return None
+            
+    return _recurse_flatten_list(in_list)
+
+
 # Convenience function to access fields of sample sheet columns that
 # match the predicate.  The predicate may be a string.
 def lookup(column, predicate, fields=[]):
