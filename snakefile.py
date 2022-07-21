@@ -438,6 +438,10 @@ for line in SAMPLE_SHEET:
     if line["reads2"]:
         INFILES.append(os.path.join(INPUT_DIR, line["reads2"]))
 
+# handle case of duplicate files in INFILES, which might happen when trying to
+# simulate a run with both se & pe data and using read file 1 of pe data as se,
+# as we do in the testing data
+INFILES = list(dict.fromkeys(INFILES))
 
 # predefine files for targets
 final_report_files = (
@@ -486,6 +490,18 @@ reproducify_files = {
         "pigx_version.txt")}
 
 reproducify_files.update(dict(zip(parameter_file_keys, parameter_file_locs)))
+
+if config["parameters"]["reproducify"]["save-input-files"]:
+    repr_infile_dir = os.path.join(REPRODUCIFY_DIR, "input_files")
+    
+    # Operate on INFILES instead of SAMPLE_SHEET as there may be some processing
+    # done on INFILES that we need (i.e. deduplication)
+    basenames = [os.path.basename(x) for x in INFILES]
+    targets = [os.path.join(repr_infile_dir, x) for x in basenames]
+
+    input_file_dict = {"input_file_list": targets}
+    reproducify_files.update(input_file_dict)
+
 
 targets = {
     'help': {
@@ -567,6 +583,8 @@ rule reproducify:
     # FIXME This weird split of the reproducify_files dict seems necessary as
     # snakemake doesnt seem to recognise the output files when you give the dict
     # at the output. So now it is split here and rearranged in the rulescript.
+    input:
+        infiles=INFILES
     params:
         config=config,
         param_file_keys=parameter_file_keys,
