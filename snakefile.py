@@ -406,6 +406,15 @@ with open(SAMPLE_SHEET_CSV, 'r') as fp:
 
 SAMPLES = [line['name'] for line in SAMPLE_SHEET]
 
+INFILES = []
+
+for line in SAMPLE_SHEET:
+    INFILES.append(os.path.join(INPUT_DIR, line["reads"]))
+
+    if line["reads2"]:
+        INFILES.append(os.path.join(INPUT_DIR, line["reads2"]))
+
+
 # predefine files for targets
 final_report_files = (
     expand(os.path.join(REPORT_DIR, '{sample}.variantreport_p_sample.html'), sample=SAMPLES)
