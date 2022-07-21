@@ -10,9 +10,7 @@ with open(snakemake.log[0], "w") as log_file:
     sys.stdout = log_file
     sys.stderr = sys.stdout    
 
-    target_files = dict(zip(
-        snakemake.params["output_keys"],
-        snakemake.output))
+    target_files = snakemake.params["targets"] 
 
     config = snakemake.params["config"]
 
