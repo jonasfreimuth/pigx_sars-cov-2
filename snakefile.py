@@ -557,7 +557,7 @@ targets = {
             "* Input files (excluding input reads / other starting files)"
             "* The full config file"),
         "files": (
-            reproducify_files.values())
+            flatten_list(reproducify_files.values()))
     }
 }
 
