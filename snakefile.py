@@ -603,7 +603,7 @@ rule reproducify:
     params:
         config=config,
         param_file_keys=parameter_file_keys,
-        output_keys=[* reproducify_files.keys()]
+        targets=reproducify_files
     log:
         os.path.join(LOG_DIR, 'reproducify.log')
     output:
