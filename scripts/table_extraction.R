@@ -5,8 +5,14 @@ library(dplyr)
 get_mutations_counts <- function(mutation_plot_data,
                                  mutation_sheet_df,
                                  mutations_sig) {
-  #' takes data_mut_plot.csv df, mutation_sheet_df with NAs at empty cells,
-  #' mutations_sig.df as input counts mutations and return them as a dataframe
+  #' input:
+  #'   * mutation_plot_data: data_mut_plot.csv df
+  #'   * mutation_sheet_df: the mutation sheet with NAs at empty cells
+  #'   * mutations_sig: TODO
+  #'
+  #' output:
+  #'   A dataframe containing counts of mutations per sample and in total.
+  #'   FIXME Be more precise about what the cols are
 
   count_muts <- function(sample_row, mutation_sheet_df, sign_incr_muts) {
     #' function used in rowwise apply() call
