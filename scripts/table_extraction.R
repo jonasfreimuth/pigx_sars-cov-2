@@ -1,13 +1,6 @@
 library(dplyr)
 library(data.table)
 
-write_lm_results <- function ( df, output ){
-  #' takes a dataframe with 3 col: samplename, p-values, sigmutflag
-  #' writes them to a csv
-  # this function is here because I don't know yet if we need to do smth else with it too
-  fwrite(df, output, na = "NA", row.names = FALSE, quote = FALSE)
-}
-
 count_muts <- function (x, mutation_sheet.df) { # x = sample row
   #' function used in rowwise apply() call
   #' takes row as input, calculates mutation counts and returns a dataframe
