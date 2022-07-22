@@ -4,11 +4,12 @@ library(dplyr)
 
 get_mutations_counts <- function(mutation_plot_data,
                                  mutation_sheet_df,
-                                 mutations_sig) {
+                                 sign_mut_vec) {
   #' input:
   #'   * mutation_plot_data: data_mut_plot.csv df
   #'   * mutation_sheet_df: the mutation sheet with NAs at empty cells
-  #'   * mutations_sig: TODO
+  #'   * sign_mut_vec: A vector of mutation strings which showed a stat.
+  #'   significant increase in proportion.
   #'
   #' output:
   #'   A dataframe containing counts of mutations per sample and in total.
