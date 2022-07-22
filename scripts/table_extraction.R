@@ -14,11 +14,19 @@ get_mutations_counts <- function(mutation_plot_data,
   #'   A dataframe containing counts of mutations per sample and in total.
   #'   FIXME Be more precise about what the cols are
 
-  count_muts <- function(sample_row, mutation_sheet_df, sign_mut_vec) {
-    #' function used in rowwise apply() call
-    #' takes row as input, calculates mutation counts and returns a dataframe
+  count_muts <- function(sample_row,
+                         mutation_sheet_df,
+                         sign_mut_vec) {
+    #' input:
+    #'   * sample_row: a row of data_mut_plot.csv df
+    #'   * mutation_sheet_df: the mutation sheet with NAs at empty cells
+    #'   * sign_mut_vec: A vector of mutation strings which showed a stat.
+    #'   significant increase in proportion.
     #'
-    # transform mutation_sheet to one comparable vector
+    #' output:
+    #'   A dataframe containing counts of mutations in this row.
+    #'   FIXME Be more precise about what the cols are
+
     sigmut_vec_all <- unique(unlist(mutation_sheet_df, use.names = FALSE)) %>%
       na.omit()
     
