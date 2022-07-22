@@ -15,13 +15,17 @@ get_mutations_counts <- function(mutation_plot_data,
   #'   FIXME Be more precise about what the cols are
 
   .get_mutation_counts_row <- function(sample_row,
-                         mutation_sheet_df,
-                         sign_mut_vec) {
+                                       mutation_sheet_df,
+                                       sign_mut_vec,
+                                       meta_cols_excl) {
     #' input:
     #'   * sample_row: a row of data_mut_plot.csv df
     #'   * mutation_sheet_df: the mutation sheet with NAs at empty cells
     #'   * sign_mut_vec: A vector of mutation strings which showed a stat.
     #'   significant increase in proportion.
+    #'   * meta_cols_excl: A vector containing the names of columns which
+    #'   contain metadata instead of mutation proportions and are to be
+    #'   excluded.
     #'
     #' output:
     #'   A dataframe containing counts of mutations in this row.
@@ -29,16 +33,7 @@ get_mutations_counts <- function(mutation_plot_data,
 
     sigmut_vec_all <- unique(unlist(mutation_sheet_df, use.names = FALSE)) %>%
       na.omit()
-    
-    # create vector of metadata col names to be excluded
-    meta_cols_excl <- c(
-      "samplename",
-      "location_name",
-      "coordinates_lat",
-      "coordinates_long",
-      "dates"
-    )
-    
+
     sample_mut_row <- sample_row[-which(names(sample_row) %in% meta_cols_excl)]
     mut_vec_sample <- names(sample_mut_row)[!is.na(sample_mut_row)]
 
@@ -127,7 +122,8 @@ get_mutations_counts <- function(mutation_plot_data,
       1,
       .get_mutation_counts_row,
       mutation_sheet_df,
-      mutations_sig$mutation
+      mutations_sig$mutation,
+      meta_cols_excl
     ) %>%
       bind_rows()
 
