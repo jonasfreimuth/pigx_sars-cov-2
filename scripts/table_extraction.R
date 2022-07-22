@@ -4,11 +4,12 @@ library(dplyr)
 
 get_mutations_counts <- function(mutation_plot_data,
                                  mutation_sheet_df,
-                                 mutations_sig) {
+                                 sign_mut_vec) {
   #' input:
   #'   * mutation_plot_data: data_mut_plot.csv df
   #'   * mutation_sheet_df: the mutation sheet with NAs at empty cells
-  #'   * mutations_sig: TODO
+  #'   * sign_mut_vec: A vector of mutation strings which showed a stat.
+  #'   significant increase in proportion.
   #'
   #' output:
   #'   A dataframe containing counts of mutations per sample and in total.
@@ -99,8 +100,8 @@ get_mutations_counts <- function(mutation_plot_data,
       # significant increase over time
       tracked_muts_after_lm = ncol(
         mutation_plot_data %>%
-          dplyr::select(all_of(mutations_sig$mutation))
-      )) %>%
+          dplyr::select(all_of(sign_mut_vec))
+    )) %>%
       # get number of mutations which aren't signature mutations
       mutate(non_sigmuts = total_muts - total_sigmuts)
 
@@ -125,7 +126,7 @@ get_mutations_counts <- function(mutation_plot_data,
       1,
       .get_mutation_counts_row,
       mutation_sheet_df,
-      mutations_sig$mutation,
+      sign_mut_vec,
       meta_cols_excl
     ) %>%
       bind_rows()
