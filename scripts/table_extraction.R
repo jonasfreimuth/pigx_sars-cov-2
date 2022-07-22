@@ -14,7 +14,7 @@ get_mutations_counts <- function(mutation_plot_data,
   #'   A dataframe containing counts of mutations per sample and in total.
   #'   FIXME Be more precise about what the cols are
 
-  count_muts <- function(sample_row,
+  .get_mutation_counts_row <- function(sample_row,
                          mutation_sheet_df,
                          sign_mut_vec) {
     #' input:
@@ -131,7 +131,7 @@ get_mutations_counts <- function(mutation_plot_data,
     counts_sample <- apply(
       mutation_plot_data,
       1,
-      count_muts,
+      .get_mutation_counts_row,
       mutation_sheet_df,
       mutations_sig$mutation
     ) %>%
