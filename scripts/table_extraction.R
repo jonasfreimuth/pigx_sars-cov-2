@@ -56,11 +56,10 @@ count_muts <- function(sample_row, mutation_sheet_df, sign_incr_muts) {
 }
 
 get_mutations_counts <- function(mutation_plot_data,
-                                  mutation_sheet_df,
-                                  mutations_sig) {
+                                 mutation_sheet_df,
+                                 mutations_sig) {
   #' takes data_mut_plot.csv df, mutation_sheet_df with NAs at empty cells,
-  #' mutations_sig.df as input
-  #' counts mutations and return them as a dataframe
+  #' mutations_sig.df as input counts mutations and return them as a dataframe
 
   # transform mutation_sheet to one comparable vector
   sigmut_vec_all <- mutation_sheet_df %>%
@@ -131,7 +130,7 @@ get_mutations_counts <- function(mutation_plot_data,
       mutation_sheet_df,
       sign_incr_muts
     ) %>%
-    bind_rows()
+      bind_rows()
 
     count_frame <- bind_rows(counts_all, counts_per_sample)
   } else {
