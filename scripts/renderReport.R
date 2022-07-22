@@ -58,9 +58,9 @@ settings <- html_document(includes=includes(before_body=header),
 cat("Script running with parameters:\n\n")
 par_vec <- c()
 for (i in seq_along(parameters)) {
-  par_vec[i] <- paste0(names(parameters)[i], " = \"", parameters[[i]], "\"")
+  par_vec[i] <- paste0("\t", names(parameters)[i], ": \"", parameters[[i]], "\"")
 }
-cat(paste(par_vec, collapse = ",\n"))
+cat(paste(par_vec, collapse = "\n"))
 cat("\n\n")
 
 render(report,
