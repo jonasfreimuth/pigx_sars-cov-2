@@ -90,7 +90,7 @@ if (nrow(approved_mut_plot) > 0 &&
     # split gene name of for easier matching
     mutate_all(funs(str_replace(., "^[^:]*:", "")))
 
-  # create vecotr of metadata col names to be excluded
+  # create vector of metadata col names to be excluded
   meta_cols_excl <- c(
     "samplename",
     "location_name",
