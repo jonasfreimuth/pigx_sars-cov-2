@@ -27,7 +27,7 @@ arg_names <- c(
   "overviewQC",
   "mut_count_outfile",
   "unfilt_mutation_sig_outfile"
-  )
+)
 
 params <- lapply(args, function(x) x)
 names(params) <- arg_names
@@ -57,8 +57,8 @@ quality_df <- fread(params$overviewQC)
 mutation_coverage_threshold <- params$mutation_coverage_threshold %>%
   # check if value is given as fraction [0,1] or percentage [0,100]
   ifelse(. >= 0 & . <= 1,
-         . * 100,
-         .
+    . * 100,
+    .
   ) %>%
   as.numeric()
 
@@ -101,7 +101,7 @@ if (nrow(approved_mut_plot) > 0 &&
     # enforcing date type for column dates ...it will get rid of the time
     mutate(dates = as.Date(dates)) %>%
 
-    select(- all_of(meta_cols_excl)) %>%
+    select(-all_of(meta_cols_excl)) %>%
 
     # remove mutations with NA for all rows and create a new dataframe
     select(where(function(x) any(!is.na(x))))
