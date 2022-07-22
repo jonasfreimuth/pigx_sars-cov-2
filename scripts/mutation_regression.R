@@ -54,9 +54,17 @@ quality_df <- fread(params$overviewQC)
 
 ## ----filter_plot_frames_samplescore, warning=TRUE-----------------------------
 
+mutation_coverage_threshold <- params$mutation_coverage_threshold %>%
+  # check if value is given as fraction [0,1] or percentage [0,100]
+  ifelse(. >= 0 & . <= 1,
+         . * 100,
+         .
+  ) %>%
+  as.numeric()
+
 # FIXME: Check if all this computation is necessary for the tasks below
 good_samples_df <- quality_df %>%
-  filter(as.numeric(perc_muts_covered) >= params$mutation_coverage_threshold)
+  filter(as.numeric(perc_muts_covered) >= mutation_coverage_threshold)
 
 approved_mut_plot <- df_mut %>%
   filter(samplename %in% good_samples_df$samplename)
