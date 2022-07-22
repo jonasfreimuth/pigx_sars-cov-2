@@ -44,7 +44,7 @@ get_mutations_counts <- function(mutation_plot_data,
       total_sigmuts         = sum(
         str_extract(mut_vec_sample, "[A-Z0-9*_]+$") %in% sigmut_vec_all
       ),
-      tracked_muts_after_lm = sum(mut_vec_sample %in% sign_mut_vec)
+      sign_increasing_muts = sum(mut_vec_sample %in% sign_mut_vec)
     ) %>%
       mutate(non_sigmuts = total_muts - total_sigmuts)
 
@@ -95,7 +95,7 @@ get_mutations_counts <- function(mutation_plot_data,
 
       # get how many of all found mutations will be tracked because of
       # significant increase over time,
-      tracked_muts_after_lm = sum(mutations %in% sign_mut_vec)
+      sign_increasing_muts = sum(mutations %in% sign_mut_vec)
     ) %>%
       # get number of mutations which aren't signature mutations
       mutate(non_sigmuts = total_muts - total_sigmuts)
