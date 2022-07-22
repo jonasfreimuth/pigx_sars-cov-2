@@ -115,6 +115,8 @@ get_mutations_counts <- function(mutation_plot_data,
     
     counts_all <- bind_cols(counts_tot_all, counts_var_all)
 
+
+    # get all the per sample counts
     counts_sample <- apply(
       mutation_plot_data,
       1,
