@@ -113,7 +113,7 @@ get_mutations_counts <- function(mutation_plot_data,
       total_sigmuts = ncol(common_sigmuts_df),
 
       # FIXME Is this not just the length of sign_incr_muts?
-      tracked_muts_after_lm = sum(mutations %in% sign_incr_muts)
+      sign_increasing_muts = sum(mutations %in% sign_incr_muts)
     ) %>%
 
       # get number of mutations which aren't signature mutations
