@@ -113,6 +113,13 @@ read_num_fastq <- function(file_reads_vector) {
 }
 
 args <- commandArgs(trailingOnly = TRUE)
+
+# pretty print parameters for easier debugging
+cat("Script running with args:\n\n")
+arg_str <- paste(args, collapse = "\",\n\"")
+cat("\"", paste(arg_str), "\"", sep = "")
+cat("\n\n")
+
 sample_sheet <- args[1]
 output_file <- args[2]
 raw_reads_dir     <- args[3]
