@@ -6,9 +6,7 @@ args <- commandArgs(trailingOnly = TRUE)
 if (length(args) == 0) {
   args <- c(
     mutations_csv = "",
-    coverage_dir = "",
     mutation_sheet = "",
-    fun_cvrg_scr = "",
     fun_lm = "",
     fun_tbls = "",
     mutation_coverage_threshold = "",
@@ -21,9 +19,7 @@ if (length(args) == 0) {
 # names must match order in snakefile and defaults
 arg_names <- c(
   "mutations_csv",
-  "coverage_dir",
   "mutation_sheet",
-  "fun_cvrg_scr",
   "fun_lm",
   "fun_tbls",
   "mutation_coverage_threshold",
@@ -55,9 +51,10 @@ df_mut <- fread(params$mutations_csv,
   check.names = FALSE
 )
 
+quality_df <- fread(params$overviewQC)
+
 
 ## ----filter_plot_frames_samplescore, warning=TRUE-----------------------------
-source(params$fun_cvrg_scr)
 
 mutation_coverage_threshold <- params$mutation_coverage_threshold %>%
   # check if value is given as fraction [0,1] or percentage [0,100]
@@ -68,19 +65,13 @@ mutation_coverage_threshold <- params$mutation_coverage_threshold %>%
   as.numeric()
 
 # FIXME: Check if all this computation is necessary for the tasks below
-good_samples_df <- merge(get_genome_cov(params$coverage_dir),
-  get_mutation_cov(params$coverage_dir),
-  by = "samplename"
-) %>%
-  mutate(proport_muts_covered = round(
-    (as.numeric(total_muts_cvrd) * 100) / as.numeric(total_num_muts), 1
-  )) %>%
-  filter(as.numeric(proport_muts_covered) >= mutation_coverage_threshold)
+good_samples_df <- quality_df %>%
+  filter(as.numeric(perc_muts_covered) >= mutation_coverage_threshold)
 
 approved_mut_plot <- df_mut %>%
   filter(samplename %in% good_samples_df$samplename)
 
-weights <- fread(params$overviewQC, header = TRUE, check.names = FALSE) %>%
+weights <- quality_df %>%
   dplyr::select(c(samplename, total_reads))
 
 

@@ -770,9 +770,9 @@ rule run_mutation_regression:
         script=os.path.join(SCRIPTS_DIR, "mutation_regression.R"),
         mutations_csv=os.path.join(MUTATIONS_DIR, "data_mutation_plot.csv"),
         overviewQC=os.path.join(OUTPUT_DIR, "overview_QC.csv"),
-        fun_cvrg_scr=os.path.join(SCRIPTS_DIR, "sample_coverage_score.R"),
         fun_lm=os.path.join(SCRIPTS_DIR, "pred_mutation_increase.R"),
-        fun_tbls=os.path.join(SCRIPTS_DIR, "table_extraction.R")
+        fun_tbls=os.path.join(SCRIPTS_DIR, "table_extraction.R"),
+        mutation_sheet=MUTATION_SHEET_CSV
     output:
         mut_count_outfile=os.path.join(OUTPUT_DIR, "mutations_counts.csv"),
         unfilt_mutation_sig_outfile=os.path.join(
@@ -784,9 +784,7 @@ rule run_mutation_regression:
         """
         {RSCRIPT_EXEC} {input.script} \
             {input.mutations_csv} \
-            {COVERAGE_DIR} \
-            {MUTATION_SHEET_CSV} \
-            {input.fun_cvrg_scr} \
+            {input.mutation_sheet} \
             {input.fun_lm} \
             {input.fun_tbls} \
             {MUTATION_COVERAGE_THRESHOLD} \
