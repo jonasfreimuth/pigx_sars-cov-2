@@ -95,11 +95,9 @@ get_mutations_counts <- function(mutation_plot_data,
       total_sigmuts = ncol(common_sigmuts_df),
 
       # get how many of all found mutations will be tracked because of
-      # significant increase over time
-      tracked_muts_after_lm = ncol(
-        mutation_plot_data %>%
-          dplyr::select(all_of(sign_mut_vec))
-    )) %>%
+      # significant increase over time,
+      tracked_muts_after_lm = sum(mutations %in% sign_mut_vec)
+    ) %>%
       # get number of mutations which aren't signature mutations
       mutate(non_sigmuts = total_muts - total_sigmuts)
     
