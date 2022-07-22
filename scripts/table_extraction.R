@@ -1,67 +1,125 @@
+library(stringr)
+library(magrittr)
 library(dplyr)
 library(data.table)
 
-count_muts <- function (x, mutation_sheet.df) { # x = sample row
+count_muts <- function(sample_row, mutation_sheet_df, sign_mut_vec) {
   #' function used in rowwise apply() call
   #' takes row as input, calculates mutation counts and returns a dataframe
   #'
   # transform mutation_sheet to one comparable vector
-  mutation_sheet.v <- unique( unlist( mutation_sheet.df, use.names = FALSE))
-  mutation_sheet.v <- mutation_sheet.v[!is.na(mutation_sheet.v)] 
-  
-  # transform char. vector into dataframe
-  x <- as_tibble(t(as.matrix(x)))
-  mutations_ps <- x[ (which( names(x) %in% "coordinates_long")+1) : length( names( x ))]
-  count_frame <- data.frame(
-     # mutations only
-      sample =  as.character(x["samplename"]),
-      # count all mutations which are not NA
-      total_muts = as.numeric(rowSums(!is.na(mutations_ps))),
-      # count all mutations that are signature mutations
-      total_sigmuts = as.numeric(rowSums(!is.na(mutations_ps %>% dplyr::select( dplyr::contains(mutation_sheet.v))))),
-      # get num of muts with significant increase over time
-      tracked_muts_after_lm = as.numeric(rowSums(!is.na( mutations_ps %>% dplyr::select( dplyr::contains(mutations_sig$mutation)))))
+  sigmut_vec_all <- unique(unlist(mutation_sheet_df, use.names = FALSE)) %>%
+    na.omit()
+
+  # create vector of metadata col names to be excluded
+  meta_cols_excl <- c(
+    "samplename",
+    "location_name",
+    "coordinates_lat",
+    "coordinates_long",
+    "dates"
   )
-  # get number of mutations which aren't signature mutations
-  count_frame <- count_frame %>% mutate( non_sigmuts = total_muts - total_sigmuts)
-  # get number of siganture mutation per variant
-  for ( var in colnames(mutation_sheet.df)){
-    count_frame[,paste0("sigmuts_",var)] <- as.numeric(rowSums(!is.na(mutations_ps %>% dplyr::select( dplyr::contains( na.omit(mutation_sheet.df[[var]]))))))
-  }
-  return(count_frame)
+
+  sample_mut_row <- sample_row[-which(names(sample_row) %in% meta_cols_excl)]
+  mut_vec_sample <- names(sample_mut_row)[!is.na(sample_mut_row)]
+
+  counts_tot_sample <- data_frame(
+    sample                = sample_row["samplename"],
+    total_muts            = length(mut_vec_sample),
+    total_sigmuts         = sum(
+      str_extract(mut_vec_sample, "[A-Z0-9*_]+$") %in% sigmut_vec_all
+    ),
+    tracked_muts_after_lm = sum(mut_vec_sample %in% sign_mut_vec)
+  ) %>%
+    mutate(non_sigmuts = total_muts - total_sigmuts)
+
+  counts_var_sample <- lapply(
+    colnames(mutation_sheet_df),
+    function(var) {
+      var_muts <- na.omit(mutation_sheet_df[[var]])
+      count <- sum(str_extract(mut_vec_sample, "[A-Z0-9*_]+$") %in% var_muts)
+      return(
+        data.frame(count) %>%
+          set_names(paste0("sigmuts_", var))
+      )
+    }) %>%
+    bind_cols()
+
+
+  return(bind_cols(counts_tot_sample, counts_var_sample))
 }
 
-write_mutations_count <- function ( mutation_plot_data, mutation_sheet.df, mutations_sig ){
-  #' takes data_mut_plot.csv df, mutation_sheet.df with NAs at empty cells, mutations_sig.df as input
-  #' counts mutations and return them as a dataframe
+get_mutations_counts <- function(mutation_plot_data,
+                                 mutation_sheet_df,
+                                 mutations_sig) {
+  #' takes data_mut_plot.csv df, mutation_sheet_df with NAs at empty cells,
+  #' mutations_sig.df as input counts mutations and return them as a dataframe
 
   # transform mutation_sheet to one comparable vector
-  mutation_sheet.v <- unique( unlist( mutation_sheet.df, use.names = FALSE))
-  mutation_sheet.v <- mutation_sheet.v[!is.na(mutation_sheet.v)] # fixme this feels like there should be a more elegent way to remove na right away
+  sigmut_vec_all <- unique(unlist(mutation_sheet_df, use.names = FALSE)) %>%
+    na.omit()
+
+  # create vector of metadata col names to be excluded
+  meta_cols_excl <- c(
+    "samplename",
+    "location_name",
+    "coordinates_lat",
+    "coordinates_long",
+    "dates"
+  )
+
   # get names of mutations without meta data
-  mutations <- names ( mutation_plot_data[ (which( names(mutation_plot_data) %in% "coordinates_long")+1) : length( names( mutation_plot_data ))])
+  mutations <- names(mutation_plot_data %>% select(-all_of(meta_cols_excl)))
+
   # signature mutations found across samples
-  sigmuts_found.df <- mutation_plot_data %>% dplyr::select( dplyr::contains(mutation_sheet.v))
-  
-  # total counts across all samples, without duplicated counts (compared to what I'd get when summing up all the columns)
-  if (length(mutations_sig) >0){
-    count_frame <- data.frame( sample = "Total",
-                               total_muts = length(mutations),
-                               total_sigmuts = length(sigmuts_found.df),
-                               # get how many of all found mutations will be tracked because of significant increase over time
-                               tracked_muts_after_lm = length(mutation_plot_data %>% dplyr::select( dplyr::contains(mutations_sig$mutation)))
-    )
-    # get number of mutations which aren't signature mutations
-    count_frame <- count_frame %>% mutate( non_sigmuts = total_muts - total_sigmuts)
-    # get number of siganture mutation per variant
-    for ( var in colnames(mutation_sheet.df)){
-      sigmut_pv <- mutation_plot_data %>% dplyr::select( dplyr::contains( na.omit(mutation_sheet.df[[var]])))
-      count_frame[,paste0("sigmuts_",var)] <- length(sigmut_pv)
-    }
+  common_sigmuts_df <- mutation_plot_data %>%
+    dplyr::select(dplyr::contains(sigmut_vec_all))
+
+
+  if (length(mutations_sig) > 0) {
+    # total counts across all samples, without duplicated counts (compared to what
+    # I'd get when summing up all the columns)
+    counts_tot_all <- data.frame(
+      sample = "Total",
+      total_muts = length(mutations),
+      total_sigmuts = ncol(common_sigmuts_df),
+
+      # get how many of all found mutations will be tracked because of
+      # significant increase over time
+      tracked_muts_after_lm = ncol(
+        mutation_plot_data %>%
+          dplyr::select(all_of(mutations_sig$mutation))
+      )) %>%
+      # get number of mutations which aren't signature mutations
+      mutate(non_sigmuts = total_muts - total_sigmuts)
     
-    counts_per_sample <- do.call(bind_rows, apply(mutation_plot_data,1, count_muts, mutation_sheet.df))
-    count_frame <- bind_rows(count_frame, counts_per_sample)
-  } else{count_frame <- data.frame()}
-  
+    counts_var_all <- lapply(
+      colnames(mutation_sheet_df),
+      function(var) {
+        var_muts <- na.omit(mutation_sheet_df[[var]])
+        count <- sum(str_extract(mutations, "[A-Z0-9*_]+$") %in% var_muts)
+        return(
+          data.frame(count) %>%
+            set_names(paste0("sigmuts_", var))
+        )
+      }) %>%
+      bind_cols()
+    
+    counts_all <- bind_cols(counts_tot_all, counts_var_all)
+
+    counts_sample <- apply(
+      mutation_plot_data,
+      1,
+      count_muts,
+      mutation_sheet_df,
+      mutations_sig$mutation
+    ) %>%
+      bind_rows()
+
+    count_frame <- bind_rows(counts_all, counts_sample)
+  } else {
+    count_frame <- data.frame()
+  }
+
   return(count_frame)
 }
