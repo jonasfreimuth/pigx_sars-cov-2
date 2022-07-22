@@ -11,10 +11,8 @@ params:
   mutation_coverage_threshold: ""
   logo: ""
   fun_tbls: ""
-  coverage_dir: ""
   output_dir: ""
   overviewQC: ""
-  fun_cvrg_scr: ""
   fun_pool: ""
   fun_index: ""
   unfiltered_mutation_sig_file: ""
@@ -94,7 +92,6 @@ library(viridis)
 
 ```{r load_data}
 # TODO given as input? or only the scripts dir? similar variant_report
-source(params$fun_cvrg_scr)
 source(params$fun_pool)
 source(params$fun_index)
 
@@ -148,26 +145,19 @@ These plots provide an overview of the relative frequency dynamics of
 identified lineages at specific wastewater sampling locations over time. 
 
 ```{r sample_quality_score}
-coverages_df <- merge(get_genome_cov(params$coverage_dir),
-  get_mutation_cov(params$coverage_dir),
-  by = "samplename"
-) %>%
-  mutate(
-    proport_muts_covered = round(
-      (as.numeric(total_muts_cvrd) * 100) / as.numeric(total_num_muts), 1
-    )
-  )
+quality_df <- fread(params$overviewQC)
 
-if (!(length(coverages_df) == 0)) {
-  # take only the samples over the mutation coverage threshold
-  good_samples_df <- coverages_df %>%
-    filter(as.numeric(proport_muts_covered) >= mutation_coverage_threshold)
+good_samples_df <- quality_df %>%
+  filter(perc_muts_covered >= params$mutation_coverage_threshold)
 
-  bad_samples_df <- coverages_df %>%
-    filter(!(samplename %in% good_samples_df$samplename))
-} else {
-  warning("\n No coverage values found.")
-}
+bad_samples_df <- quality_df %>% 
+  filter(perc_muts_covered <  params$mutation_coverage_threshold)
+
+approved_mut_plot <- df_mut %>%
+  filter(samplename %in% good_samples_df$samplename)
+
+weights <- quality_df %>%
+  dplyr::select(c(samplename, total_reads))
 ```
 
 ```{r filter_plot_frames_samplescore, warning=TRUE}
@@ -924,7 +914,7 @@ cat(
 ```
 
 ```{r table_ample_quality_score}
-if (!(length(coverages_df) == 0)) {
+if (!(length(quality_df) == 0)) {
   # TODO refine column names --> e.g "coverage in percent",
   create_dt(bad_samples_df)
 } else {
