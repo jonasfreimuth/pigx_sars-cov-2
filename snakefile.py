@@ -796,7 +796,6 @@ rule render_index:
             OUTPUT_DIR, "unfiltered_mutations_sig.csv"
         ),
     params:
-        fun_cvrg_scr=os.path.join(SCRIPTS_DIR, "sample_coverage_score.R"),
         fun_lm=os.path.join(SCRIPTS_DIR, "pred_mutation_increase.R"),
         fun_tbls=os.path.join(SCRIPTS_DIR, "table_extraction.R"),
         fun_pool=os.path.join(SCRIPTS_DIR, "pooling.R"),
@@ -819,10 +818,8 @@ rule render_index:
           "logo": "{LOGO}", \
           "fun_lm": "{params.fun_lm}", \
           "fun_tbls": "{params.fun_tbls}", \
-          "fun_cvrg_scr": "{params.fun_cvrg_scr}", \
           "fun_pool": "{params.fun_pool}", \
           "fun_index": "{params.fun_index}", \
           "overviewQC": "{input.overviewQC}", \
-          "coverage_dir": "{COVERAGE_DIR}", \
           "output_dir": "{OUTPUT_DIR}" \
         }}' > {log} 2>&1"""
