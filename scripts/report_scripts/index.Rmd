@@ -14,7 +14,6 @@ params:
   coverage_dir: ""
   output_dir: ""
   overviewQC: ""
-  fun_lm: ""
   fun_cvrg_scr: ""
   fun_pool: ""
   fun_index: ""
@@ -98,7 +97,6 @@ library(viridis)
 source(params$fun_cvrg_scr)
 source(params$fun_pool)
 source(params$fun_index)
-source(params$fun_lm)
 
 mutations_sig_unfiltered <- fread(params$unfiltered_mutation_sig_file)
 
@@ -478,7 +476,9 @@ if (!RUN_MUTATION_REGRESSION) {
 
 
 ```{r linear_regression_tables, warning=TRUE, results='asis', eval=RUN_MUTATION_REGRESSION}
-mutations_sig <- filter_lm_res_top20(mutations_sig_unfiltered, 0.05)
+mutations_sig <- mutations_sig_unfiltered %>%
+  filter(pvalues >= 0.05) %>%
+  arrange(desc(coefficients))
 
 sigmuts_df <- fread(params$mutation_sheet) %>%
   na_if("") %>%

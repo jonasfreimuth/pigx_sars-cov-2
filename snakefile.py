@@ -763,7 +763,6 @@ rule render_index:
         ),
     params:
         fun_cvrg_scr=os.path.join(SCRIPTS_DIR, "sample_coverage_score.R"),
-        fun_lm=os.path.join(SCRIPTS_DIR, "pred_mutation_increase.R"),
         fun_tbls=os.path.join(SCRIPTS_DIR, "table_extraction.R"),
         fun_pool=os.path.join(SCRIPTS_DIR, "pooling.R"),
         fun_index=os.path.join(SCRIPTS_DIR, "fun_index.R"),
@@ -783,7 +782,6 @@ rule render_index:
           "mut_count_file": "{input.mut_count_file}", \
           "unfiltered_mutation_sig_file": "{input.unfiltered_mutation_sig_file}", \
           "logo": "{LOGO}", \
-          "fun_lm": "{params.fun_lm}", \
           "fun_tbls": "{params.fun_tbls}", \
           "fun_cvrg_scr": "{params.fun_cvrg_scr}", \
           "fun_pool": "{params.fun_pool}", \
