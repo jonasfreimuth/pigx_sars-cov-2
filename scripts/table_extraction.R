@@ -38,7 +38,7 @@ get_mutations_counts <- function(mutation_plot_data,
 
     sample_mut_row <- sample_row[-which(names(sample_row) %in% meta_cols_excl)]
     mut_vec_sample <- names(sample_mut_row)[!is.na(sample_mut_row)]
-    
+
     counts_tot_sample <- data_frame(
       sample                = sample_row["samplename"],
       total_muts            = length(mut_vec_sample),
@@ -48,7 +48,7 @@ get_mutations_counts <- function(mutation_plot_data,
       sign_increasing_muts = sum(mut_vec_sample %in% sign_mut_vec)
     ) %>%
       mutate(non_sigmuts = total_muts - total_sigmuts)
-    
+
     counts_var_sample <- lapply(
       colnames(mutation_sheet_df),
       function(var) {
@@ -60,11 +60,11 @@ get_mutations_counts <- function(mutation_plot_data,
         )
       }) %>%
       bind_cols()
-    
-    
+
+
     return(bind_cols(counts_tot_sample, counts_var_sample))
   }
-  
+
   # transform mutation_sheet to one comparable vector
   sigmut_vec_all <- unique(unlist(mutation_sheet_df, use.names = FALSE)) %>%
     na.omit()
@@ -100,7 +100,7 @@ get_mutations_counts <- function(mutation_plot_data,
     ) %>%
       # get number of mutations which aren't signature mutations
       mutate(non_sigmuts = total_muts - total_sigmuts)
-    
+
     counts_var_all <- lapply(
       colnames(mutation_sheet_df),
       function(var) {
@@ -112,7 +112,7 @@ get_mutations_counts <- function(mutation_plot_data,
         )
       }) %>%
       bind_cols()
-    
+
     counts_all <- bind_cols(counts_tot_all, counts_var_all)
 
 
