@@ -1,6 +1,8 @@
+library(stringr)
+library(magrittr)
 library(dplyr)
 
-count_muts <- function(sample_row, mutation_sheet_df) {
+count_muts <- function(sample_row, mutation_sheet_df, sign_mut_vec) {
   #' function used in rowwise apply() call
   #' takes row as input, calculates mutation counts and returns a dataframe
   #'
@@ -9,9 +11,6 @@ count_muts <- function(sample_row, mutation_sheet_df) {
     unlist(use.names = FALSE) %>%
     unique() %>%
     na.omit()
-
-  # transform char. vector into dataframe
-  sample_row <- as_tibble(t(as.matrix(sample_row)))
 
   # create vector of metadata col names to be excluded
   meta_cols_excl <- c(
@@ -22,22 +21,14 @@ count_muts <- function(sample_row, mutation_sheet_df) {
     "dates"
   )
 
-  mutations_ps <- sample_row %>%
-    dplyr::select(-all_of(meta_cols_excl))
+  sample_mut_row <- sample_row[-which(names(sample_row) %in% meta_cols_excl)]
+  mut_vec_sample <- names(sample_mut_row)[!is.na(sample_mut_row)]
 
-  counts_tot_sample <- data.frame(
-    # mutations only
-    sample = as.character(sample_row["samplename"]),
-    # count all mutations which are not NA
-    total_muts = as.numeric(rowSums(!is.na(mutations_ps))),
-    # count all mutations that are signature mutations
-    total_sigmuts = as.numeric(
-      rowSums(
-        !is.na(
-          mutations_ps %>%
-            dplyr::select(dplyr::contains(sigmut_vec_all))
-        )
-      )
+  counts_tot_sample <- dataf.rame(
+    sample                = sample_row["samplename"],
+    total_muts            = length(mut_vec_sample),
+    total_sigmuts         = sum(
+      str_extract(mut_vec_sample, "[A-Z0-9*_]+$") %in% sigmut_vec_all
     ),
     # get num of muts with significant increase over time
     tracked_muts_after_lm = as.numeric(
@@ -53,30 +44,27 @@ count_muts <- function(sample_row, mutation_sheet_df) {
     # get number of mutations which aren't signature mutations
     mutate(non_sigmuts = total_muts - total_sigmuts)
 
-
-  counts_var_sample <- counts_tot_sample %>%
-    dplyr::select(sample)
-
-  # get number of siganture mutation per variant
-  for (var in colnames(mutation_sheet_df)) {
-    counts_var_sample[, paste0("sigmuts_", var)] <- as.numeric(
-      rowSums(
-        !is.na(
-          mutations_ps %>%
-            dplyr::select(dplyr::contains(na.omit(mutation_sheet_df[[var]])))
-        )
+  counts_var_sample <- lapply(
+    colnames(mutation_sheet_df),
+    function(var) {
+      var_muts <- na.omit(mutation_sheet_df[[var]])
+      count <- sum(str_extract(mut_vec_sample, "[A-Z0-9*_]+$") %in% var_muts)
+      return(
+        data.frame(count) %>%
+          set_names(paste0("sigmuts_", var))
       )
-    )
-  }
-  return(dplyr::left_join(counts_tot_sample, counts_var_sample, by = "sample"))
+    }) %>%
+    bind_cols()
+
+
+  return(bind_cols(counts_tot_sample, counts_var_sample))
 }
 
-write_mutations_count <- function(mutation_plot_data,
-                                  mutation_sheet_df,
-                                  mutations_sig) {
+get_mutations_counts <- function(mutation_plot_data,
+                                 mutation_sheet_df,
+                                 mutations_sig) {
   #' takes data_mut_plot.csv df, mutation_sheet_df with NAs at empty cells,
-  #' mutations_sig.df as input
-  #' counts mutations and return them as a dataframe
+  #' mutations_sig.df as input counts mutations and return them as a dataframe
 
   # transform mutation_sheet to one comparable vector
   sigmut_vec_all <- mutation_sheet_df %>%
@@ -130,17 +118,7 @@ write_mutations_count <- function(mutation_plot_data,
       counts_var_all[, paste0("sigmuts_", var)] <- length(sigmut_pv)
     }
 
-    counts_all <- left_join(
-      counts_tot_all,
-      counts_var_all,
-      by = "sample"
-    )
-
-    counts_per_sample <- do.call(
-      bind_rows,
-      apply(mutation_plot_data, 1, count_muts, mutation_sheet_df)
-    )
-    count_frame <- bind_rows(counts_all, counts_per_sample)
+    count_frame <- bind_rows(counts_all, counts_sample)
   } else {
     count_frame <- data.frame()
   }

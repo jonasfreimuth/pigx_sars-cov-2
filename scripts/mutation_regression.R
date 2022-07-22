@@ -116,7 +116,7 @@ if (nrow(approved_mut_plot) > 0 &&
   # get functions for counting and writing
   # TODO: check where the fun_tbls script is needed
   source(params$fun_tbls)
-  count_frame <- write_mutations_count(df_mut, sigmuts_df, mutations_sig)
+  count_frame <- get_mutations_counts(df_mut, sigmuts_df, mutations_sig)
 
   # write to file
   fwrite(count_frame,
