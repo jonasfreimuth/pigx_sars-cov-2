@@ -2,64 +2,64 @@ library(magrittr)
 library(stringr)
 library(dplyr)
 
-count_muts <- function(sample_row, mutation_sheet_df, sign_incr_muts) {
-  #' function used in rowwise apply() call
-  #' takes row as input, calculates mutation counts and returns a dataframe
-  #'
-  # transform mutation_sheet to one comparable vector
-  sigmut_vec_all <- mutation_sheet_df %>%
-    unlist(use.names = FALSE) %>%
-    unique() %>%
-    na.omit()
-
-  # create vector of metadata col names to be excluded
-  meta_cols_excl <- c(
-    "samplename",
-    "location_name",
-    "coordinates_lat",
-    "coordinates_long",
-    "dates"
-  )
-
-  mutations <- sample_row %>%
-    as.matrix() %>%
-    t() %>%
-    as_tibble() %>%
-    dplyr::select(-all_of(meta_cols_excl)) %>%
-    dplyr::select(-where(is.na)) %>%
-    names() %>%
-
-    # extract only nucleotide mutation part, drop AA muts
-    str_extract("[A-Z0-9*_]+$")
-
-  counts_tot_sample <- data.frame(
-    sample                = sample_row["samplename"],
-    total_muts            = length(mutations),
-    total_sigmuts         = sum(mutations %in% sigmut_vec_all),
-    # get num of muts with significant increase over time
-    tracked_muts_after_lm = sum(mutations %in% sign_incr_muts)
-  ) %>%
-
-    # get number of mutations which aren't signature mutations
-    mutate(non_sigmuts = total_muts - total_sigmuts)
-
-  counts_var_sample <- lapply(
-    mutation_sheet_df,
-    function(var_muts, mutations) {
-      var_muts <- na.omit(var_muts)
-      return(sum(mutations %in% var_muts))
-    }, mutations) %>%
-    bind_cols() %>%
-    set_names(paste0("sigmuts_", names(.)))
-
-  return(bind_cols(counts_tot_sample, counts_var_sample))
-}
-
 get_mutations_counts <- function(mutation_plot_data,
                                  mutation_sheet_df,
                                  mutations_sig) {
   #' takes data_mut_plot.csv df, mutation_sheet_df with NAs at empty cells,
   #' mutations_sig.df as input counts mutations and return them as a dataframe
+
+  count_muts <- function(sample_row, mutation_sheet_df, sign_incr_muts) {
+    #' function used in rowwise apply() call
+    #' takes row as input, calculates mutation counts and returns a dataframe
+    #'
+    # transform mutation_sheet to one comparable vector
+    sigmut_vec_all <- mutation_sheet_df %>%
+      unlist(use.names = FALSE) %>%
+      unique() %>%
+      na.omit()
+
+    # create vector of metadata col names to be excluded
+    meta_cols_excl <- c(
+      "samplename",
+      "location_name",
+      "coordinates_lat",
+      "coordinates_long",
+      "dates"
+    )
+
+    mutations <- sample_row %>%
+      as.matrix() %>%
+      t() %>%
+      as_tibble() %>%
+      dplyr::select(-all_of(meta_cols_excl)) %>%
+      dplyr::select(-where(is.na)) %>%
+      names() %>%
+
+      # extract only nucleotide mutation part, drop AA muts
+      str_extract("[A-Z0-9*_]+$")
+
+    counts_tot_sample <- data.frame(
+      sample                = sample_row["samplename"],
+      total_muts            = length(mutations),
+      total_sigmuts         = sum(mutations %in% sigmut_vec_all),
+      # get num of muts with significant increase over time
+      tracked_muts_after_lm = sum(mutations %in% sign_incr_muts)
+    ) %>%
+
+      # get number of mutations which aren't signature mutations
+      mutate(non_sigmuts = total_muts - total_sigmuts)
+
+    counts_var_sample <- lapply(
+      mutation_sheet_df,
+      function(var_muts, mutations) {
+        var_muts <- na.omit(var_muts)
+        return(sum(mutations %in% var_muts))
+      }, mutations) %>%
+      bind_cols() %>%
+      set_names(paste0("sigmuts_", names(.)))
+
+    return(bind_cols(counts_tot_sample, counts_var_sample))
+  }
 
   # transform mutation_sheet to one comparable vector
   sigmut_vec_all <- mutation_sheet_df %>%
