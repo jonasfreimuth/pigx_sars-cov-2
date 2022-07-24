@@ -935,8 +935,13 @@ if (!(length(quality_df) == 0)) {
 
   bad_samples_df %>%
     select(-all_of(setdiff(names(.), bad_samp_rename_vec))) %>%
-    mutate(coverage = paste0(coverage, "%"),
-      perc_muts_covered  = paste0(perc_muts_covered, "%")) %>%
+    mutate(
+      date = format(date, "%d.%m.%Y, %H:%M"),
+      coverage = paste0(round(coverage, 1), "%"),
+      perc_muts_covered  = paste0(round(perc_muts_covered, 1), "%"),
+      meandepth = round(meandepth, 1),
+      avg_loc_cvrg = round(avg_loc_cvrg, 1)
+    ) %>%
     rename(!!!bad_samp_rename_vec) %>%
     create_dt()
 } else {
