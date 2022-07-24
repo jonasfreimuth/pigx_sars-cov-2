@@ -185,7 +185,7 @@ RUN_MUTATION_REGRESSION <- if (MUTATIONS_FOUND) {
 APPROVED_MUTATIONS_FOUND <- RUN_MUTATION_REGRESSION
 
 
-if (! VARIANTS_FOUND) {
+if (!VARIANTS_FOUND) {
   warning(paste0(
     "\nNot enough variants were found or passed the quality filters.",
     "\nThe associated plots are skipped."
@@ -257,7 +257,7 @@ melted <- reshape2::melt(approved_var_plot,
   id.vars = c(
     "dates", "samplename", "location_name",
     "coordinates_lat", "coordinates_long"
-  )) %>%
+)) %>%
   mutate(
     variable = give_priority_in_order(variable, "[Oo]thers"),
 
@@ -470,23 +470,23 @@ sigmuts_df <- fread(params$mutation_sheet) %>%
   na_if("") %>%
   # remove gene name of for easier matching
   mutate(across(everything(),
-                ~ str_extract(
-                  .x, str_glue("(?<={var_sep})[[:alnum:]]+")
-                )))
+    ~ str_extract(
+      .x, str_glue("(?<={var_sep})[[:alnum:]]+")
+    )))
 
 if (nrow(mutations_sig) > 0) {
   # flag if mutation is signature mutation
   mutations_sig <- mutations_sig %>%
     mutate(mut_str = str_extract(
-          mutation,
-          str_glue("(?<={aa_sep}{aa_sep})[[:alnum:]]+"))) %>%
+      mutation,
+      str_glue("(?<={aa_sep}{aa_sep})[[:alnum:]]+"))) %>%
     mutate(
       sigflag = ifelse(
-         mut_str %in%  unlist(sigmuts_df),
-          "SigMut",
-          ""
-        )) %>%
-    dplyr::select(- mut_str)
+        mut_str %in%  unlist(sigmuts_df),
+        "SigMut",
+        ""
+    )) %>%
+    dplyr::select(-mut_str)
 
   cat(
     "The following table shows the mutations showing ",
@@ -517,15 +517,15 @@ if (nrow(mutations_sig) > 0) {
 if (nrow(mutations_sig_unfiltered) > 0) {
   mutations_sig_unfiltered <- mutations_sig_unfiltered %>%
     mutate(mut_str = str_extract(
-          mutation,
-          str_glue("(?<={aa_sep}{aa_sep})[[:alnum:]]+"))) %>%
+      mutation,
+      str_glue("(?<={aa_sep}{aa_sep})[[:alnum:]]+"))) %>%
     mutate(
       sigflag = ifelse(
-         mut_str %in%  unlist(sigmuts_df),
-          "SigMut",
-          ""
-        )) %>%
-    dplyr::select(- mut_str)
+        mut_str %in%  unlist(sigmuts_df),
+        "SigMut",
+        ""
+    )) %>%
+    dplyr::select(-mut_str)
 
   mutations_sig_unfiltered_download <- mutations_sig_unfiltered %>%
     dump_csv() %>%
@@ -583,22 +583,22 @@ melted <- reshape2::melt(approved_mut_plot_location_pooled,
 )
 
 melted <- melted %>%
-    mutate(mut_str = str_extract(
-          variable,
-          str_glue("(?<={aa_sep}{aa_sep})[[:alnum:]]+"))) %>%
-    mutate(
-      sigflag = ifelse(
-         mut_str %in%  unlist(sigmuts_df),
-          "SigMut",
-          "NoSigMut"
-        )) %>%
-    dplyr::select(- mut_str) %>%
+  mutate(mut_str = str_extract(
+    variable,
+    str_glue("(?<={aa_sep}{aa_sep})[[:alnum:]]+"))) %>%
+  mutate(
+    sigflag = ifelse(
+      mut_str %in%  unlist(sigmuts_df),
+      "SigMut",
+      "NoSigMut"
+  )) %>%
+  dplyr::select(-mut_str) %>%
 
-    # sort by dates
-    arrange(dates) %>%
+  # sort by dates
+  arrange(dates) %>%
 
-    # coerce dates to string, same reason as in the variants plot
-    mutate(dates = as.character(dates))
+  # coerce dates to string, same reason as in the variants plot
+  mutate(dates = as.character(dates))
 
 
 p_mutations_pooled <- subset(melted) %>%
@@ -655,22 +655,22 @@ melted <- reshape2::melt(filtered_approved_mut_plot,
     "coordinates_lat", "coordinates_long"
   )
 )  %>%
-    mutate(mut_str = str_extract(
-          variable,
-          str_glue("(?<={aa_sep}{aa_sep})[[:alnum:]]+"))) %>%
-    mutate(
-      sigflag = ifelse(
-         mut_str %in%  unlist(sigmuts_df),
-          "SigMut",
-          NA
-        )) %>%
-    dplyr::select(- mut_str) %>%
+  mutate(mut_str = str_extract(
+    variable,
+    str_glue("(?<={aa_sep}{aa_sep})[[:alnum:]]+"))) %>%
+  mutate(
+    sigflag = ifelse(
+      mut_str %in%  unlist(sigmuts_df),
+      "SigMut",
+      NA
+  )) %>%
+  dplyr::select(-mut_str) %>%
 
-    # sort by dates
-    arrange(dates) %>%
+  # sort by dates
+  arrange(dates) %>%
 
-    # coerce dates to string, same reason as in the variants plot
-    mutate(dates = as.character(dates))
+  # coerce dates to string, same reason as in the variants plot
+  mutate(dates = as.character(dates))
 
 locations <- as.character(unique(melted$location_name))
 
@@ -707,10 +707,10 @@ cat("## Trending mutations geo-localized\n\nThis plot visualizes proportions ",
 )
 
 cat(create_html_note(paste(
-    "Locations of wastewater processing plants have been\n",
-    "generated arbitrarily and do not correspond to actual ",
-    "locations.",
-    sep = ""
+  "Locations of wastewater processing plants have been\n",
+  "generated arbitrarily and do not correspond to actual ",
+  "locations.",
+  sep = ""
 )))
 
 cat(
