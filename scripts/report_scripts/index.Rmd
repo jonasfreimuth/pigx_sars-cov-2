@@ -148,10 +148,10 @@ identified lineages at specific wastewater sampling locations over time.
 quality_df <- fread(params$overviewQC)
 
 good_samples_df <- quality_df %>%
-  filter(perc_muts_covered >= params$mutation_coverage_threshold)
+  filter(perc_muts_covered >= mutation_coverage_threshold)
 
-bad_samples_df <- quality_df %>% 
-  filter(perc_muts_covered <  params$mutation_coverage_threshold)
+bad_samples_df <- quality_df %>%
+  filter(perc_muts_covered <  mutation_coverage_threshold)
 
 approved_mut_plot <- df_mut %>%
   filter(samplename %in% good_samples_df$samplename)
