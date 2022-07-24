@@ -904,8 +904,8 @@ visualizations or the linear regression calculations.
 # table displaying bad samples which are not further included
 cat(
   "\n Table 1: Quality description of samples not meeting the requirement of ",
-  "covering at least ", mutation_coverage_threshold, "% of the reference ",
-  "genome.",
+  "covering at least ", mutation_coverage_threshold, "% of signature ",
+  "mutations. ",
   sep = ""
 )
 ```
