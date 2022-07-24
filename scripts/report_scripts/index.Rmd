@@ -905,11 +905,12 @@ measures (< `r mutation_coverage_threshold`%) are not included in the
 visualizations or the linear regression calculations. 
 
 ```{r title_quality_score, results = 'asis'}
-# table displaying bad samples which are not further inlcuded
-# TODO refine this text
+# table displaying bad samples which are not further included
 cat(
-  "\n Table 1: Discarded samples not matching the provided sample",
-  "quality scoring"
+  "\n Table 1: Quality description of samples not meeting the requirement of ",
+  "covering at least ", mutation_coverage_threshold, "% of the reference ",
+  "genome.",
+  sep = ""
 )
 ```
 
