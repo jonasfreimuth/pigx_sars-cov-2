@@ -912,8 +912,33 @@ cat(
 
 ```{r table_ample_quality_score}
 if (!(length(quality_df) == 0)) {
-  # TODO refine column names --> e.g "coverage in percent",
-  create_dt(bad_samples_df)
+  bad_samp_rename_vec <- c(
+    "Sample name" = "samplename",
+    "Collection date" = "date",
+    "n reads" = "total_reads",
+    "Trimmed reads in R1" = "read_num_trimmed_r1",
+    "Trimmed reads in R2" = "read_num_trimmed_r2",
+    "Unaligned reads" = "unaligned_reads_from_file",
+    "Aligned reads" = "numreads",
+    "Bases covered by reads" = "covbases",
+    "% of ref. genome covered" = "coverage",
+    "Mean depth" = "meandepth",
+    "Mean base qual." = "meanbaseq",
+    "Mean map qual." = "meanmapq",
+    "Total mutations" = "n_loc_total",
+    "Covered mutations" = "n_loc_covered",
+    "Uncovered mutations" = "n_loc_no_cov",
+    "Mean read depth at muts." = "avg_loc_cvrg",
+    "% of tot. muts. covered" = "perc_muts_covered",
+    "Reads removed during preprocessing" = "reads_removed_by_QC"
+  )
+
+  bad_samples_df %>%
+    select(-all_of(setdiff(names(.), bad_samp_rename_vec))) %>%
+    mutate(coverage = paste0(coverage, "%"),
+      perc_muts_covered  = paste0(perc_muts_covered, "%")) %>%
+    rename(!!!bad_samp_rename_vec) %>%
+    create_dt()
 } else {
   cat("\n No coverage values found.")
 }
