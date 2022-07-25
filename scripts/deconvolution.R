@@ -390,7 +390,16 @@ if (run_deconvolution) {
       location_name = location_name,
       coordinates_lat = coordinates_lat,
       coordinates_long = coordinates_long
-    )
+    ) %>%
+
+      # ensure metadata cols are first
+      dplyr::select(all_of(c(
+        "samplename",
+        "dates",
+        "location_name",
+        "coordinates_lat",
+        "coordinates_long"
+      )), everything())
 
 
   fwrite(
@@ -445,7 +454,16 @@ if (run_deconvolution) {
       location_name = location_name,
       coordinates_lat = coordinates_lat,
       coordinates_long = coordinates_long
-    )
+    ) %>%
+    
+      # ensure metadata cols are first
+      dplyr::select(all_of(c(
+        "samplename",
+        "dates",
+        "location_name",
+        "coordinates_lat",
+        "coordinates_long"
+      )), everything())
 
   # 3. write to output file
   cat("Writing mutation file to ", params$mutation_output_file, "...\n")
