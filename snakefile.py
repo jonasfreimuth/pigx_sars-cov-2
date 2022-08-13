@@ -579,7 +579,6 @@ rule download_vep_db:
 
 # Trimming in three steps: general by qual and cutoff, get remaining adapters out, get remaining primers out
 
-# TODO the output suffix should be dynamic depending on the input
 # TODO with the use of fastp the use of fastqc becomes partly reduntant, fastqc should be removed or adjusted
 rule fastp:
     input: trim_reads_input
@@ -589,20 +588,31 @@ rule fastp:
         html = os.path.join(FASTP_DIR, '{sample}', '{sample}_fastp.html'),
         json = os.path.join(FASTP_DIR, '{sample}', '{sample}_fastp.json')
     log: os.path.join(LOG_DIR, 'fastp_{sample}.log')
-    shell: """
-         {FASTP_EXEC} -i {input[0]} -I {input[1]} -o {output.r1} -O {output.r2} --html {output.html} --json {output.json} >> {log}t 2>&1
-     """
+    run:
+        call = (
+            f"{FASTP_EXEC} "
+            f"-i {input[0]} "
+            f"-o {output.r1} "
+        )
 
-rule fastp_se:
-    input: trim_reads_input
-    output:
-        r = os.path.join(TRIMMED_READS_DIR, "{sample}_trimmed.fastq.gz"),
-        html = os.path.join(FASTP_DIR, '{sample}', '{sample}_fastp.html'),
-        json = os.path.join(FASTP_DIR, '{sample}', '{sample}_fastp.json')
-    log: os.path.join(LOG_DIR, 'fastp_{sample}.log')
-    shell: """
-        {FASTP_EXEC} -i {input[0]} -o {output.r} --html {output.html} --json {output.json} >> {log}t 2>&1
-    """
+        if len(input) > 1:
+            call = call + (
+                f"-I {input[1]} "
+                f"-O {output.r2} "
+            )
+        else:
+            # If reads2 output file is not present, snakemake complains.
+            shell(f"touch {output.r2}")
+
+        call = call + (
+            f"--html {output.html} "
+            f"--json {output.json} "
+            f">> {log} 2>&1"
+        )
+
+        shell(f"echo {call} > {log}")
+        shell(call)
+
 
 rule bwa_index:
     input: REFERENCE_FASTA
