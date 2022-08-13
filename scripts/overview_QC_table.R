@@ -13,10 +13,13 @@ concat_overview_table <- function(sample_sheet,
   sample_sheet.df <- fread(sample_sheet)
   # get read files matching samples
   cat("get samples and reads from sample_sheet...\n")
-  read_counts <- parse_sample_sheet(sample_sheet.df,
+  read_counts <- parse_sample_sheet(
+    sample_sheet.df,
     raw_reads_dir,
     trimmed_reads_dir,
-    mapped_reads_dir)
+    mapped_reads_dir
+  )
+
   # get read number of raw reads
   cat("get num of total raw reads...\n")
   read_counts <- read_counts %>%
@@ -31,6 +34,7 @@ concat_overview_table <- function(sample_sheet,
         no = reads_r1
       )
     )
+
   # get read number after trimming
   cat("get num of reads after trimming...\n")
   read_counts <- read_counts %>%
@@ -38,8 +42,9 @@ concat_overview_table <- function(sample_sheet,
       read_num_trimmed_r1 = read_num_fastq(file_trimmed_reads_r1),
       read_num_trimmed_r2 = read_num_fastq(file_trimmed_reads_r2)
     )
-  cat("get num of unaligned reads ...\n")
+
   # get read number unaligned from files
+  cat("get num of unaligned reads ...\n")
   read_counts <- read_counts %>% mutate(
     unaligned_reads_from_file = read_num_fastq(file_unaligned_reads)
   )
@@ -47,14 +52,15 @@ concat_overview_table <- function(sample_sheet,
   cat("join counts together...\n")
   read_counts <- left_join(read_counts,
     fread(quality_table_file),
-    by = "samplename") %>%
-
+    by = "samplename"
+  ) %>%
     # for double check, unaligend reads by calculation
     mutate(unaligned_reads_by_calc = total_reads - as.numeric(numreads)) %>%
-
-    # difference between unaligned reads from file and by calc must be reads filtered by QC
-    mutate(reads_removed_by_QC = unaligned_reads_by_calc - unaligned_reads_from_file) %>%
-
+    # difference between unaligned reads from file and by calc must be reads
+    # filtered by QC
+    mutate(
+      reads_removed_by_QC = unaligned_reads_by_calc - unaligned_reads_from_file
+    ) %>%
     # TODO check if removing file names is okay
     select(!starts_with("file"))
   return(read_counts)
@@ -86,7 +92,10 @@ parse_sample_sheet <- function(sample_sheet.df,
         )
       ),
       file_trimmed_reads_r2 = ifelse(paired_end,
-        file.path(trimmed_reads_dir, paste0(samplename, "_trimmed_R1.fastq.gz")),
+        file.path(
+          trimmed_reads_dir,
+          paste0(samplename, "_trimmed_R1.fastq.gz")
+        ),
         ""
       ),
       file_unaligned_reads = file.path(
@@ -120,15 +129,17 @@ cat("\"\n\n")
 
 sample_sheet <- args[1]
 output_file <- args[2]
-raw_reads_dir     <- args[3]
+raw_reads_dir <- args[3]
 trimmed_reads_dir <- args[4]
-mapped_reads_dir  <- args[5]
+mapped_reads_dir <- args[5]
 quality_table_file <- args[6]
 
-df <- concat_overview_table(sample_sheet,
+df <- concat_overview_table(
+  sample_sheet,
   raw_reads_dir,
   trimmed_reads_dir,
   mapped_reads_dir,
-  quality_table_file)
-  
+  quality_table_file
+)
+
 fwrite(df, output_file)
