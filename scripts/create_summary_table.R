@@ -6,7 +6,10 @@ create_summary <- function(files) {
   # read files into list
   table_list <- lapply(
     X = files,
-    FUN = fread
+    FUN = fread,
+    colClasses = list(
+      "POSIXct" = "dates"
+    )
   )
 
   # remove empty files from list
