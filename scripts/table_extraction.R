@@ -25,7 +25,7 @@ count_muts <- function(sample_row, mutation_sheet_df) {
   mutations_ps <- sample_row %>%
     dplyr::select(-all_of(meta_cols_excl))
 
-  count_frame <- data.frame(
+  counts_tot_sample <- data.frame(
     # mutations only
     sample = as.character(sample_row["samplename"]),
     # count all mutations which are not NA
@@ -54,7 +54,7 @@ count_muts <- function(sample_row, mutation_sheet_df) {
     mutate(non_sigmuts = total_muts - total_sigmuts)
 
 
-  counts_var_sample <- count_frame %>%
+  counts_var_sample <- counts_tot_sample %>%
     dplyr::select(sample)
 
   # get number of siganture mutation per variant
@@ -68,7 +68,7 @@ count_muts <- function(sample_row, mutation_sheet_df) {
       )
     )
   }
-  return(dplyr::left_join(count_frame, counts_var_sample, by = "sample"))
+  return(dplyr::left_join(counts_tot_sample, counts_var_sample, by = "sample"))
 }
 
 write_mutations_count <- function(mutation_plot_data,
@@ -103,7 +103,7 @@ write_mutations_count <- function(mutation_plot_data,
   if (length(mutations_sig) > 0) {
     # total counts across all samples, without duplicated counts
     # (compared to what I'd get when summing up all the columns)
-    count_frame <- data.frame(
+    counts_tot_all <- data.frame(
       sample = "Total",
       total_muts = length(mutations),
       total_sigmuts = ncol(common_sigmuts_df),
@@ -120,7 +120,7 @@ write_mutations_count <- function(mutation_plot_data,
       mutate(non_sigmuts = total_muts - total_sigmuts)
 
 
-    counts_var_all <- count_frame %>%
+    counts_var_all <- counts_tot_all %>%
     dplyr::select(sample)
 
     # get number of siganture mutation per variant
@@ -130,8 +130,8 @@ write_mutations_count <- function(mutation_plot_data,
       counts_var_all[, paste0("sigmuts_", var)] <- length(sigmut_pv)
     }
 
-    count_frame <- left_join(
-      count_frame,
+    counts_all <- left_join(
+      counts_tot_all,
       counts_var_all,
       by = "sample"
     )
@@ -140,7 +140,7 @@ write_mutations_count <- function(mutation_plot_data,
       bind_rows,
       apply(mutation_plot_data, 1, count_muts, mutation_sheet_df)
     )
-    count_frame <- bind_rows(count_frame, counts_per_sample)
+    count_frame <- bind_rows(counts_all, counts_per_sample)
   } else {
     count_frame <- data.frame()
   }
