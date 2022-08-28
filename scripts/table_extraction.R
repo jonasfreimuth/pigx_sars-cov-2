@@ -48,10 +48,11 @@ count_muts <- function(sample_row, mutation_sheet_df) {
         )
       )
     )
-  )
-  # get number of mutations which aren't signature mutations
-  count_frame <- count_frame %>%
+  ) %>% 
+
+    # get number of mutations which aren't signature mutations
     mutate(non_sigmuts = total_muts - total_sigmuts)
+    
   # get number of siganture mutation per variant
   for (var in colnames(mutation_sheet_df)) {
     count_frame[, paste0("sigmuts_", var)] <- as.numeric(
