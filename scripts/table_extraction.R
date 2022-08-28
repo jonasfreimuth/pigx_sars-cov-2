@@ -107,7 +107,7 @@ write_mutations_count <- function(mutation_plot_data,
       # significant increase over time
       tracked_muts_after_lm = ncol(
         mutation_plot_data %>%
-          dplyr::select(dplyr::contains(mutations_sig$mutation))
+          dplyr::select(all_of(mutations_sig$mutation))
       )
     )
     # get number of mutations which aren't signature mutations
