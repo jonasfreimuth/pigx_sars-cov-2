@@ -5,8 +5,10 @@ count_muts <- function(sample_row, mutation_sheet_df) {
   #' takes row as input, calculates mutation counts and returns a dataframe
   #'
   # transform mutation_sheet to one comparable vector
-  mutation_sheet_v <- unique(unlist(mutation_sheet_df, use.names = FALSE))
-  mutation_sheet_v <- mutation_sheet_v[!is.na(mutation_sheet_v)]
+  mutation_sheet_v <- mutation_sheet_df %>%
+    unlist(use.names = FALSE) %>%
+    unique() %>%
+    na.omit()
 
   # transform char. vector into dataframe
   sample_row <- as_tibble(t(as.matrix(sample_row)))
@@ -64,11 +66,11 @@ write_mutations_count <- function(mutation_plot_data,
   #' counts mutations and return them as a dataframe
 
   # transform mutation_sheet to one comparable vector
-  mutation_sheet_v <- unique(unlist(mutation_sheet_df, use.names = FALSE))
+  mutation_sheet_v <- mutation_sheet_df %>%
+    unlist(use.names = FALSE) %>%
+    unique() %>%
+    na.omit()
 
-  # fixme this feels like there should be a more elegent way to remove na right
-  # away
-  mutation_sheet_v <- mutation_sheet_v[!is.na(mutation_sheet_v)]
   # get names of mutations without meta data
   mutations <- names(
     mutation_plot_data[
