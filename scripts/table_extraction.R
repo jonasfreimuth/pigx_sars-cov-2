@@ -12,11 +12,19 @@ count_muts <- function(sample_row, mutation_sheet_df) {
 
   # transform char. vector into dataframe
   sample_row <- as_tibble(t(as.matrix(sample_row)))
-  mutations_ps <- sample_row[
-    (which(
-      names(sample_row) %in% "coordinates_long"
-    ) + 1):length(names(sample_row))
-  ]
+
+  # create vector of metadata col names to be excluded
+  meta_cols_excl <- c(
+    "samplename",
+    "location_name",
+    "coordinates_lat",
+    "coordinates_long",
+    "dates"
+  )
+
+  mutations_ps <- sample_row %>%
+    dplyr::select(-all_of(meta_cols_excl))
+
   count_frame <- data.frame(
     # mutations only
     sample = as.character(sample_row["samplename"]),
