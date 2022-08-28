@@ -71,15 +71,18 @@ write_mutations_count <- function(mutation_plot_data,
     unique() %>%
     na.omit()
 
-  # get names of mutations without meta data
-  mutations <- names(
-    mutation_plot_data[
-      (
-        which(
-          names(mutation_plot_data) %in% "coordinates_long"
-        ) + 1):length(names(mutation_plot_data))
-    ]
+  # create vector of metadata col names to be excluded
+  meta_cols_excl <- c(
+    "samplename",
+    "location_name",
+    "coordinates_lat",
+    "coordinates_long",
+    "dates"
   )
+
+  # get names of mutations without meta data
+  mutations <- names(mutation_plot_data %>% select(-all_of(meta_cols_excl)))
+
   # signature mutations found across samples
   sigmuts_found_df <- mutation_plot_data %>%
     dplyr::select(dplyr::contains(mutation_sheet_v))
