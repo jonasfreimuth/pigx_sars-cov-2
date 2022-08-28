@@ -101,11 +101,11 @@ write_mutations_count <- function(mutation_plot_data,
     count_frame <- data.frame(
       sample = "Total",
       total_muts = length(mutations),
-      total_sigmuts = length(common_sigmuts_df),
+      total_sigmuts = ncol(common_sigmuts_df),
 
       # get how many of all found mutations will be tracked because of
       # significant increase over time
-      tracked_muts_after_lm = length(
+      tracked_muts_after_lm = ncol(
         mutation_plot_data %>%
           dplyr::select(dplyr::contains(mutations_sig$mutation))
       )
