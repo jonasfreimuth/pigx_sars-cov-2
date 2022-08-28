@@ -5,7 +5,7 @@ count_muts <- function(sample_row, mutation_sheet_df) {
   #' takes row as input, calculates mutation counts and returns a dataframe
   #'
   # transform mutation_sheet to one comparable vector
-  mutation_sheet_v <- mutation_sheet_df %>%
+  sigmut_vec_all <- mutation_sheet_df %>%
     unlist(use.names = FALSE) %>%
     unique() %>%
     na.omit()
@@ -27,7 +27,7 @@ count_muts <- function(sample_row, mutation_sheet_df) {
       rowSums(
         !is.na(
           mutations_ps %>%
-            dplyr::select(dplyr::contains(mutation_sheet_v))
+            dplyr::select(dplyr::contains(sigmut_vec_all))
         )
       )
     ),
@@ -66,7 +66,7 @@ write_mutations_count <- function(mutation_plot_data,
   #' counts mutations and return them as a dataframe
 
   # transform mutation_sheet to one comparable vector
-  mutation_sheet_v <- mutation_sheet_df %>%
+  sigmut_vec_all <- mutation_sheet_df %>%
     unlist(use.names = FALSE) %>%
     unique() %>%
     na.omit()
@@ -84,8 +84,8 @@ write_mutations_count <- function(mutation_plot_data,
   mutations <- names(mutation_plot_data %>% select(-all_of(meta_cols_excl)))
 
   # signature mutations found across samples
-  sigmuts_found_df <- mutation_plot_data %>%
-    dplyr::select(dplyr::contains(mutation_sheet_v))
+  common_sigmuts_df <- mutation_plot_data %>%
+    dplyr::select(dplyr::contains(sigmut_vec_all))
 
   # total counts across all samples, without duplicated counts
   # (compared to what I'd get when summing up all the columns)
@@ -93,7 +93,7 @@ write_mutations_count <- function(mutation_plot_data,
     count_frame <- data.frame(
       sample = "Total",
       total_muts = length(mutations),
-      total_sigmuts = length(sigmuts_found_df),
+      total_sigmuts = length(common_sigmuts_df),
       # get how many of all found mutations will be tracked because of
       # significant increase over time
       tracked_muts_after_lm = length(
