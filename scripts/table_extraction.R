@@ -95,13 +95,14 @@ write_mutations_count <- function(mutation_plot_data,
   common_sigmuts_df <- mutation_plot_data %>%
     dplyr::select(dplyr::contains(sigmut_vec_all))
 
-  # total counts across all samples, without duplicated counts
-  # (compared to what I'd get when summing up all the columns)
   if (length(mutations_sig) > 0) {
+    # total counts across all samples, without duplicated counts
+    # (compared to what I'd get when summing up all the columns)
     count_frame <- data.frame(
       sample = "Total",
       total_muts = length(mutations),
       total_sigmuts = length(common_sigmuts_df),
+
       # get how many of all found mutations will be tracked because of
       # significant increase over time
       tracked_muts_after_lm = length(
