@@ -1,6 +1,6 @@
 library(dplyr)
 
-count_muts <- function(x, mutation_sheet.df) { # x = sample row
+count_muts <- function(sample_row, mutation_sheet.df) {
   #' function used in rowwise apply() call
   #' takes row as input, calculates mutation counts and returns a dataframe
   #'
@@ -9,13 +9,15 @@ count_muts <- function(x, mutation_sheet.df) { # x = sample row
   mutation_sheet.v <- mutation_sheet.v[!is.na(mutation_sheet.v)]
 
   # transform char. vector into dataframe
-  x <- as_tibble(t(as.matrix(x)))
-  mutations_ps <- x[
-    (which(names(x) %in% "coordinates_long") + 1):length(names(x))
+  sample_row <- as_tibble(t(as.matrix(sample_row)))
+  mutations_ps <- sample_row[
+    (which(
+      names(sample_row) %in% "coordinates_long"
+    ) + 1):length(names(sample_row))
   ]
   count_frame <- data.frame(
     # mutations only
-    sample = as.character(x["samplename"]),
+    sample = as.character(sample_row["samplename"]),
     # count all mutations which are not NA
     total_muts = as.numeric(rowSums(!is.na(mutations_ps))),
     # count all mutations that are signature mutations
