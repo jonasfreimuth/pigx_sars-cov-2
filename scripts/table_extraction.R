@@ -52,10 +52,14 @@ count_muts <- function(sample_row, mutation_sheet_df) {
 
     # get number of mutations which aren't signature mutations
     mutate(non_sigmuts = total_muts - total_sigmuts)
-    
+
+
+  counts_var_sample <- count_frame %>%
+    dplyr::select(sample)
+
   # get number of siganture mutation per variant
   for (var in colnames(mutation_sheet_df)) {
-    count_frame[, paste0("sigmuts_", var)] <- as.numeric(
+    counts_var_sample[, paste0("sigmuts_", var)] <- as.numeric(
       rowSums(
         !is.na(
           mutations_ps %>%
@@ -64,7 +68,7 @@ count_muts <- function(sample_row, mutation_sheet_df) {
       )
     )
   }
-  return(count_frame)
+  return(dplyr::left_join(count_frame, counts_var_sample, by = "sample"))
 }
 
 write_mutations_count <- function(mutation_plot_data,
@@ -115,12 +119,22 @@ write_mutations_count <- function(mutation_plot_data,
       # get number of mutations which aren't signature mutations
       mutate(non_sigmuts = total_muts - total_sigmuts)
 
+
+    counts_var_all <- count_frame %>%
+    dplyr::select(sample)
+
     # get number of siganture mutation per variant
     for (var in colnames(mutation_sheet_df)) {
       sigmut_pv <- mutation_plot_data %>%
         dplyr::select(dplyr::contains(na.omit(mutation_sheet_df[[var]])))
-      count_frame[, paste0("sigmuts_", var)] <- length(sigmut_pv)
+      counts_var_all[, paste0("sigmuts_", var)] <- length(sigmut_pv)
     }
+
+    count_frame <- left_join(
+      count_frame,
+      counts_var_all,
+      by = "sample"
+    )
 
     counts_per_sample <- do.call(
       bind_rows,
