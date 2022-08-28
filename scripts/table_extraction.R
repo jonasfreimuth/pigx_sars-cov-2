@@ -109,9 +109,9 @@ write_mutations_count <- function(mutation_plot_data,
         mutation_plot_data %>%
           dplyr::select(all_of(mutations_sig$mutation))
       )
-    )
-    # get number of mutations which aren't signature mutations
-    count_frame <- count_frame %>%
+    ) %>%
+
+      # get number of mutations which aren't signature mutations
       mutate(non_sigmuts = total_muts - total_sigmuts)
 
     # get number of siganture mutation per variant
