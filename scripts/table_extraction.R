@@ -13,7 +13,10 @@ count_muts <- function(sample_row, mutation_sheet_df, sign_incr_muts) {
     na.omit()
 
   # transform char. vector into dataframe
-  sample_row <- as_tibble(t(as.matrix(sample_row)))
+  sample_row <- sample_row %>%
+    as.matrix() %>%
+    t() %>%
+    as_tibble()
 
   # create vector of metadata col names to be excluded
   meta_cols_excl <- c(
