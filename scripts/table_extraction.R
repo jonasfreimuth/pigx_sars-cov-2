@@ -1,3 +1,4 @@
+library(magrittr)
 library(stringr)
 library(dplyr)
 
@@ -128,21 +129,18 @@ get_mutations_counts <- function(mutation_plot_data,
       # get number of mutations which aren't signature mutations
       mutate(non_sigmuts = total_muts - total_sigmuts)
 
+    counts_var_all <- lapply(
+      mutation_sheet_df,
+      function(var_muts, mutations) {
+        var_muts <- na.omit(var_muts)
+        return(sum(mutations %in% var_muts))
+      }, mutations) %>%
+      bind_cols() %>%
+      set_names(paste0("sigmuts_", names(.)))
 
-    counts_var_all <- counts_tot_all %>%
-    dplyr::select(sample)
-
-    # get number of siganture mutation per variant
-    for (var in colnames(mutation_sheet_df)) {
-      sigmut_pv <- mutation_plot_data %>%
-        dplyr::select(dplyr::contains(na.omit(mutation_sheet_df[[var]])))
-      counts_var_all[, paste0("sigmuts_", var)] <- length(sigmut_pv)
-    }
-
-    counts_all <- left_join(
+    counts_all <- bind_cols(
       counts_tot_all,
-      counts_var_all,
-      by = "sample"
+      counts_var_all
     )
 
     counts_per_sample <- apply(
