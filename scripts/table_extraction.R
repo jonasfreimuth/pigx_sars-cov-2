@@ -28,7 +28,6 @@ count_muts <- function(sample_row, mutation_sheet_df, sign_incr_muts) {
     dplyr::select(-all_of(meta_cols_excl))
 
   counts_tot_sample <- data.frame(
-    # mutations only
     sample = as.character(sample_row["samplename"]),
     # count all mutations which are not NA
     total_muts = as.numeric(rowSums(!is.na(mutations_ps))),
