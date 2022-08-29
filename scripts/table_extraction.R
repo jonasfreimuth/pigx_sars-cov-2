@@ -136,10 +136,14 @@ write_mutations_count <- function(mutation_plot_data,
       by = "sample"
     )
 
-    counts_per_sample <- do.call(
-      bind_rows,
-      apply(mutation_plot_data, 1, count_muts, mutation_sheet_df)
-    )
+    counts_per_sample <- apply(
+      mutation_plot_data,
+      1,
+      count_muts,
+      mutation_sheet_df
+    ) %>%
+    bind_rows()
+
     count_frame <- bind_rows(counts_all, counts_per_sample)
   } else {
     count_frame <- data.frame()
