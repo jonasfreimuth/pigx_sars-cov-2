@@ -89,7 +89,10 @@ get_mutations_counts <- function(mutation_plot_data,
     na.omit()
 
   # get vector of significantly increasing mutations
-  sign_incr_muts <- mutations_sig$mutation
+  sign_incr_muts <- mutations_sig$mutation %>%
+
+    # extract only nucleotide mutation part, drop AA muts
+    str_extract("[A-Z0-9*_]+$")
 
   # create vector of metadata col names to be excluded
   meta_cols_excl <- c(
