@@ -97,7 +97,9 @@ get_mutations_counts <- function(mutation_plot_data,
   )
 
   # get names of mutations without meta data
-  mutations <- names(mutation_plot_data %>% select(-all_of(meta_cols_excl)))
+  mutations <- mutation_plot_data %>%
+    select(-all_of(meta_cols_excl)) %>%
+    names()
 
   # signature mutations found across samples
   common_sigmuts_df <- mutation_plot_data %>%
