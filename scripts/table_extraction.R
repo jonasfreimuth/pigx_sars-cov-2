@@ -1,3 +1,4 @@
+library(stringr)
 library(dplyr)
 
 count_muts <- function(sample_row, mutation_sheet_df, sign_incr_muts) {
@@ -99,7 +100,10 @@ get_mutations_counts <- function(mutation_plot_data,
   # get names of mutations without meta data
   mutations <- mutation_plot_data %>%
     select(-all_of(meta_cols_excl)) %>%
-    names()
+    names() %>%
+
+    # extract only nucleotide mutation part, drop AA muts
+    str_extract("[A-Z0-9*_]+$")
 
   # signature mutations found across samples
   common_sigmuts_df <- mutation_plot_data %>%
