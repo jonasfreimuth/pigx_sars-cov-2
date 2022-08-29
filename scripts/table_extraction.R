@@ -30,29 +30,20 @@ count_muts <- function(sample_row, mutation_sheet_df, sign_incr_muts) {
   mutations_ps <- sample_row %>%
     dplyr::select(-all_of(meta_cols_excl))
 
+  mutations <- mutations_ps %>%
+    dplyr::select(-where(is.na)) %>%
+    names() %>%
+
+    # extract only nucleotide mutation part, drop AA muts
+    str_extract("[A-Z0-9*_]+$")
+
   counts_tot_sample <- data.frame(
-    sample = as.character(sample_row["samplename"]),
-    # count all mutations which are not NA
-    total_muts = as.numeric(rowSums(!is.na(mutations_ps))),
-    # count all mutations that are signature mutations
-    total_sigmuts = as.numeric(
-      rowSums(
-        !is.na(
-          mutations_ps %>%
-            dplyr::select(dplyr::contains(sigmut_vec_all))
-        )
-      )
-    ),
+    sample                = sample_row[["samplename"]],
+    total_muts            = length(mutations),
+    total_sigmuts         = sum(mutations %in% sigmut_vec_all),
     # get num of muts with significant increase over time
-    tracked_muts_after_lm = as.numeric(
-      rowSums(
-        !is.na(
-          mutations_ps %>%
-            dplyr::select(dplyr::contains(sign_incr_muts))
-        )
-      )
-    )
-  ) %>% 
+    tracked_muts_after_lm = sum(mutations %in% sign_incr_muts)
+  ) %>%
 
     # get number of mutations which aren't signature mutations
     mutate(non_sigmuts = total_muts - total_sigmuts)
