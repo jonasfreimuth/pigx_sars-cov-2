@@ -12,12 +12,6 @@ count_muts <- function(sample_row, mutation_sheet_df, sign_incr_muts) {
     unique() %>%
     na.omit()
 
-  # transform char. vector into dataframe
-  sample_row <- sample_row %>%
-    as.matrix() %>%
-    t() %>%
-    as_tibble()
-
   # create vector of metadata col names to be excluded
   meta_cols_excl <- c(
     "samplename",
@@ -27,10 +21,11 @@ count_muts <- function(sample_row, mutation_sheet_df, sign_incr_muts) {
     "dates"
   )
 
-  mutations_ps <- sample_row %>%
-    dplyr::select(-all_of(meta_cols_excl))
-
-  mutations <- mutations_ps %>%
+  mutations <- sample_row %>%
+    as.matrix() %>%
+    t() %>%
+    as_tibble() %>%
+    dplyr::select(-all_of(meta_cols_excl)) %>%
     dplyr::select(-where(is.na)) %>%
     names() %>%
 
@@ -38,7 +33,7 @@ count_muts <- function(sample_row, mutation_sheet_df, sign_incr_muts) {
     str_extract("[A-Z0-9*_]+$")
 
   counts_tot_sample <- data.frame(
-    sample                = sample_row[["samplename"]],
+    sample                = sample_row["samplename"],
     total_muts            = length(mutations),
     total_sigmuts         = sum(mutations %in% sigmut_vec_all),
     # get num of muts with significant increase over time
