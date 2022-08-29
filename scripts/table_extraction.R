@@ -71,7 +71,7 @@ count_muts <- function(sample_row, mutation_sheet_df) {
   return(dplyr::left_join(counts_tot_sample, counts_var_sample, by = "sample"))
 }
 
-write_mutations_count <- function(mutation_plot_data,
+get_mutations_counts <- function(mutation_plot_data,
                                   mutation_sheet_df,
                                   mutations_sig) {
   #' takes data_mut_plot.csv df, mutation_sheet_df with NAs at empty cells,
