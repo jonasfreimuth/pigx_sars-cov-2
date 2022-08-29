@@ -1,6 +1,6 @@
 library(dplyr)
 
-count_muts <- function(sample_row, mutation_sheet_df) {
+count_muts <- function(sample_row, mutation_sheet_df, sign_incr_muts) {
   #' function used in rowwise apply() call
   #' takes row as input, calculates mutation counts and returns a dataframe
   #'
@@ -44,7 +44,7 @@ count_muts <- function(sample_row, mutation_sheet_df) {
       rowSums(
         !is.na(
           mutations_ps %>%
-            dplyr::select(dplyr::contains(mutations_sig$mutation))
+            dplyr::select(dplyr::contains(sign_incr_muts))
         )
       )
     )
@@ -84,6 +84,9 @@ get_mutations_counts <- function(mutation_plot_data,
     unique() %>%
     na.omit()
 
+  # get vector of significantly increasing mutations
+  sign_incr_muts <- mutations_sig$mutation
+
   # create vector of metadata col names to be excluded
   meta_cols_excl <- c(
     "samplename",
@@ -112,7 +115,7 @@ get_mutations_counts <- function(mutation_plot_data,
       # significant increase over time
       tracked_muts_after_lm = ncol(
         mutation_plot_data %>%
-          dplyr::select(all_of(mutations_sig$mutation))
+          dplyr::select(all_of(sign_incr_muts))
       )
     ) %>%
 
@@ -140,7 +143,8 @@ get_mutations_counts <- function(mutation_plot_data,
       mutation_plot_data,
       1,
       count_muts,
-      mutation_sheet_df
+      mutation_sheet_df,
+      sign_incr_muts
     ) %>%
     bind_rows()
 
