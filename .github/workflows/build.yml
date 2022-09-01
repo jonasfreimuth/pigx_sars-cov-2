@@ -26,19 +26,14 @@ jobs:
       - name: DB cache
         uses: actions/cache@v3
         with:
-          path: ~/.pigx-databases
+          path: ~/.local/share/pigx/databases
           key: pigx-databases
       - name: Bootstrap
         run: guix shell -m manifest.scm -- ./bootstrap.sh
       - name: Configure
         run: guix shell -m manifest.scm -- ./configure
-      - name: TEMP Create DB dir
-        run: mkdir -p ~/.local/share/pigx/databases
       - name: TEMP DB Download
-        run: |
-          ls -lha ~
-          source ~/pigx_sars-cov-2/scripts/download_databases.sh
-        working-directory: ~/.local/share/pigx/databases
+        run: source scripts/download_databases.sh
       - name: Build
         run: guix shell -m manifest.scm -- make -j
       - name: Distcheck
