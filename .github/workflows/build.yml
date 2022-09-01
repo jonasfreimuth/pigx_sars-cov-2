@@ -32,8 +32,12 @@ jobs:
         run: guix shell -m manifest.scm -- ./bootstrap.sh
       - name: Configure
         run: guix shell -m manifest.scm -- ./configure
+      - name: TEMP Create DB dir
+        run: mkdir -p ~/.local/share/pigx/databases
       - name: TEMP DB Download
-        run: source ~/pigx_sars-cov-2/scripts/download_databases.sh
+        run: |
+          ls -lha ~
+          source ~/pigx_sars-cov-2/scripts/download_databases.sh
         working-directory: ~/.local/share/pigx/databases
       - name: Build
         run: guix shell -m manifest.scm -- make -j
