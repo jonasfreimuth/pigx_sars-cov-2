@@ -80,6 +80,12 @@ AX_R_PACKAGE([tidyr])
 AX_R_PACKAGE([viridis])
   ])
 
+AC_ARG_WITH([pigx_db_dir],
+  AS_HELP_STRING([--pigx_db_dir], [Default database dir used by the pipeline. [default: "~/.local/share/pigx/databases]]),
+  [PIGX_DB_DIR=$withval], [PIGX_DB_DIR="~/.local/share/pigx/databases"])
+
+AC_ARG_VAR(PIGX_DB_DIR, Default database dir used by the pipeline.)
+
 AC_ARG_ENABLE([environment-capture],
   AS_HELP_STRING([--disable-environment-capture], [Do not capture environment variables.]),
   [AC_MSG_NOTICE([Environment variables will not be captured.])],
