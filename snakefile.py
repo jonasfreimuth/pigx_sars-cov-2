@@ -740,8 +740,7 @@ rule fastqc_raw_se:
 
 # FIXME: or discard completely and change multiqc to use fastp --> fastp rule would have to be adjusted to create reasonable outputs
 # ANNOT: Do quality control on paired end sample fastq read files.
-# FIXME: Should this rule be called `fastqc_raw_pe`?
-rule fastqc_raw:
+rule fastqc_raw_pe:
     input: trim_reads_input
     output:
         r1_rep = os.path.join(FASTQC_DIR, '{sample}', '{sample}_R1_fastqc.html'),
