@@ -8,12 +8,12 @@ locations:
 
 databases:
   kraken2:
-    archive-url: bimsbstatic.mdc-berlin.de/akalin/AAkalin_pathogenomics/databases_small/kraken_db.tar.gz
+    archive-url: https://github.com/jonasfreimuth/pigx-databases/raw/main/kraken_db.tar.gz
   krona:
     use-prebuilt: true
-    archive-url: bimsbstatic.mdc-berlin.de/akalin/AAkalin_pathogenomics/databases_small/krona_db.tar.gz
+    archive-url: https://github.com/jonasfreimuth/pigx-databases/raw/main/krona_db.tar.gz
   vep:
-    archive-url: bimsbstatic.mdc-berlin.de/akalin/AAkalin_pathogenomics/databases_small/vep_db.tar.gz
+    archive-url: https://github.com/jonasfreimuth/pigx-databases/raw/main/vep_db.tar.gz
 
 parameters:
   reporting:
