@@ -15,7 +15,7 @@ def download_tarball(dl_url):
         raise Exception(f"dl_url ({dl_url}) does not point to a '.tar.gz' file.")
 
     logger.info(
-        f"Downloading database archive from {dl_url}...")
+        f"Attempting to download database archive from {dl_url}...")
     
     if re.match("ftp://*", dl_url):
         try:
