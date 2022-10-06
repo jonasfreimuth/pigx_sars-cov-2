@@ -13,7 +13,7 @@ databases:
     use-prebuilt: true
     archive-url: bimsbstatic.mdc-berlin.de/akalin/AAkalin_pathogenomics/databases_small-20221006/krona_db.tar.gz
   vep:
-    archive-url: bimsbstatic.mdc-berlin.de/akalin/AAkalin_pathogenomics/databases_small-20221006/vep_db.tar.gz
+    archive-url: ftp://ftp.ensemblgenomes.org/pub/viruses/variation/indexed_vep_cache/sars_cov_2_vep_101_ASM985889v3.tar.gz
 
 parameters:
   reporting:
