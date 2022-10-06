@@ -14,6 +14,11 @@ def download_tarball(dl_url):
     if not re.search(".tar.gz$", dl_url):
         raise Exception(f"dl_url ({dl_url}) does not point to a '.tar.gz' file.")
 
+    if not re.match("[a-z]*://", dl_url):
+        logger.info(
+            f"No protocol identifier in {dl_url}, assuming http/https...")
+        dl_url = "http://" + dl_url
+
     logger.info(
         f"Attempting to download database archive from {dl_url}...")
     
@@ -29,10 +34,6 @@ def download_tarball(dl_url):
 
     elif re.match("http[s]?://*", dl_url) or not re.match("[a-z]*://", dl_url):
         # FIXME Change http download to also use urllib.request for consistency.
-        if not re.match("[a-z]*://", dl_url):
-            logger.info(
-                f"No protocol identifier in {dl_url}, assuming http/https...")
-            dl_url = "http://" + dl_url
 
         dl_resp = requests.get(dl_url, stream=True)
 
