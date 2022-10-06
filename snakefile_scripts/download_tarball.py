@@ -13,12 +13,11 @@ def download_tarball(dl_url):
 
     if not re.search(".tar.gz$", dl_url):
         raise Exception(f"dl_url ({dl_url}) does not point to a '.tar.gz' file.")
+
+    logger.info(
+        f"Downloading database archive from {dl_url}...")
     
     if re.match("ftp://*", dl_url):
-        logger.info(
-            f"Downloading database archive from ftp server at "
-            f"{dl_url} to temp file...")
-
         try:
             dl_resp = urlrequest.urlopen(dl_url)
 
@@ -34,9 +33,6 @@ def download_tarball(dl_url):
             logger.info(
                 f"No protocol identifier in {dl_url}, assuming http/https...")
             dl_url = "http://" + dl_url
-
-        logger.info(
-            f"Downloading database archive from {dl_url}...")
 
         dl_resp = requests.get(dl_url, stream=True)
 
