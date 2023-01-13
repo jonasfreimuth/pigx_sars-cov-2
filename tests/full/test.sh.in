@@ -1,0 +1,39 @@
+#!@GNUBASH@
+
+set -e
+
+# Files will be in srcdir when they are used as is and in builddir when
+# they are configured.
+echo "srcdir: $srcdir"
+echo "builddir: $builddir"
+
+env_script="../manual_run_env.sh"
+
+script_loc="$(dirname -- "$( readlink -f -- "${BASH_SOURCE[0]}"; )";)"
+
+# If the env script for setting vars during manual execution is missing,
+# we are probably doing a make (dist)check and the vars should be set by that.
+if test -e "$env_script"
+then
+    source $env_script
+fi
+
+testdir="$srcdir/tests/full"
+
+# Ensure the output can be written to the test dir.
+chmod -R +w $testdir
+
+export SOURCE_DATE_EPOCH=1
+export PIGX_UGLY=1
+export PIGX_UNINSTALLED=1
+
+# Perform a full run
+$builddir/pigx-sars-cov-2 --printshellcmds \
+    -s "$testdir/settings.yaml" \
+    "$testdir/sample_sheet.csv"
+
+if ! test -f "$testdir/output/report/index.html"
+then
+    echo "ERROR: Could not find report for complete run."
+    exit 1
+fi

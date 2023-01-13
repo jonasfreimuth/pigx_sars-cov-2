@@ -19,14 +19,13 @@ scripts/download_databases.sh
 pigx_sars-cov-2*
 
 # test files
-tests/output*
-test.sh
-test.sh.log
-test.sh.trs
 test-suite.log
-tests/tests/*trs
-tests/tests/*log
-tests/tests/*sh
+tests/**/output*
+tests/**/*.trs
+tests/**/*.log
+tests/**/*.sh
+tests/*.sh
+tests/**/input
 .Rproj.user
 
 # misc dirs

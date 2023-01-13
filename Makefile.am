@@ -51,28 +51,28 @@ dist_doc_DATA = 									\
 EXTRA_DIST = \
   VERSION \
   META.in \
-  $(wildcard tests/vep_test/*) \
-  tests/setup_test_settings.yaml \
-  $(wildcard tests/reads/*) \
-  tests/sample_data/NC_045512.2.fasta \
-  tests/sample_data/nCoV-2019_NCref.bed \
-  tests/sample_data/Covid_CG_NTmutation_t07.bed \
-  tests/sample_data/mutation_sheet_211006_covidCG_NT_location.csv
+  $(wildcard tests/vep_test/**) \
+  $(wildcard tests/full/**)
+
 
 AM_TESTS_ENVIRONMENT = srcdir="$(abs_top_srcdir)" builddir="$(abs_top_builddir)" PIGX_UNINSTALLED=1 PIGX_UGLY=1
 
 TESTS = \
   tests/vep_test/vep.sh \
-  test.sh
+  tests/full/test.sh
 
 clean-local:
 	-rm -rf .snakemake
-	-rm -rf tests/output
+	-rm -rf tests/**/output
+	-rm -rf tests/**/config.json
+	-rm -rf tests/**/*.log
 
 CLEANFILES = $(nodist_bin_SCRIPTS) config.json
 
 integration:
-	$(AM_TESTS_ENVIRONMENT) $(abs_top_srcdir)/pigx-sars-cov-2 --printshellcmds -s tests/settings.yaml tests/sample_sheet.csv
+	$(AM_TESTS_ENVIRONMENT) $(abs_top_srcdir)/pigx-sars-cov-2 --printshellcmds \
+		-s tests/full/settings.yaml \
+		tests/full/sample_sheet.csv
 
 # Build docker image with Guix
 docker: dist
