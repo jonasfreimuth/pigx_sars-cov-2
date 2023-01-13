@@ -8,8 +8,8 @@ dir=${root}/tests/test_vep
 mkdir -p ${dir}
 
 script="${srcdir}/scripts/parse_vep.py"
-input="${srcdir}/tests/sample_data/test_vep_parsing_input.txt"
-expected="${srcdir}/tests/sample_data/Test_vep_sarscov2_parsed.txt"
+input="${srcdir}/tests/vep_test/test_vep_parsing_input.txt"
+expected="${srcdir}/tests/vep_test/Test_vep_sarscov2_parsed.txt"
 output="${dir}/output"
 
 @PYTHON@ ${script} ${input} ${output}
