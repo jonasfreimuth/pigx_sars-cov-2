@@ -28,6 +28,8 @@ tests/*.sh
 tests/**/input
 tests/start_bam/sample_sheet.csv
 tests/start_bam/sample_data
+tests/start_vcf/sample_sheet.csv
+tests/start_vcf/sample_data
 .Rproj.user
 
 # misc dirs

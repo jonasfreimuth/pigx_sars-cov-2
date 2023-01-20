@@ -53,7 +53,8 @@ EXTRA_DIST = \
   META.in \
   $(wildcard tests/vep_test/**) \
   $(wildcard tests/full/**) \
-  $(wildcard tests/start_bam/**)
+  $(wildcard tests/start_bam/**) \
+  $(wildcard tests/start_vcf/**)
 
 
 AM_TESTS_ENVIRONMENT = srcdir="$(abs_top_srcdir)" builddir="$(abs_top_builddir)" PIGX_UNINSTALLED=1 PIGX_UGLY=1
@@ -61,7 +62,8 @@ AM_TESTS_ENVIRONMENT = srcdir="$(abs_top_srcdir)" builddir="$(abs_top_builddir)"
 TESTS = \
   tests/vep_test/vep.sh \
   tests/full/test.sh \
-  tests/start_bam/test.sh
+  tests/start_bam/test.sh \
+  tests/start_vcf/test.sh
 
 clean-local:
 	-rm -rf .snakemake
