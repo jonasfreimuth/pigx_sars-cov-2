@@ -1,0 +1,24 @@
+#!@GNUBASH@
+
+set -e
+
+# Christ what an a** to just get the path to this script no matter how it is
+# run...
+# See https://stackoverflow.com/questions/59895/how-do-i-get-the-directory-where-a-bash-script-is-located-from-within-the-script#comment9536277_246128
+filedir="$(dirname -- "$( readlink -f -- "${BASH_SOURCE[0]}"; )";)"
+
+if test -z "${builddir+x}"
+then
+    export builddir="$(realpath $filedir/..)"
+    echo "Set builddir to $builddir"
+else
+    echo "Leaving builddir set to $builddir"
+fi
+
+if test -z "${srcdir+x}"
+then
+    export srcdir="$(realpath $filedir/..)"
+    echo "Set srcdir to $srcdir"
+else
+    echo "Leaving srcdir set to $srcdir"
+fi
