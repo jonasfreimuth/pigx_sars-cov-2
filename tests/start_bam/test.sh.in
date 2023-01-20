@@ -1,0 +1,72 @@
+#!@GNUBASH@
+
+set -e
+
+script_loc="$(dirname -- "$( readlink -f -- "${BASH_SOURCE[0]}"; )";)"
+
+env_script="$script_loc/../manual_run_env.sh"
+
+# If the env script for setting vars during manual execution is missing,
+# we are probably doing a make (dist)check and the vars should be set by that.
+if test -e "$env_script"
+then
+    source $env_script
+fi
+
+testdir="$srcdir/tests/start_bam"
+
+# Ensure the output can be written to the test dir.
+chmod -R +w $testdir
+
+export SOURCE_DATE_EPOCH=1
+export PIGX_UNINSTALLED=1
+export PIGX_UGLY=1
+
+full="$testdir/../full"
+
+# This script needs to be run after the full run. This is done to save space
+# in our remote repositories.
+if ! test -f "$full/output/report/index.html"
+then
+    source $full/test.sh
+fi
+
+# Adapt sample sheet
+# It is not preconfigured so that simple changes to the filenames do not
+# necessitate changes to all tests.
+sed "s,\.fastq[^,]*,\.bam,g" \
+    $full/sample_sheet.csv > $testdir/sample_sheet.csv
+
+# Ensure the run can be repeated by just running the script again.
+input_dir="$testdir/input"
+if test -e "$input_dir"
+then
+    rm -rf "$input_dir" 
+fi
+mkdir -p "$input_dir"
+
+sample_data_dir="$testdir/sample_data"
+if test -e $sample_data_dir
+then
+    rm -rf $sample_data_dir
+fi
+
+# Link input files
+for file in $(find $full/output/mapped_reads \
+    -type f -name "*aligned_sorted.bam")
+do
+    target="$input_dir/$(basename $file | sed 's,_aligned_sorted,,g')"
+    ln -s $file $target
+done
+
+ln -s "$full/sample_data" "$sample_data_dir"
+
+$builddir/pigx-sars-cov-2 --printshellcmds \
+    -s "$testdir/settings.yaml" \
+    "$testdir/sample_sheet.csv"
+
+if ! test -f "$testdir/output/report/index.html"
+then
+    echo "ERROR: Could not find report for partial bam only run."
+    exit 1
+fi

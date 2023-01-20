@@ -26,6 +26,8 @@ tests/**/*.log
 tests/**/*.sh
 tests/*.sh
 tests/**/input
+tests/start_bam/sample_sheet.csv
+tests/start_bam/sample_data
 .Rproj.user
 
 # misc dirs
